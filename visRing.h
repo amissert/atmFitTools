@@ -1,5 +1,5 @@
-#ifndef VISRING_H
-#define VISRING_H
+#ifndef __VISRING_H__
+#define __VISRING_H__
 
 #include "fqEvent.h"
 #include "TMath.h"
@@ -9,7 +9,6 @@
 #define MAXNVIS 100
 
 using namespace std;
-
 
 //a class for counting the number of visible rings in an event
 

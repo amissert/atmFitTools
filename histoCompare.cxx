@@ -2,11 +2,10 @@
 #define HISTOCOMPARE_C
 
 #include "histoCompare.h"
-#include "markovTools.cxx"
+#include "markovTools.h"
 #include <time.h>
 
 histoCompare* histoCompare::staticthis;
-
 
 /////////////////////////////////////////////
 //get a rough estimation (fron 1D likelihood proflie)
@@ -20,13 +19,13 @@ void histoCompare::calcRoughParErr(){
 
   //print final results
   for (int ipar=0;ipar<thePars->nTotPars;ipar++){
- //   thePars->setParameter(ipar,fit->GetParameter(ipar));
+    //   thePars->setParameter(ipar,fit->GetParameter(ipar));
     errParLo[ipar]=getErrLo(ipar);
     errParHi[ipar]=getErrHi(ipar);
     thePars->parUnc[ipar]=(errParHi[ipar]-errParLo[ipar]);
     cout<<"  PAR "<<ipar<<" FIT RESULT: "<<thePars->pars[ipar]<<" +/- : "<<thePars->parUnc[ipar]<<endl;
   }
-  return;
+
 }
 
 void histoCompare::readFitPars(const char* filename){
@@ -87,7 +86,7 @@ void histoCompare::tuneMCMC(int ncycles,int nsteps,double goal){
 
   //fill parameter array and set uncertainties
   for (int ipar=0;ipar<thePars->nTotPars;ipar++){
-   // par[ipar]=thePars->getParameter(ipar); //< parameter array
+    // par[ipar]=thePars->getParameter(ipar); //< parameter array
     mc->setParVar(ipar,thePars->parUnc[ipar]); //< set parameter variance
     mc->setFixPar(ipar,thePars->fixPar[ipar]); //< set parameter fix flag
   }
@@ -130,7 +129,7 @@ void histoCompare::tuneMCMCOld(int ncycles,int nsteps,double goal){
   double par[npars]; //< container for parameters
   int parindex = 0;
   double result = 0.;
- markovTools* mc = new markovTools(npars); //< create markovTools object
+  markovTools* mc = new markovTools(npars); //< create markovTools object
 //  markovTools* mc = new markovTools(thePars); //< create markovTools object
   mc->setTuneParameter(tunePar);
 
@@ -168,10 +167,9 @@ void histoCompare::tuneMCMCOld(int ncycles,int nsteps,double goal){
     tunePar*=(rate/goal);
     cout<<"new tune parameter: "<<tunePar<<endl;
   }
-  return; 
+
+  delete mc;
 }
-
-
 
 ///////////////////////////////////////////////
 //Run a MCMC of length nsteps
@@ -192,18 +190,16 @@ void histoCompare::runMCMC(int nsteps){
   ///////////////////////////////////////////////
   //fill parameter array and set uncertainties
   for (int ipar=0;ipar<thePars->nTotPars;ipar++){
-//    par[ipar]=thePars->getParameter(ipar);
+    //par[ipar]=thePars->getParameter(ipar);
     mc->setParVar(ipar,thePars->parUnc[ipar]);
   }
   
   ///////////////////////////////////////////////////
   //set initial state
-
   
  // getTotLnL1D(result,npars, par);//< get total likelihood from 1D array
   result = getTotLnL();
   mc->setL(result);//< sets the initial likelihood
-
   //loop through steps
   int currentstep=0;
   while (currentstep<nsteps){
@@ -1072,10 +1068,10 @@ void histoCompare::getTotLnL1D(double& result,int npar, double par[]){
     thePars->setParameter(ipar,par[ipar]);
   }
 
-//  int index=0;
-//  for (int ibin=0;ibin<nBin;ibin++){
- //   for (int icomp=0;icomp<nComp;icomp++){
- //     for (int iatt=0;iatt<nAtt;iatt++){
+  //  int index=0;
+  //  for (int ibin=0;ibin<nBin;ibin++){
+  //   for (int icomp=0;icomp<nComp;icomp++){
+  //     for (int iatt=0;iatt<nAtt;iatt++){
   //      Par[ibin][icomp][iatt][0] = par[index];
   //      Par[ibin][icomp][iatt][1] = par[index+1]; 
   //      index+=2;
@@ -1101,64 +1097,56 @@ void histoCompare::lnLWrapper(int& ndim, double* gout, double& result, double pa
 double histoCompare::getTotLnL(){
 
   double totL = 0.;
-
-  ////////////////////////////////////////
-  //contribution from histogram comparison  
-  for (int isamp=0;isamp<nSamp;isamp++){
-    for (int ibin=0;ibin<nBin;ibin++){
-      for (int iatt=0;iatt<nAtt;iatt++){
-     //    TH1D* hData = (TH1D*)hManager->getHistogramData(isamp,ibin,iatt)->Rebin(1,"hdata_rebinned");
-     //    TH1D* hPrediction = (TH1D*)hManager->getSumHistogramMod(isamp,ibin,iatt)->Rebin(1,"hmc_rebinned");
+  if(!separateNeutMode) {
+    ////////////////////////////////////////
+    //contribution from histogram comparison  
+    for (int isamp=0;isamp<nSamp;isamp++){
+      for (int ibin=0;ibin<nBin;ibin++){
+      	for (int iatt=0;iatt<nAtt;iatt++){
          TH1D* hDataTmp = (TH1D*)hManager->getHistogramData(isamp,ibin,iatt);
-      //   TH1D* hPrediction = (TH1D*)hManager->getSumHistogramMod(isamp,ibin,iatt,0); //< get un-normalized histogram.
          TH1D* hPrediction = (TH1D*)hManager->getSumHistogramMod(isamp,ibin,iatt,1); //< get normalized histogram.
-
-   //      double hnorm = hDataTmp->Integral()/hPrediction->Integral();
-
-   //      double partialL =  getLnL(hPrediction,hDataTmp,hnorm);
-   //      cout<<"partialL :"<<partialL<<endl;     
          double partialLnL = getLnL(hPrediction,hDataTmp);
-       //  cout<<"adding: "<<partialLnL<<" to total. ";
-      //   cout<<"samp: "<<isamp<<" bin: "<<ibin<<" att: "<<iatt<<endl;
          totL+=partialLnL;
-       //  totL+=getLnL(hPrediction,hDataTmp);
+        }
       }
     }
+    //////////////////////////////////////////////
+    //contribution from flux/xsec priors
+    double pull;
+    for (int isys=0;isys < 2;isys++){
+      pull = thePars->sysPar[isys]-1.;
+      pull/=thePars->sysParUnc[isys];
+      totL+=(0.5)*(pull*pull);
+    }
+    //totL += thePars->cov->getLikelihood(); //< double count parameter error?
+    return totL;
+  } 
+  else {
+    for (int isamp=0;isamp<nSamp;isamp++){
+      for (int ibin=0;ibin<nBin;ibin++){
+	      for (int iatt=0;iatt<nAtt;iatt++){
+	        TH1D* hDataTmp = (TH1D*)hManager->getHistogramData(isamp,ibin,iatt);
+	        TH1D* hPrediction = (TH1D*)hManager->getSumHistogramMod(isamp,ibin,iatt,0); //< get un-normalized histogram.
+	        totL+=getLnL(hPrediction,hDataTmp,scaling);
+       	}
+      }
+    }    
+    //////////////////////////////////////////////
+    //contribution from flux/xsec priors
+    double pull;
+    for (int isys=0;isys < 2;isys++){
+      pull = thePars->sysPar[isys]-1.;
+      pull/=thePars->sysParUnc[isys];
+      totL+=(0.5)*(pull*pull);
+    }
+    totL += thePars->cov->getLikelihood();
+    return totL;
   }
-  
-  //////////////////////////////////////////////
-  //contribution from flux/xsec priors
-  double pull;
-  for (int isys=0;isys<thePars->nSysPars;isys++){
-   // pull = thePars->sysPar[isys]-1.;
-   // pull/=thePars->sysParUnc[isys];
-
-    pull = thePars->getSysParameter(isys)-1.;
-    pull/=thePars->sysParUnc[isys];
-
-    totL+=(0.5)*(pull*pull);
-  }
-  return totL;
 }
-
 
 
 double histoCompare::getTotSumSq(){
   double totsumsq = 0.;
-//  for (int isamp=0;isamp<nSamp;isamp++){
-//    for (int ibin=0;ibin<nBin;ibin++){
-//      for (int iatt=0;iatt<nAtt;iatt++){
-//         //get modfied MC prediction
-//         hMod = smearIt(hManager->hMC[isamp][ibin][0][iatt],Par[ibin][0][iatt][0],Par[ibin][0][iatt][1]);      
-//         for (int icomp = 1;icomp<nComp;icomp++){
-//           hMod->Add(smearIt(hManager->hMC[isamp][ibin][icomp][iatt],Par[ibin][icomp][iatt][0],Par[ibin][icomp][iatt][1]));
-//         }
-         //add error to total
-        // hMod->Scale(Norm);
-//         totsumsq+=getSumSq(hMod,hManager->hData[isamp][ibin][iatt]);
-//      }
-//    }
-//  }
   return totsumsq;
 }
 
@@ -1177,22 +1165,14 @@ double histoCompare::getSumSq(TH1D* h1, TH1D* h2){
 //evalute log-likelihood between two histograms
 double histoCompare::getLnL(TH1D* h1, TH1D* h2){
   double lnL = 0.;
-//  double diff;
-//  double term;
   double c1; //data
   double c2; //mc
   double errmc; //mcerr
   //double norm = hManager->normFactor; //normalization
   double norm = 1.0;
-//  double dof=0.;
-//  double quaderr;
-
-
 
   ///////////////////////////////////////////////////
   //assume poisson errors
- // for (int ibin=10;ibin<=(10);ibin++){
-
   for (int ibin=3;ibin<=(h1->GetNbinsX()-3);ibin++){
     c1 = h1->GetBinContent(ibin); //MC
     c2 = h2->GetBinContent(ibin); //data
@@ -1202,7 +1182,7 @@ double histoCompare::getLnL(TH1D* h1, TH1D* h2){
      
     lnL+=evalLnL(c2,c1,norm); //< tn186 likelihood definition
 
-}
+  }
   return lnL;
 }
 
@@ -1247,6 +1227,50 @@ void histoCompare::readFromFile(const char* filerootname,int nsamp, int nbin, in
   return;
 }
 
+void histoCompare::readFromFile(const char* filerootname,int nsamp, int nbin, int ncomp, int nmode, int natt){
+  nSamp = nsamp;
+  nBin  = nbin;
+  nComp = ncomp; 
+  nAtt  = natt;
+  nMode = nmode;
+  hManager = new histoManager(filerootname,nsamp,nbin,ncomp,natt,nmode,true);
+  double ndataevents=0;
+  double nmcevents=0;
+  double events;
+  //count total events
+  /*
+  for (int jsamp=0;jsamp<nSamp;jsamp++){
+    for (int jbin=0;jbin<nBin;jbin++){
+      for (int jatt=0;jatt<nAtt;jatt++){
+        events =  hManager->hData[jsamp][jbin][jatt]->Integral();
+        cout<<"histo "<<jsamp<<"-"<<nbin<<"-"<<jatt<<" has "<<events<<" events."<<endl;
+        ndataevents+=events;
+        for (int jcomp=0;jcomp<nComp;jcomp++){
+          events = hManager->hMC[jsamp][jbin][jcomp][jatt]->Integral();
+          cout<<"MC histo "<<jsamp<<"-"<<jbin<<"-"<<jcomp<<"-"<<jatt<<" has "<<events<<" events."<<endl;
+          nmcevents+=events;
+        }
+      }
+    }
+    }*/
+  //Norm = ndataevents/nmcevents;
+  Norm = scaling;
+  return;
+}
+
+
+void histoCompare::setupPars(int nsyspars){
+  thePars = new atmFitPars(nSamp,nBin,nComp,nAtt,"tn186");
+ // thePars->setNorm(Norm);
+  hManager->setFitPars(thePars);
+  return;
+}
+
+void histoCompare::setupPars(atmFitPars *a)
+{
+  thePars = a;
+  hManager->setFitPars(thePars);
+}
 
 /////////////////////////////////////////////////////////////////////
 //initializes all necessary compoents
@@ -1283,7 +1307,9 @@ histoCompare::histoCompare(){
   return;
 }
 
-histoCompare::histoCompare(const char* parfile){
+histoCompare::histoCompare(const char* parfile, bool sep)
+  : separateNeutMode(sep)
+{
 
   //read in parameter file
   runPars = new sharedPars(parfile);
@@ -1314,13 +1340,11 @@ histoCompare::histoCompare(const char* parfile){
   //setup fit parameters
   thePars = new atmFitPars(parfile);
   hManager->setFitPars(thePars);
-
   
   //read in splines if you're into that
   if (runPars->useSplinesFlg){
     setupSplines(runPars->splineFactoryOutput.Data(),nsyspars);
   }
-
 
 }
 

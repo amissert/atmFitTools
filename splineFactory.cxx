@@ -182,66 +182,9 @@ void splineFactory::incrementSystPars(int isyspar, double nsig){
   double value = fitPars->sysPar[isyspar];
   fitPars->setSysParameter(isyspar,(value+adjustment));
 
-  //reset initial parameters
-//  setupSystPars();
-
-  //change systematic parameters
- // for (int isyst=0;isyst<nSyst;isyst++){
-  //  sysPar[isyst] += sysUnc[isyst]*nsig;
-   // if (sysPar[isyst]<0.) sysPar[isyst]=0.;
- // }
   
   return;
 }
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-void splineFactory::setupSystPars(){
-
-  if (!sysParType.cxxompareTo("tn186")){
-    nSyst=0;
-    //CCQE xsec norm bin 1//
-    sysPar[nSyst] = 1.0;
-    sysUnc[nSyst] = 1.0;
-    nSyst++;
-    //CCQE xsec norm  bin 2//
-    sysPar[nSyst] = 1.0;
-    sysUnc[nSyst] = 0.25;
-    nSyst++;
-    //CCQE xsec norm bin 3//
-    sysPar[nSyst] = 1.0;
-    sysUnc[nSyst] = 0.1;
-    nSyst++;
-    //CCQE xsec norm bin 4//
-    sysPar[nSyst] = 1.0;
-    sysUnc[nSyst] = 0.05;
-    nSyst++;
-    //SubGeV flux norm//
-    sysPar[nSyst] = 1.0;
-    sysUnc[nSyst] = 0.25;
-    nSyst++;
-    //MultiGeV flux norm//
-    sysPar[nSyst] = 1.0;
-    sysUnc[nSyst] = 0.15;
-    nSyst++;
-    //CCnQE xsec norm//
-    sysPar[nSyst] = 1.0;
-    sysUnc[nSyst] = 0.2;
-    nSyst++;
-    //NC xsec norm
-    sysPar[nSyst] = 1.0;
-    sysUnc[nSyst] = 0.2;
-    nSyst++;
-    //mu/e xsec ratio
-    sysPar[nSyst] = 1.0;
-    sysUnc[nSyst] = 0.05;
-    nSyst++;
-  }
-
-    return;
-}
-*/
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -282,9 +225,6 @@ void splineFactory::makeManagerFromFile(const char* fname){
 //Fill array of fiTQun outputs to be fit
 void splineFactory::fillAttributes(){
 
-//  for (int iatt=0;iatt<fitPars->nAttributes){
-//    attribute
-//  }
 
   return;
 }
@@ -341,145 +281,8 @@ double splineFactory::getEvtWeight(fqProcessedEvent* mcevent,int ipar,double val
   //////////
   return ww;
 
-/*
-  /////////////////////////////// 
-  //simple TN186 parameterization
-  if (!sysParType.cxxompareTo("tn186")){ 
-    
-    //these values are needed to determine the event weight
-    int absmode = TMath::Abs(mcevent->mode);
-    double Enu     = mcevent->pmomv[0];
-    int  nutype  = TMath::Abs(mcevent->ipnu[0]);  
-
-    //CCQE norm bin1 
-    if (ipar==0){
-      if ((absmode==1)&&(Enu<200.)) ww*=value;
-    }
-    //CCQE norm bin2 
-    if (ipar==1){
-      if ((absmode==1)&&(Enu>200.)&&(Enu<400.)) ww*=value;
-    }
-    //CCQE norm bin3 
-    if (ipar==2){
-      if ((absmode==1)&&(Enu>400.)&&(Enu<800.)) ww*=value;
-    }
-    //CCQE norm bin4 
-    if (ipar==3){
-      if ((absmode==1)&&(Enu>800.)) ww*=value;
-    }
-    //SubGevFlux
-    if (ipar==4){
-      if (Enu<1000.) ww*=value;
-    }
-    //MultiGeVFlux
-    if (ipar==5){
-      if (Enu>1000.) ww*=value;
-    }
-    //CCnQE
-    if (ipar==6){
-      if ((absmode>1)&&(absmode<30)) ww*=value;
-    }
-    //NC
-    if (ipar==7){
-      if (absmode>=30) ww*=value;
-    }
-    //mu2e ratio
-    if (ipar==8){
-      if (nutype==14) ww*=value;
-    }
-  }
-
-  /////////////////////////////// 
-  //cosmic muons systematics
-  if (!sysParType.cxxompareTo("cosmic")){ 
-    
-    //these values are needed to determine the event weight
-    int fvbin = mcevent->nbin; //< fiducial bin of event
-
-    //FV Bin 1
-    if (ipar==0){
-      if (fvbin==0) ww*=value;
-    }
-    //FV Bin 2
-    if (ipar==1){
-      if (fvbin==1) ww*=value;
-    }
-    //FV Bin 3
-    if (ipar==2){
-      if (fvbin==2) ww*=value;
-    }
-
-  }
-
-  //no negative weights
-  if (ww<0.) ww = 0.;
-
- */
-
 
 }
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-double splineFactory::getEvtWeight(int ipar){
-//  double ww = 1.;
-  double ww = mcEvt->evtweight;
-  int absmode = TMath::Abs(mcEvt->mode);
-  double Enu     = mcEvt->pmomv[0];
-  int  nutype  = TMath::Abs(mcEvt->ipnu[0]);
-//  if (ipar==0){
-//   if (mcEvt->ncomponent==0) ww*=sysPar[0];
-//  } 
-//  if (ipar==1){
-//   if (mcEvt->ncomponent==1) ww*=sysPar[1];
-//  }
-//  if (ipar==2){
-//   if (mcEvt->ncomponent==2) ww*=sysPar[2];
-//  }
-   
-  //CCQE norm bin1 
-  if (ipar==0){
-    if ((absmode==1)&&(Enu<200.)) ww*=sysPar[0];
-  }
-  //CCQE norm bin2 
-  if (ipar==1){
-    if ((absmode==1)&&(Enu>200.)&&(Enu<400.)) ww*=sysPar[1];
-  }
-  //CCQE norm bin3 
-  if (ipar==2){
-    if ((absmode==1)&&(Enu>400.)&&(Enu<800.)) ww*=sysPar[2];
-  }
-  //CCQE norm bin4 
-  if (ipar==3){
-    if ((absmode==1)&&(Enu>800.)) ww*=sysPar[3];
-  }
-  //SubGevFlux
-  if (ipar==4){
-    if (Enu<1000.) ww*=sysPar[4];
-  }
-  //MultiGeVFlux
-  if (ipar==5){
-    if (Enu>1000.) ww*=sysPar[5];
-  }
-  //CCnQE
-  if (ipar==6){
-    if ((absmode>1)&&(absmode<30)) ww*=sysPar[6];
-  }
-  //NC
-  if (ipar==7){
-    if (absmode>=30) ww*=sysPar[7];
-  }
-  //mu2e ratio
-  if (ipar==8){
-    if (nutype==14) ww*=sysPar[8];
-  }
-
-  if (ww<0.) ww = 0.;
-  eventWeight = ww;
-  return ww;
-};
-*/
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -511,8 +314,6 @@ splineFactory::splineFactory(const char*  parfile){
   //initialize histogram arrays using the hManager as a template
   setupHistos();
 
-  //Initialize systematic parameter values
-  // setupSystPars();
   
   //get pointer to MC tree
   TChain *chmc = new TChain("h1");

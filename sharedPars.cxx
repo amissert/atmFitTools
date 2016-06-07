@@ -1,109 +1,11 @@
+<<<<<<< HEAD:sharedPars.cxx
 #ifndef SHAREDPARS_C
 #define SHAREDPARS_C
 
 #include "TString.h"
 
-#include "keyread.cxx"
 
-#include <iostream>
-
-using namespace std;
-
-//class to hold and read in shared parameters for fits
-class sharedPars{
-  public:
-
-  //constructor
-  sharedPars(const char* parfilename);
-
-  //name of parameter file
-  TString parFileName;
-  
-  //read in values from parameter file
-  void readParsFromFile(const char* filename="");
-
-  //shared variables
-  TString globalRootName;
-
-  //can get parameters directly by name
-  int getParI(const char*);
-  double getParD(const char*);
-  TString getParS(const char*); 
-
-  //key reading object
-  keyread* kr;
-
-  //fit parameters
-  int nFVBins;
-  int nSamples;
-  int nComponents;
-  int nAttributes;
-  int nSysPars;
-  TString preProcessFilesMC;
-  TString preProcessFilesData;
-  TString preProcessOutDir;
-  int preProcessMCComponents;
-  int preProcessMCSamples;
-  int preProcessFVBinning; 
-  int preProcFCCut;
-  double preProcEVisCut;
-  double preProcWallMinCut;
-  double preProcToWallMinCut;
-  int    preProcNseMax0;
-  int    preProcNseMin;
-  int    preProcMaskFlg;
-  TString preProcMaskFile;
-  double  preProcInGateCut;
-  int     preProcAddMoreVars;
-  TString FVBinName0;
-  TString FVBinName1;
-  TString FVBinName2;
-  TString fQAttName0;
-  TString fQAttName1;
-  TString fQAttName2;
-  TString fQAttName3;
-  TString fQAttName4;
-  TString fQAttName5;
-  TString fQAttName6;
-  TString fQAttName7;
-  TString fQAttName8;
-  TString MCComponentName0;
-  TString MCComponentName1;
-  TString MCComponentName2;
-  TString MCComponentName3;
-  TString MCComponentName4;
-  TString MCComponentName5;
-  TString MCComponentName6;
-  TString sampleName0;
-  TString sampleName1;
-  TString sampleName2;
-  TString sysParName0;
-  TString sysParName1;
-  TString sysParName2;
-  TString sysParName3;
-  TString sysParName4;
-  TString sysParName5;
-  TString sysParName6;
-  TString sysParName7;
-  TString sysParName8;
-  TString hFactoryOutput;
-  TString hFactoryMCFiles;
-  TString hFactoryDataFiles;
-  TString splineFactoryOutput;
-  int MCMCNSteps;
-  double MCMCTunePar;
-  int useSplinesFlg;
-  int fixAllSmearFlg;
-  int NMCMCPts;
-  int MCMCBurnIn;
-  int NMCEvents;
-  TString MCMCFile;
-  TString sysParType;
-  int NDataEvents;
-  int flgUseNormPars;
- 
-};
-
+#include "sharedPars.h"
 
 double sharedPars::getParD(const char* parname){
   return kr->getKeyD(parname);
@@ -118,11 +20,7 @@ int sharedPars::getParI(const char* parname){
 }
 
 void sharedPars::readParsFromFile(const char* filename){
-  //if file name is given as argument, use it
-//  if (filename){
-//    cout<<"sharedPars: setting input file name to : "<<filename<<endl;
-//    parFileName = filename;
-//  }
+
   
   //create object to read in keys from file
   kr = new keyread(parFileName.Data());
@@ -138,8 +36,12 @@ void sharedPars::readParsFromFile(const char* filename){
   FVBinName0= kr->getKeyS("FVBinName0");
   FVBinName1=kr->getKeyS("FVBinName1");
   FVBinName2=kr->getKeyS("FVBinName2");
+  FVBinName3=kr->getKeyS("FVBinName3");
+  FVBinName4=kr->getKeyS("FVBinName4");
+  FVBinName5=kr->getKeyS("FVBinName5");
   fQAttName0=kr->getKeyS("fQAttName0");
   fQAttName1=kr->getKeyS("fQAttName1");
+<<<<<<< HEAD:sharedPars.cxx
   fQAttName2=kr->getKeyS("fQAttName2");
   fQAttName3=kr->getKeyS("fQAttName3");
   fQAttName4=kr->getKeyS("fQAttName4");
@@ -147,6 +49,8 @@ void sharedPars::readParsFromFile(const char* filename){
   fQAttName6=kr->getKeyS("fQAttName6");
   fQAttName7=kr->getKeyS("fQAttName7");
   fQAttName8=kr->getKeyS("fQAttName8");
+=======
+>>>>>>> xy_xy:sharedPars.cxx
   hFactoryDataFiles=kr->getKeyS("hFactoryDataFiles");
   hFactoryMCFiles=kr->getKeyS("hFactoryMCFiles");
   hFactoryOutput=kr->getKeyS("hFactoryOutput");
@@ -177,6 +81,8 @@ void sharedPars::readParsFromFile(const char* filename){
   preProcessFilesMC = kr->getKeyS("preProcessFilesMC"); 
   preProcessOutDir = kr->getKeyS("preProcessOutDir"); 
   preProcessFilesData = kr->getKeyS("preProcessFilesData"); 
+  preProcessFilesBANFF = kr->getKeyS("preProcessFilesBANFF");
+  preProcessFilesSpline = kr->getKeyS("preProcessFilesSpline");
   preProcessMCComponents = kr->getKeyI("preProcessMCComponents");
   preProcessFVBinning = kr->getKeyI("preProcessFVBinning");
   preProcessMCSamples = kr->getKeyI("preProcessMCSamples");
@@ -205,6 +111,3 @@ sharedPars::sharedPars(const char* parfilename){
   parFileName = parfilename;
 //  readParsFromFile();
 }
-
-
-#endif

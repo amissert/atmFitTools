@@ -14,14 +14,17 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ GENERAL PARAMETERS $$$$$$$
 i,nSamples=3;
-i,nFVBins=3;
+i,nFVBins=6;
 i,nComponents=7;
-i,nAttributes=1;
+i,nAttributes=2;
 i,nSysPars=9;
 s,globalRootName=atmfit;
-s,FVBinName0=wall_lt_100;
-s,FVBinName1=wall_100_to_200;
-s,FVBinName2=wall_gt_200;
+s,FVBinName0=wall_lt_100_subGeV;
+s,FVBinName1=wall_100_to_200_subGeV;
+s,FVBinName2=wall_gt_200_subGeV;
+s,FVBinName0=wall_lt_100_multiGeV;
+s,FVBinName1=wall_100_to_200_multiGeV;
+s,FVBinName2=wall_gt_200_multiGeV;
 s,fQAttName0=ElectronMuonPIDSubEv0;
 s,fQAttName1=NRingPar;
 s,MCComponentName0=CC1e;
@@ -46,12 +49,23 @@ s,sysParName8=Mu_vs_E_ratio;
 
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ PREPROCESS PARAMETERS $$$$$$
+
 $ DIRECTORY WHERE PREPROCESSED OUTPUT FILES ARE WRITTEN
-s,preProcessOutDir=./rootfiles/;
+s,preProcessOutDir=/home/xiaoyue/atmFitTools/rootfiles/simple_binning/;
+
 $ FILE NAMES FOR MONTE CARLO FILES
-s,preProcessFilesMC=/nfs/data41/t2k/amissert/atmos/fitqunRC/atmospheric/MC/feb13sk4_MassProd.reduc.00*.root;
+s,preProcessFilesMC=/disk2/usr5/xiaoyue/skmc/test_fc/root/jan14sk4_skdetsim13p90_neut532.reduc.*_fQv4r0.root;
+
 $ FILE NAMES FOR DATA FILES
-s,preProcessFilesData=/nfs/data41/t2k/amissert/atmos/fitqunRC/atmospheric/MC/feb13sk4_MassProd.reduc.07*.root;
+s,preProcessFilesData=/disk2/usr5/xiaoyue/skmc/test_fc/root/jan14sk4_skdetsim13p90_neut532.reduc.00*_fQv4r0.root;
+$s,preProcessFilesData=/disk2/usr5/xiaoyue/skmc/new_testmc/root/tenYrTest_000.root;
+
+$ FILE NAMES FOR MC SPLINE
+s,preProcessFilesSpline=/disk2/usr5/xiaoyue/skmc/test_fc/splines/jan14sk4_skdetsim13p90_neut532.reduc.*_fQv4r0.spline.root;
+
+$ FILE NAMES FOR BANFF
+s,preProcessFilesBANFF=/disk2/usr5/xiaoyue/skmc/test_fc/banffwgt/*_weights.root;
+
 $ CODE FOR FV BINNING
 $   0 -> SIMPLE (3 FV BINS BASED ON WALL CUTS)
 $   1 -> COSMIC (SORT BY SIDE VS TOP ENTERING)
@@ -74,14 +88,14 @@ i,PreProcNseMax=100;
 $ MIN SUBEVENTS
 i,PreProcNseMin=1;
 $ MIN TIME BETWEEN FIRST TWO SUBEVENTS (INGATE CUT)
-d,PreProcInGateCut=0
+d,PreProcInGateCut=0;
 
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ HFACTORY PARAMETERS $$$$$
-s,hFactoryOuputDir=./rootfiles/;
-s,hFactoryOutput=./rootfiles/atmfit_histograms.root;
-s,hFactoryMCFiles=./rootfiles/atmfit*_ppmc*.root;
-s,hFactoryDataFiles=./rootfiles/atmfit*_ppdat*.root;
+s,hFactoryOuputDir=../rootfiles/simple_binning/;
+s,hFactoryOutput=../rootfiles/simple_binning/atmfit_histograms.root;
+s,hFactoryMCFiles=../rootfiles/simple_binning/atmfit*_ppmc*.root;
+s,hFactoryDataFiles=../rootfiles/simple_binning/atmfit*_ppdat*.root;
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ HISTOGRAM BINNING $$$$$$$
 i,nBinsAtt0=30;
@@ -102,11 +116,14 @@ d,xMaxAtt4=200;
 
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ SPLINE FACTORY PARAMETERS $$
-s,splineFactoryOutput=./rootfiles/atmfit_splines.root;
+s,splineFactoryOutput=../rootfiles/simple_binning/atmfit_splines.root;
 $  CODE FOR THE TYPE OF SYSTEMATIC ERROR PARAMETERIZATION
 $    tn186 -> SIMPLE TN186 PARAMETERIZATION 
+$    t2k -> t2k xsec-only parametrization
+$    banff -> banff parametrization     
 $    none  -> NO FLUX/XSEC PARAMETERS 
-s,sysParType=tn186;
+$s,sysParType=tn186;
+s,sysParType=t2k;
 
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ FIT & MCMC PARAMETERS $$$$$$

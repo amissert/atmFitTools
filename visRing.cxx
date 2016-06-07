@@ -1,6 +1,3 @@
-#ifndef visRing_C
-#define visRing_C
-
 #include "visRing.h"
 
 
@@ -76,11 +73,9 @@ visRing::visRing(fqEvent* fqin){
   massof[7] = 0.1350e3; //pi0
   massof[8] = 0.1396e3; //pi+
   massof[9] = 0.1396e3; //pi-
-//  massof[10] = 0.4977e3; //K long
   massof[10] = 1e10; //K long
   massof[11] = 0.4937e3; //K+
   massof[12] = 0.4937e3; //K-
-//  massof[13] = 0.9396e3; //n
   massof[13] = 1e10; //n
   massof[14] = 0.9383e3; //p
   massof[15] = 0.9383e3; //p-
@@ -88,4 +83,3 @@ visRing::visRing(fqEvent* fqin){
 }
 
 
-#endif

@@ -11,12 +11,27 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include "TTree.h"
+#include "TBranch.h"
+#include "TGraph.h"
+#include "TChain.h"
+#include <iostream>
+#include <map>
 
 class fqProcessedEvent {
 public :
-   TTree          *fChain;   //!pointer to the analyzed TTree or TChain
+   TChain         *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
+   std::map<double, double> maqe;
+   std::map<double, double> pf_o;
+   //std::map<double, double> mec_o;
+   std::map<double, double> eb_o;
+   std::map<double, double> ca5;
+   std::map<double, double> manffres;
+   std::map<double, double> bgres;
+   std::map<double, double> dismpishp;
+   std::map<double, double> rpa;
    // Declaration of leaf types
    Int_t           nev;
    UInt_t          nhitac;
@@ -97,9 +112,11 @@ public :
    Float_t         fqmspos[5][20][3];   //[fqmsnfit]
    Float_t         fqmsdir[5][20][3];   //[fqmsnfit]
    Float_t         attribute[1000];
+   Float_t         oscwgt;
    Int_t           ncomponent;
    Int_t           nsample;
    Int_t           nbin;
+   Int_t           nmode;
    Int_t           nvis;
    Int_t           nvmu;
    Int_t           nve;
@@ -120,6 +137,25 @@ public :
    Int_t           best2RID;
    Float_t         fq1rperim[10][7];
    Float_t         fq1rmincone[10][7];
+   Float_t         rfgweight;
+   TGraph          *byEv_maqe_ccqe_gr;
+   TGraph          *byEv_pfo_ccqe_gr;
+   TGraph          *byEv_ebo_ccqe_gr;
+   TGraph          *byEv_ca5_cc1pi_gr;
+   TGraph          *byEv_ca5_ncpiz_gr;
+   TGraph          *byEv_ca5_ncpipm_gr;
+   TGraph          *byEv_manff_cc1pi_gr;
+   TGraph          *byEv_manff_ncpiz_gr;
+   TGraph          *byEv_manff_ncpipm_gr;
+   TGraph          *byEv_bgscl_cc1pi_gr;
+   TGraph          *byEv_bgscl_ncpiz_gr;
+   TGraph          *byEv_bgscl_ncpipm_gr;
+   TGraph          *byEv_dismpishp_ccoth_gr;
+   TGraph          *byEv_sccvec_ccqe_gr;
+   TGraph          *byEv_sccvec_ncoth_gr;
+   TGraph          *byEv_sccaxl_ccqe_gr;
+   TGraph          *byEv_sccaxl_ncoth_gr;
+
 
    // List of branches
    TBranch        *b_nev;   //!
@@ -200,9 +236,11 @@ public :
    TBranch        *b_fqmst0;   //!
    TBranch        *b_fqmspos;   //!
    TBranch        *b_fqmsdir;   //!
+   TBranch        *b_oscwgt;
    TBranch        *b_attribute;   //!
    TBranch        *b_ncomponent;   //!
    TBranch        *b_nsample;   //!
+   TBranch        *b_nmode;
    TBranch        *b_nbin;   //!
    TBranch        *b_nvis;   //!
    TBranch        *b_nvmu;   //!
@@ -231,8 +269,37 @@ public :
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
+   TBranch        *b_rfgweight;
+   TBranch        *byEv_maqe_ccqe_br;
+   TBranch        *byEv_pfo_ccqe_br;
+   TBranch        *byEv_ebo_ccqe_br;
+   TBranch        *byEv_ca5_cc1pi_br;
+   TBranch        *byEv_ca5_ncpiz_br;
+   TBranch        *byEv_ca5_ncpipm_br;
+   TBranch        *byEv_manff_cc1pi_br;
+   TBranch        *byEv_manff_ncpiz_br;
+   TBranch        *byEv_manff_ncpipm_br;
+   TBranch        *byEv_bgscl_cc1pi_br;
+   TBranch        *byEv_bgscl_ncpiz_br;
+   TBranch        *byEv_bgscl_ncpipm_br;
+   TBranch        *byEv_dismpishp_ccoth_br;
+   TBranch        *byEv_sccvec_ccqe_br;
+   TBranch        *byEv_sccvec_ncoth_br;
+   TBranch        *byEv_sccaxl_ccqe_br;
+   TBranch        *byEv_sccaxl_ncoth_br;
+   //TBranch        *byEv_rpa_ccqe_br;
+
+
+   fQreader(TChain *tree=0);
+   virtual ~fQreader();
+   virtual Int_t    Cut(Long64_t entry);
+   virtual Int_t    GetEntry(Long64_t entry);
+   virtual Long64_t LoadTree(Long64_t entry);
+   virtual void     Init(TChain *tree);
+   virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+   void FillMap();
 };
 
 
@@ -245,7 +312,7 @@ fqProcessedEvent::fqProcessedEvent(TTree *tree)
       if (!f) {
          f = new TFile("t2kmc_numu_ppmc_2_.root");
       }
-      tree = (TTree*)gDirectory->Get("h1");
+      tree = (TChain*)gDirectory->Get("h1");
 
    }
    Init(tree);
@@ -293,7 +360,19 @@ void fqProcessedEvent::Init(TTree *tree)
    fChain = tree;
    fCurrent = -1;
    fChain->SetMakeClass(1);
-
+   byEv_maqe_ccqe_gr = 0;
+   byEv_pfo_ccqe_gr = 0;
+   byEv_ebo_ccqe_gr = 0;
+   byEv_ca5_cc1pi_gr = 0;
+   byEv_ca5_ncpiz_gr = 0;
+   byEv_ca5_ncpipm_gr = 0;
+   byEv_manff_cc1pi_gr = 0;
+   byEv_manff_ncpiz_gr = 0;
+   byEv_manff_ncpipm_gr = 0;
+   byEv_bgscl_cc1pi_gr = 0;
+   byEv_bgscl_ncpiz_gr = 0;
+   byEv_bgscl_ncpipm_gr = 0;
+   byEv_dismpishp_ccoth_gr = 0;
    fChain->SetBranchAddress("nev", &nev, &b_nev);
    fChain->SetBranchAddress("nhitac", &nhitac, &b_nhitac);
    fChain->SetBranchAddress("npar", &npar, &b_npar);
@@ -375,6 +454,7 @@ void fqProcessedEvent::Init(TTree *tree)
    fChain->SetBranchAddress("attribute", attribute, &b_attribute);
    fChain->SetBranchAddress("ncomponent", &ncomponent, &b_ncomponent);
    fChain->SetBranchAddress("nsample", &nsample, &b_nsample);
+   /*if (fChain->GetListOfBranches()->FindObject("nmode"))*/ fChain->SetBranchAddress("nmode", &nmode, &b_nmode);
    fChain->SetBranchAddress("nbin", &nbin, &b_nbin);
    fChain->SetBranchAddress("nvis", &nvis, &b_nvis);
    fChain->SetBranchAddress("nvmu", &nvmu, &b_nvmu);
@@ -396,7 +476,24 @@ void fqProcessedEvent::Init(TTree *tree)
    fChain->SetBranchAddress("best2RID", &best2RID, &b_best2RID);
    fChain->SetBranchAddress("fq1rperim", fq1rperim, &b_fq1rperim);
    fChain->SetBranchAddress("fq1rmincone", fq1rmincone, &b_fq1rmincone);
+   fChain->SetBranchAddress("rfgweight", &rfgweight, &b_rfgweight);
+   if (fChain->GetListOfBranches()->FindObject("byEv_maqe_ccqe_gr")) fChain->SetBranchAddress("byEv_maqe_ccqe_gr", &byEv_maqe_ccqe_gr, &byEv_maqe_ccqe_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_pfo_ccqe_gr")) fChain->SetBranchAddress("byEv_pfo_ccqe_gr", &byEv_pfo_ccqe_gr, &byEv_pfo_ccqe_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_ebo_ccqe_gr")) fChain->SetBranchAddress("byEv_ebo_ccqe_gr", &byEv_ebo_ccqe_gr, &byEv_ebo_ccqe_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_ca5_cc1pi_gr")) fChain->SetBranchAddress("byEv_ca5_cc1pi_gr", &byEv_ca5_cc1pi_gr, &byEv_ca5_cc1pi_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_ca5_ncpiz_gr")) fChain->SetBranchAddress("byEv_ca5_ncpiz_gr", &byEv_ca5_ncpiz_gr, &byEv_ca5_ncpiz_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_ca5_ncpipm_gr")) fChain->SetBranchAddress("byEv_ca5_ncpipm_gr", &byEv_ca5_ncpipm_gr, &byEv_ca5_ncpipm_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_manff_cc1pi_gr")) fChain->SetBranchAddress("byEv_manff_cc1pi_gr", &byEv_manff_cc1pi_gr, &byEv_manff_cc1pi_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_manff_ncpiz_gr")) fChain->SetBranchAddress("byEv_manff_ncpiz_gr", &byEv_manff_ncpiz_gr, &byEv_manff_ncpiz_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_manff_ncpipm_gr")) fChain->SetBranchAddress("byEv_manff_ncpipm_gr", &byEv_manff_ncpipm_gr, &byEv_manff_ncpipm_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_bgscl_cc1pi_gr")) fChain->SetBranchAddress("byEv_bgscl_cc1pi_gr", &byEv_bgscl_cc1pi_gr, &byEv_bgscl_cc1pi_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_bgscl_ncpiz_gr")) fChain->SetBranchAddress("byEv_bgscl_ncpiz_gr", &byEv_bgscl_ncpiz_gr, &byEv_bgscl_ncpiz_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_bgscl_ncpipm_gr")) fChain->SetBranchAddress("byEv_bgscl_ncpipm_gr", &byEv_bgscl_ncpipm_gr, &byEv_bgscl_ncpipm_br);
+   if (fChain->GetListOfBranches()->FindObject("byEv_dismpishp_ccoth_gr")) fChain->SetBranchAddress("byEv_dismpishp_ccoth_gr", &byEv_dismpishp_ccoth_gr, &byEv_dismpishp_ccoth_br);
+
+   //if (fChain->GetListOfBranches()->FindObject("byEv_rpa_ccqe_gr")) fChain->SetBranchAddress("byEv_rpa_ccqe_gr", &byEv_rpa_ccqe_gr, &byEv_rpa_ccqe_br);
    Notify();
+   //FillMap();
 }
 
 Bool_t fqProcessedEvent::Notify()

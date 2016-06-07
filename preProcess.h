@@ -1,26 +1,26 @@
-#ifndef PREPROCESS_H
-#define PREPROCESS_H
-
-//#include "/nfs/hepusers/users/amissert/stdROOTinc.h"
+#ifndef __PREPROCESS_H__
+#define __PREPROCESS_H__
 #include <iostream>
-#include "visRing.cxx"
+#include "visRing.h"
 #include "TTree.h"
 #include "TChain.h"
 #include "TMath.h"
+#include "TGraph.h"
 #include "TString.h"
 #include "FVCalculators.cxx"
-#include "sharedPars.cxx"
+#include "sharedPars.h"
 #include "TGraph.h"
 #include <map>
 #include <string>
 #include "TH2FV.cxx"
 #include "masktools.cxx"
 #include "TObjArray.h"
+#include "shared.h"
 
 #define NFILEMAX 5000
 
-using namespace std;
 
+using namespace std;
 
 
 //////////////////////////////////////////////////////////////
@@ -36,12 +36,17 @@ class preProcess{
   /////////////////////
   // constructors
   preProcess();
+  preProcess(TChain* chin,const char* name="");
+  preProcess(TTree* trin,const char* name="");
+  preProcess(TChain *mc, TChain *spline, const std::string name);
 
 
   /////////////////////
-  // internal variables
-  TChain* chmc; //< points to input MC
-  TChain* chdat; //< points to input data
+  //internal variables
+  TChain* chmc;
+  TChain* chdat;
+  TChain *chspline;
+  TTree *trspline;
   TTree* tr;
   TTree* trout;
   TFile* fout;
@@ -63,6 +68,9 @@ class preProcess{
   int nAttributes;
   TH2FV* hFVBins;
   TH1D* hmask;
+  int nFilesSpline;
+  bool isData;
+  bool existSpline;
 
   ////////////////////////
   //for cuts
@@ -87,19 +95,63 @@ class preProcess{
   float fq1rmincone[10][7];
   float fq1rperim[10][7];
   float evtweight;
+  float evtweight; // banff weight
+  float rfgweight;
   float attribute[1000];
   float fqrcpar;
   int ncomponent;
   int nsample;
   int nbin;
   int best2RID;
+  int nmode;
+  float fWeight;
+  float rfgWeight;
+  float oscwgt;
+  TGraph          *byEv_maqe_ccqe_gr;
+  TGraph          *byEv_pfo_ccqe_gr;
+  TGraph          *byEv_ebo_ccqe_gr;
+  TGraph          *byEv_ca5_cc1pi_gr;
+  TGraph          *byEv_ca5_ncpiz_gr;
+  TGraph          *byEv_ca5_ncpipm_gr;
+  TGraph          *byEv_manff_cc1pi_gr;
+  TGraph          *byEv_manff_ncpiz_gr;
+  TGraph          *byEv_manff_ncpipm_gr;
+  TGraph          *byEv_bgscl_cc1pi_gr;
+  TGraph          *byEv_bgscl_ncpiz_gr;
+  TGraph          *byEv_bgscl_ncpipm_gr;
+  TGraph          *byEv_dismpishp_ccoth_gr;
+  TGraph          *byEv_sccvec_ccqe_gr;
+  TGraph          *byEv_sccvec_ncoth_gr;
+  TGraph          *byEv_sccaxl_ccqe_gr;
+  TGraph          *byEv_sccaxl_ncoth_gr;
+  TGraph          *byEv_rpa_ccqe_gr;
+  TBranch          *byEv_maqe_ccqe_br;
+  TBranch          *byEv_pfo_ccqe_br;
+  TBranch          *byEv_ebo_ccqe_br;
+  TBranch          *byEv_ca5_cc1pi_br;
+  TBranch          *byEv_ca5_ncpiz_br;
+  TBranch          *byEv_ca5_ncpipm_br;
+  TBranch          *byEv_manff_cc1pi_br;
+  TBranch          *byEv_manff_ncpiz_br;
+  TBranch          *byEv_manff_ncpipm_br;
+  TBranch          *byEv_bgscl_cc1pi_br;
+  TBranch          *byEv_bgscl_ncpiz_br;
+  TBranch          *byEv_bgscl_ncpipm_br;
+  TBranch          *byEv_dismpishp_ccoth_br;
+  TBranch          *byEv_sccvec_ccqe_br;
+  TBranch          *byEv_sccvec_ncoth_br;
+  TBranch          *byEv_sccaxl_ccqe_br;
+  TBranch          *byEv_sccaxl_ncoth_br;
+  TBranch          *byEv_rpa_ccqe_br;
 
-  
+
   /////////////////////
   //methods
   void setTree(TTree* trin);
   void setTree(TChain* trin);
   void setParFileName(const char* filename);
+  void setTree(TTree*, TTree*);
+  void setupSplineTree(TTree *h);
   void runPreProcessing();
   void setFVBinHisto();
   void setupNewTree();
@@ -113,7 +165,11 @@ class preProcess{
   int getBin();
   int getBest2RFitID(); //< returns best 2R fit ID for current event
   float getWeight();
+  int getMode();
+  float getBANFFWeight();
+  float getFixedWeight();
   void processFile(const char* fname,const char* outname="");
+  void processFile(const char* f1, const char* f2, const char* outname);
   void processAllFiles(TChain* chain);
   //sets a histogram to calculate weights for events (use to correct cosmic
   //muon momenum distribution)
@@ -123,6 +179,8 @@ class preProcess{
 
   int flgAddMoreVars;
   int flgUseSpikeMask;
+  void processAllFiles(TChain*, TChain*);
+
 };
 
 #endif

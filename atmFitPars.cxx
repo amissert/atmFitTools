@@ -26,11 +26,7 @@ double atmFitPars::getSysParameter(int isys){
 
 //////////////////////////////////////////////////
 //set parameters back to defaults
-void atmFitPars::resetDefaults(){
-
-//  initPars();
-
-  
+void atmFitPars::resetDefaults(){ // wrong. don't use
   //initialize histogram pars
   int index = 0; //< running 1D index
   for (int ibin=0;ibin<nBins;ibin++){
@@ -68,9 +64,30 @@ void atmFitPars::resetDefaults(){
   }
   
 
-  return;
+void atmFitPars::proposeStep()
+{
+  for (int i = 0; i < nTotPars - nSysPars; ++i) {
+    if (!fixPar[i]) parsProp[i] = rnd->Gaus(pars[i], parUnc[i]*fScale); // random walk
+  }
+  for (int i = 0; i < 2; ++i) {
+    if (!fixPar[i+nTotPars-nSysPars]) parsProp[i+nTotPars-nSysPars] = rnd->Gaus(sysParNom[i], sysParUnc[i]*fScale);
+    while (pars[i+nTotPars-nSysPars]<0) parsProp[i+nTotPars-nSysPars] = rnd->Gaus(sysParNom[i], sysParUnc[i]*fScale);
+  }
+  if (!fixPar[3+nTotPars-nSysPars]) {
+    if (rnd->Uniform(0,2)>1) parsProp[3+nTotPars-nSysPars] = 0;
+    else parsProp[3+nTotPars-nSysPars] = 1;
+  }
+  cov->proposeStep();
+  for (int i = 3; i < nSysPars; ++i) {
+    if (!fixPar[i+nTotPars-nSysPars]) parsProp[i+nTotPars-nSysPars] = cov->getProposed(i-3);
+  }
 }
 
+void atmFitPars::acceptStep()
+{
+  cov->acceptStep();
+  for (int i = 0; i < nTotPars; ++i) pars[i] = parsProp[i];
+}
 
 //////////////////////////////////////////////////
 //Set only bias and systematic pars to float in fit
@@ -89,17 +106,18 @@ void atmFitPars::fixAllSmearPars(int isfixed){
 
 /////////////////////////////////////////////////////
 //construct from parameter file
-atmFitPars::atmFitPars(const char* parfilename){
-
+atmFitPars::atmFitPars(const char* parfilename, covBase *covm){
+  /////////////////////////////////////
   //fill shared parameters from file
   cout<<"atmFitPars: reading parameter file: "<<parfilename<<endl;
   runpars = new sharedPars(parfilename);
   runpars->readParsFromFile();
   nSamples = runpars->nSamples;
-  cout<<"atmFitPars:  nSamples: "<<nSamples<<endl;
+  nModes = NMODE;
   nComponents = runpars->nComponents;
   cout<<"atmFitPars:  nComponents: "<<nComponents<<endl;
   nBins = runpars->nFVBins;
+<<<<<<< HEAD:atmFitPars.cxx
   cout<<"atmFitPars:  nBins: "<<nBins<<endl;
   nSysPars = runpars->nSysPars;
   cout<<"atmFitPars:  nSysPars: "<<nSysPars<<endl;
@@ -108,10 +126,12 @@ atmFitPars::atmFitPars(const char* parfilename){
   flgUseNormPars = runpars->flgUseNormPars;
   if (flgUseNormPars) cout<<"atmFitPars: Using normalization pars"<<endl;
   TString sysType = runpars->sysParType;
-
+  rnd = new TRandom3();
+  fScale = 1;
+  initPars(systype.Data());
+  if (covm) setCov(covm);
   //fill all initial parameter values and count number of pars
   initPars(sysType.Data());
-
 }
 
 void atmFitPars::printPars(){
@@ -119,10 +139,10 @@ void atmFitPars::printPars(){
   for (int i=0;i<nTotPars;i++){
     cout<<"PAR: "<<i<<" = "<<pars[i]<<" +/- "<<parUnc[i]<<endl;
   }
+  //cov->PrintNominal();
   cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"<<endl;
   return;
 }
-
 
 //read in all parameters from a file made from a call to "savePars"
 void atmFitPars::readPars(const char* filename){
@@ -140,7 +160,6 @@ void atmFitPars::readPars(const char* filename){
     cout<<"setting parameter # "<<ipar<<" to "<<pars[ipar]<<endl;
     setParameter(ipar,pars[ipar]);
   }
-  return;
 }
 
 //save current parameters to a file 
@@ -155,21 +174,31 @@ void atmFitPars::savePars(const char* filename){
   parTree->Branch("nSysPars",&nSysPars,"nSysPars/I");
   parTree->Fill();
   fout->Write();
-  return;
 }
 
 TRandom2* randy2 = new TRandom2();
 
 void atmFitPars::setRandSysPar(){
- // TRandom2* randy = new TRandom2();
   double parval;
-  for (int i=0;i<nSysPars;i++){
-     parval = randy2->Gaus(sysPar[i],(sysParUnc[i]/2.));
-     if (parval<0) parval=0.;
-     cout<<"par "<<i<<" is "<<parval<<endl;
-     setSysParameter(i,parval);
+  if (sysType=="tn186") {
+    for (int i=0;i<nSysPars;i++){
+      parval = randy2->Gaus(sysPar[i],(sysParUnc[i]/2.));
+      if (parval<0) parval=0.;
+      cout<<"par "<<i<<" is "<<parval<<endl;
+      setSysParameter(i,parval);
+    }
+  } else if (sysType=="t2k" || sysType=="banff") {
+    parval = randy2->Gaus(sysPar[0],sysParUnc[0]/2.);
+    if (parval < 0) parval = 0;
+    setSysParameter(0, parval);
+    parval = randy2->Gaus(sysPar[1],sysParUnc[1]/2.);
+    if (parval < 0) parval = 0;
+    setSysParameter(1, parval);
+    parval = randy2->Uniform(0,1);
+    if (parval > 0.5) setSysParameter(2, 0);
+    else setSysParameter(2, 1);
+    cov->proposeStep();
   }
-  return;
 }
 
 void atmFitPars::printParValues(){
@@ -184,36 +213,29 @@ int atmFitPars::checkFixFlg(int ibin, int icomp, int iatt, int imod){
 
 void atmFitPars::fixParameter(int ibin,int icomp,int iatt, int imod){
   fixPar[getParIndex(ibin,icomp,iatt,imod)] = 1;
-  return;
 }
 
 void atmFitPars::fixParameter(int ipar){
   fixPar[ipar] = 1;
-  return;
 }
 
 void atmFitPars::setSysParameter(int ipar, double value){
   sysPar[ipar]=value;
   pars[nTotPars-nSysPars+ipar]=value;
-  return;
 }
 
 void atmFitPars::setParameter(int ibin, int icomp, int iatt, int itype, double value){
   histoPar[ibin][icomp][iatt][itype] = value;
   pars[parIndex[ibin][icomp][iatt][itype]] = value;
-  return;
 }
 
 
 void atmFitPars::setParameter(int ipar, double value){
   pars[ipar]=value; //< set 1D parameter array
-  // update systematic and histogram modification parameters as well
-  // these parameters should be kept in sync
   if (ipar>=(nTotPars-nSysPars)) sysPar[ipar-nTotPars+nSysPars] = value;
   else{
     histoPar[binOfPar[ipar]][compOfPar[ipar]][attOfPar[ipar]][typeOfPar[ipar]]=value;
   }
-  return;
 }
 
 atmFitPars::atmFitPars(int isamp, int ibin, int icomp, int iatt, const char* systype){
@@ -222,6 +244,8 @@ atmFitPars::atmFitPars(int isamp, int ibin, int icomp, int iatt, const char* sys
   nComponents    = icomp;
   nAttributes   = iatt;;
   initPars(systype);
+  rnd = new TRandom3();
+  fScale = 1;
 }
 
 atmFitPars::atmFitPars(int isamp, int ibin, int icomp, int iatt, int nsyst){
@@ -234,6 +258,8 @@ atmFitPars::atmFitPars(int isamp, int ibin, int icomp, int iatt, int nsyst){
     sysPar[isys]=1.;
   }
   initPars();
+  rnd = new TRandom3();
+  fScale = 1;
 }
 
 
@@ -320,9 +346,24 @@ void atmFitPars::initPars(const char* systype){
     sysParDefault[nSysPars] = 1.0;
     sysParUnc[nSysPars] = 0.05;
     nSysPars++;
+  } else if (!stype.CompareTo("t2k") || !stype.CompareTo("banff")) {
+    nSysPars = 3; // two flux errors + hadron multiplicity
+    // flux
+    sysParNom[0] = 1.0; sysPar[0] = 1.0;    sysParUnc[0] = 0.25; // sub-GeV flux norm
+    sysParNom[1] = 1.0; sysPar[1] = 1.0;    sysParUnc[1] = 0.15; // multi-GeV flux norm
+    sysParUp[0] = 9999.; sysParLow[0] = 0.;
+    sysParUp[1] = 9999.; sysParLow[1] = 0.;
+    // hadron multiplicity
+    sysParNom[2] = 0; sysPar[2] = 0;
+    sysParName[0] = "FLUX_SUB";
+    sysParName[1] = "FLUX_MUL";
+    sysParName[2] = "HAD_MULT";
+    // xsec errors
+    std::cout<<"Please set covariance matrix by calling atmFitPars::setCov(covBase *)\n"
+	     <<"stype corresponds to "<<stype.Data()<<std::endl;
   }
 
-  // no parameters
+  
   if (!stype.CompareTo("none")){
     nSysPars=0;
   }
@@ -345,7 +386,6 @@ void atmFitPars::initPars(const char* systype){
     sysParDefault[nSysPars] = 1.0;
     nSysPars++;
   }
-
 
   //add systematics to 1D parameter arrays
   for (int isys=0;isys<nSysPars;isys++){
@@ -383,13 +423,31 @@ void atmFitPars::initPars(const char* systype){
   // fix total number of parameters and print values
   nTotPars = index;
   cout<<"Total number of fit parameters: "<<nTotPars<<endl;
+  /*
   for (int kpar=0;kpar<nTotPars;kpar++){
     cout<<"par "<<kpar<<" value: "<<pars[kpar]<<endl;
-  }
-  return;
+    }*/
+
 }
 
-
-
-          
-#endif
+void atmFitPars::setCov(covBase *covariance)
+{
+  std::cout<<"setting covariance matrix"<<std::endl;
+  cov = covariance;
+  nSysPars += cov->getNPar();
+  for (int i = 3; i < nSysPars; ++i) {
+    //std::cout<<i<<std::endl;
+    sysPar[i] = cov->getNominal(i-3);
+    sysParNom[i] = cov->getNominal(i-3);
+    sysParUnc[i] = cov->getUncertainty(i-3);
+    sysParUp[i] = cov->getUp(i-3);
+    sysParLow[i] = cov->getLow(i-3);
+    sysParName[i] = cov->getParName(i-3);
+    pars[nTotPars+i-3] = sysPar[i];
+    parUnc[nTotPars+i-3] = sysParUnc[i];
+  }
+  nTotPars += cov->getNPar();
+  cout<<"Total number of fit parameters now is: "<<nTotPars<<endl;
+  cout<<"Total number of systematic parameters: "<<nSysPars<<endl;
+  //cov->PrintNominal();
+}

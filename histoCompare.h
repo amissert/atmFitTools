@@ -1,7 +1,8 @@
 #ifndef HISTCOMPARE_H
 #define HISTCOMPARE_H
 
-#include "histoManager.cxx"
+#include "shared.h"
+#include "histoManager.h"
 #include "TMath.h"
 #include "TRandom2.h"
 #include "histoTransforms.cxx"
@@ -12,25 +13,27 @@
 
 using namespace std;
 
-
 //class to compare histograms and evaluate likelihoods
 class histoCompare{
   public:
 
   //constructors//
-  histoCompare(const char* parfile);  //construct from parameter file
+  histoCompare(const char* parfile, bool sepearteneutmode = false);  //construct from parameter file
   histoCompare();  //standard constructor
 
   //internal variables
+  bool separateNeutMode;
   TString nameTag;  //name associated with this instance
   int nSamp;  //number of samples
   int nBin;  //number of bins
   int nComp;  //number of  components
   int nAtt;  //nummboer of attributes
+  int nMode;
   double tunePar; //tuning parameter for MCMC
   //tools for histogram manager management
   //created histo manager from file
   void readFromFile(const char* rootname,int isamp,int ibin, int icomp, int natt);
+  void readFromFile(const char* rootname,int isamp,int ibin, int icomp, int imode, int natt);
   histoManager* hManager;
   //atmospheric pars
   atmFitPars* thePars;
@@ -55,7 +58,8 @@ class histoCompare{
   void setBinName(int ibin, const char* name){binName[ibin]=name;}
   void setCompName(int icomp, const char* name){compName[icomp]=name;}
   void setAttName(int iatt, const char* name){attName[iatt]=name;}
-  //post-fit toolts
+  void setupPars(int nsyspars=0); //sets up all parameters
+  void setupPars(atmFitPars *a);
   void profileL(int ibin, int icomp, int iatt, int imod, double range, int npts=100);
   void profileL(int ipar,double range, int npts=100,int sameflg=0);
   void showFitHisto(int isamp,int ibin,int icomp,int iatt);
@@ -64,11 +68,9 @@ class histoCompare{
   void showFitPars(int ibin,int iatt,int imod);
   void showModHiso(int isamp,int ibin, int icomp, int iatt, double smear, double bias);
   void runMCMC(int nsteps);
- // double getErrLo(int ibin,int icomp,int iatt,int imod);
   double getErrLo(int isyst);
   double getErrHi(int isyst);
   TH1D* getModifiedHisto(int ibin, int icomp, int iatt){return hManager->getSumHistogramMod(ibin,icomp,iatt);}
- // TH1D* hMod[NSAMPMAX][NBINMAX][NCOMPMAX][NATTMAX];
 
   //initialize all necessary components
   void initialize(histoManager* hm, atmFitPars* apars);
@@ -94,7 +96,6 @@ class histoCompare{
   int nMCHist;
   int useLnLType;
   double parDebug[10][2];
-//  double getLDebug(); 
  
   double cScale; //correction scale for likelihood
   void printFitResults(const char* directory);

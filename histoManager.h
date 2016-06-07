@@ -1,6 +1,8 @@
 #ifndef HISTOMANAGER_H
 #define HISTOMANAGER_H
 
+#include <iostream>
+
 #include "TH1D.h"
 #include "TString.h"
 #include "TFile.h"
@@ -10,18 +12,15 @@
 #include <iostream>
 #include "THStack.h"
 #include "TLegend.h"
-#include "hSplines.cxx"
+#include "hSplines.h"
 #include "atmFitPars.h"
 #include "histoTransforms.cxx"
 #include "sharedPars.cxx"
-#include "shared.h"
 #include "splineParReader.h"
-
-//#define NSAMPMAX 7
-//#define NCOMPMAX 20
-//#define NATTMAX 20
-//#define NBINMAX 10
-
+#include "covXsec.h"
+#include "covBANFF.h"
+#include "covBase.h"
+#include "shared.h"
 
 //manages all histograms and splines for the fit
 class histoManager{
@@ -29,8 +28,8 @@ class histoManager{
 
   ///////////////////////////
   //CONSTRUCTORS//
-  histoManager(int nsampl,int nbins,int ncomp,const char* name=""); //creates blank histogram manager
-  histoManager(const char* rootname,int nsamp,int nbin,int ncomp,int natt); //recreates a histoManager from a file
+  histoManager(int nsampl,int nbins,int ncomp,const char* name="", int nmode = 0, bool separateneutmode = false); //creates blank histogram manager
+  histoManager(const char* rootname,int nsamp,int nbin,int ncomp,int natt, int nmode = 0, bool separateneutmode = false); //recreates a histoManager from a file
   histoManager(int nptsmc, int nptsdata); //< for unit testing, makes histoManager with gaussian histograms 
   histoManager(const char* parfile); //< builds a histogram manager from histograms and values in parameter file
 
@@ -43,8 +42,12 @@ class histoManager{
   int nComponents; //number of MC components
   int nAttributes; //number of attributes (fiTQun outputs)
   int nBins;  //number of bins in data
+  int nModes;
   TH1D* hMC[NSAMPMAX][NBINMAX][NCOMPMAX][NATTMAX]; //array of all MC histograms
   TH1D* hMCModified[NSAMPMAX][NBINMAX][NCOMPMAX][NATTMAX]; //array of all MODIFIED MC histograms
+  TH1D* hMCNeut[NSAMPMAX][NBINMAX][NCOMPMAX][NMODE][NATTMAX];
+  TH1D* hMCNeutModified[NSAMPMAX][NBINMAX][NCOMPMAX][NMODE][NATTMAX];
+  TH1D *hMCNeutNom[NSAMPMAX][NBINMAX][NCOMPMAX][NMODE][NATTMAX]; 
   TH1D* hSumHisto[NSAMPMAX][NBINMAX][NATTMAX];
   TH1D* hSumHistoMod[NSAMPMAX][NBINMAX][NATTMAX];
   TH1D* hMod;
@@ -53,6 +56,7 @@ class histoManager{
   int useSplineFlg;
   double normFactor;
   hSplines* theSplines[NSAMPMAX][NBINMAX][NCOMPMAX][NATTMAX]; //splines for flux/xsec params
+  hSplines* moreSplines[NSAMPMAX][NBINMAX][NCOMPMAX][NMODE][NATTMAX];
   TH1D* hData[NSAMPMAX][NBINMAX][NATTMAX];  //array of all Data histograms
   TLegend* Leg;  //for histogram drawing methods
   TH2D* h2d; //for 2D debugging histograms
@@ -60,6 +64,7 @@ class histoManager{
   //Array to store mean of each histogram. This affects how the histogram is scaled, since a scaling parameter
   //scales about the mean.
   double hMCMean[NSAMPMAX][NBINMAX][NCOMPMAX][NATTMAX];
+  bool separateNeutMode;
   ///////////////////////////
   //parametrs
   atmFitPars* fitPars; 
@@ -70,27 +75,37 @@ class histoManager{
   //for initialization
   void initHistos();
   void fillHistogram(int isamp, int ibin, int icomp, int iatt,double value,double weight=1.);
+  void fillHistogram(int isamp, int ibin, int icomp, int imode, int iatt, double valuem, double weight);
   void fillHistogramData(int isamp, int ibin, int iatt,double value,double weight=1.);
-
+  void fillNominalHistogram(int isamp, int ibin, int icomp, int imode, int iatt, double value, double weight);
   ///////////////////////////
   //setters
   void setHistogram(int isamp, int ibin, int icomp, int iatt, int dataflg,TH1D* h);
+  void setHistogram(int isamp, int ibin, int icomp, int imode, int iatt, int dataflg, TH1D *h);
+  void setNominalHistogram(int isamp, int ibin, int icomp, int imode, int iatt, TH1D *h);
 
   ///////////////////////////
   //getters
   TH1D* getHistogram(int isamp, int ibin, int icomp, int iatt);
   TH1D* getModHistogram(int isamp, int ibin, int icomp, int iatt); //gets histogram modified from atm pars
+  TH1D* getHistogram(int isamp, int ibin, int icomp, int imode, int iatt); // neut
+  TH1D* getNominalHistogram(int isamp, int ibin, int icomp, int imode, int iatt);
+  TH1D* getModHistogram(int isamp, int ibin, int icomp, int imode, int iatt); // neut
   TH1D* getHistogramData(int isamp, int ibin, int iatt){return hData[isamp][ibin][iatt];}
   hSplines* getSplines(int isamp, int ibin, int icomp, int iatt){return theSplines[isamp][ibin][icomp][iatt];}
+  hSplines* getSplines(int isamp, int ibin, int icomp, int imode, int iatt) {return moreSplines[isamp][ibin][icomp][imode][iatt];}
+
   TH1D* getSumHistogram(int isamp, int ibin, int att, int normFlg=1);
   TH1D* getSumHistogramMod(int isamp, int ibin, int att, int normFlg=1);
-  TH1D* getSplineModifiedHisto(int isamp, int ibin, int icomp, int iatt);
+  void  getSplineModifiedHisto(int isamp, int ibin, int icomp, int iatt);
+  void  getSplineModifiedHisto(int isamp, int ibin, int icomp, int imode, int iatt);
 
   ///////////////////////////  
   //plotting
   void showMCBreakdown(int isample,int ibin,int iatt);
   THStack* showMCBreakdownStack(int isample,int ibin,int iatt);
-  void readFromFile(const char* rootename,int nsamp,int nbin,int ncomp,int natt);
+  void readFromFile(const char* rootename,int nsamp,int nbin,int ncomp,int natt, int nmode=0);
+  //void readFromFile(const char* rootename,int nsamp,int nbin,int ncomp,int nmode,int natt);
   void readSplinesFromFile(const char* rootname, int nsyspartot);
   
   ///////////////////////////

@@ -1,93 +1,15 @@
-#include "TRandom2.h"
-#include "TMath.h"
-#include "TH1D.h"
-#include "TH2D.h"
-#include <math.h>
-#include "TTree.h"
-#include <iostream>
-#include "TFile.h"
-#include "atmFitPars.cxx"
 
-#define NMCMCPARS 500
-
-using namespace std;
-
-#ifndef GLOBAL_RANDOM
-#define GLOBAL_RANDOM
-TRandom2* randy = new TRandom2();
-#endif
-
-//class to manage a Markov Chain Monte Carlo
-class markovTools{
-   public:
-   
-   ///////////////////
-   //constructors
-   markovTools(int npars);
-   markovTools(atmFitPars* atmpars);
-   void Init(int pars);
-
-   ///////////////////////////
-   //variables
-   TFile* fout; //< output file
-   int nPars;  //< totla number of parameters
-   int iStep;  //< counter for total step number
-   double oldPars[NMCMCPARS]; //< array of parameters from previous step
-   int fixPar[NMCMCPARS]; //< array of fix flags for each parameter
-   double oldL; //< likelihood value of previous step
-   double tuneParameter; //< tunes the size of MCMC steps
-   double varPar[NMCMCPARS]; //< stores parameter standard deviations
-   TTree* pathTree;
-   atmFitPars* atmPars;
-
-   /////////////////////////
-   //setters
-   void setFixPar(int ipar, int value){fixPar[ipar]=value;}
-   void setPar(int ipar,double value){oldPars[ipar]=value;}
-   void setL(double value){oldL=value;}
-   void setParVar(int ipar,double value); //< sets parameter standard deviations
-
-   /////////////////////////
-   //MCMC Functions
-   void proposeStep(double* par);  //< proposes a new step from the given parameter set
-   void proposeStep(); //< propose a step from the parameters in atmFitPars
-   int  acceptStepLnL(double newL); //< decide if step is accepted given new LnL
-   int acceptStep(double newL,double* par); 
-   int acceptStepLnL(double newL,double* par);
-
-   /////////////////////////
-   //I/O
-   void savePath();
-   void setTuneParameter(double value){tuneParameter=value;}
-
-   /////////////////////////
-   //debugging
-   void test(int itry);
-   void testAtm(int itry);
-
-   TH1D* htest;
-   TH2D* htest2D;
-
-
-};
-
-
+#include "markovTools.h"
 
 void markovTools::savePath(){
   pathTree->Write();
- // fout->Close();
-//  if (filename){
-//    pathTree->SaveAs(filename);
-//  }
-//  else{
-//    pathTree->SaveAs("mcmcpath.root");
-//  }
   fout->Close();
   return;
 }
 
 void markovTools::setParVar(int ipar,double value){
   varPar[ipar] = value;
+  //atmPars->setParameter(ipar, value);
   cout<<"param "<<ipar<<" variance set to: "<<value<<endl;
   return;
 }
@@ -171,15 +93,11 @@ int markovTools::acceptStepLnL(double newL){
     for (int i=0;i<nPars;i++){
       oldPars[i]=atmPars->getParameter(i);
     }
+    atmPars->acceptStep();
     pathTree->Fill();
     iaccept = 1;
+    std::cout<<iStep<<" accepted, LnL = "<<newL<<std::endl;
   } 
-  else{
-    for (int i=0;i<nPars;i++){
-      //rejected, reset to old parameters
-      atmPars->setParameter(i,oldPars[i]);
-    }
-  }
 
 
   iStep++; //< increment global step  count
@@ -201,6 +119,7 @@ int markovTools::acceptStepLnL(double newL,double* par){
     for (int i=0;i<nPars;i++){
       oldPars[i]=par[i];
     }
+    atmPars->acceptStep();
     pathTree->Fill();
     iaccept = 1;
   } 
@@ -213,7 +132,6 @@ int markovTools::acceptStepLnL(double newL,double* par){
   if ((iStep%100)==0) cout<<"step: "<<iStep<<endl;
   return iaccept;
 }
-
 
 
 int markovTools::acceptStep(double newL,double* par){
@@ -244,23 +162,34 @@ int markovTools::acceptStep(double newL,double* par){
 }
 
 
-
 /////////////////////////////////////////////////
 //takes a poiter to a parameter array and returns
 //a new array of proposed parameters
 void markovTools::proposeStep(double* par){  
+  atmPars->proposeStep();
   for (int i=0;i<nPars;i++){
-    oldPars[i] = par[i];
-    if (fixPar[i]!=1) par[i] = randy->Gaus(par[i],varPar[i]*tuneParameter);
+    if (fixPar[i]!=1) par[i] = atmPars->getPropParameter(i);
+    //oldPars[i] = par[i];
+    //if (fixPar[i]!=1) par[i] = randy->Gaus(par[i],varPar[i]*tuneParameter);
   }
   return;
 }
 
+void markovTools::setTuneParameter(double value)
+{
+  tuneParameter=value;
+  atmPars->setStepSize(tuneParameter);
+}
 
 /////////////////////////////////////////////////
 //takes a poiter to atmFitPars and suggests new parameters
 //
 void markovTools::proposeStep(){  
+  atmPars->proposeStep();
+  for (int i = 0; i < nPars; ++i) {
+    oldPars[i] = atmPars->getParameter(i);
+  }
+  /*
   for (int i=0;i<nPars;i++){
     oldPars[i] = atmPars->getParameter(i);
     if (atmPars->fixPar[i]!=1){
@@ -268,10 +197,12 @@ void markovTools::proposeStep(){
       double random = randy->Gaus(oldPars[i],atmPars->parUnc[i]*tuneParameter);
    //   cout<<"random: "<<random<<endl;
       atmPars->setParameter(i,random);
+      //atmPars->proposeStep();
    //   cout<<"new par: "<<atmPars->getParameter(i);
     }
   }
   return;
+  */
 }
 
 

@@ -13,7 +13,8 @@ class histoFactory{
   public:
 
   histoFactory(int nsampl,int nbins,int ncomp,const char* name=""); //creates blank histogram factory
-  histoFactory(const char* parfile);//< initialize using parameters in par file
+  histoFactory(const char* parfile, bool separateneutmode = false);//< initialize using parameters in par file
+  histoFactory(int nsampl,int nbins,int ncomp,int nmode, bool separateneutmode, const std::string name = "");
   histoManager* hManager; 
   TTree* dataTree; //tree containing data events
   TTree* mcTree;  //tree conttaining MC events
@@ -27,6 +28,8 @@ class histoFactory{
   int nComponents; //number of MC components
   int nAttributes; //number of attributes (fiTQun outputs)
   int nBins;  //number of bins in data
+  int nModes;
+  bool separateNeutMode;
   int nDataEvents; //number of data events
   int nMCEvents;  //number of MC events
   double normMC; //normalization factor for MC

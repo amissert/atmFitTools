@@ -8,7 +8,9 @@
 
 /////////////////////////////////////////////////
 //construct from parameter file
-histoFactory::histoFactory(const char* parfile){
+histoFactory::histoFactory(const char* parfile, bool separateneutmode)
+  : separateNeutMode(separateneutmode)
+{
 
   //read in parameters  
   runpars = new sharedPars(parfile);
@@ -22,9 +24,13 @@ histoFactory::histoFactory(const char* parfile){
   nComponents = runpars->nComponents;
   nAttributes = runpars->nAttributes;
   nBins = runpars->nFVBins;
-
-  //histogram manager setup
-  hManager = new histoManager(nSamples,nBins,nComponents,nameTag.Data()); 
+  if (separateNeutMode) {
+    nModes = NMODE;
+    hManager = new histoManager(nSamples,nBins,nComponents,nameTag.Data(), nModes, separateNeutMode);
+  } else {
+    nModes = 0;
+    hManager = new histoManager(nSamples,nBins,nComponents,nameTag.Data()); 
+  }
 
 }
 
@@ -34,12 +40,12 @@ void histoFactory::runHistoFactory(){
 
   //setup trees and chains for data and mc
   cout<<"histoFactory: Setting up chains for data and MC.."<<endl;
-  TChain chmc("h1");
-  TChain chdata("h1");
-  chmc.Add(runpars->hFactoryMCFiles.Data());
-  setMCTree((TTree*)&chmc);
-  chdata.Add(runpars->hFactoryDataFiles.Data());  
-  setDataTree((TTree*)&chdata);
+  TChain *chmc = new TChain("h1");
+  TChain *chdata = new TChain("h1");
+  chmc->Add(runpars->hFactoryMCFiles.Data());
+  setMCTree((TChain*)chmc);
+  chdata->Add(runpars->hFactoryDataFiles.Data());  
+  setDataTree((TChain*)chdata);
 
   cout<<"histoFactory: Initializing histograms..."<<endl;  
   //initialize histograms
@@ -55,7 +61,8 @@ void histoFactory::runHistoFactory(){
   cout<<"histoFactory: Saving histograms"<<endl;
   //save all filled histograms
   saveToFile();
-
+  chmc->Delete();
+  chdata->Delete();
   ///////////////////
   return;
 }
@@ -75,6 +82,18 @@ histoFactory::histoFactory(int nsampl,int nbins,int ncomp,const char* name){
   return;
 }
 
+histoFactory::histoFactory(int nsampl, int nbins, int ncomp, int nmode, bool separateneutmode, const std::string name)
+  : nSamples(nsampl)
+  , nComponents(ncomp)
+  , nBins(nbins)
+  , nModes(nmode)
+  , separateNeutMode(separateneutmode)
+{
+  nameTag = name.c_str();
+  nameTag.Append("_hFactoryOutPut");
+  nAttributes = 0;
+  hManager = new histoManager(nsampl, nbins, ncomp, name.c_str(), nmode, separateneutmode);
+}
 //void histoFactory::addAttribute(int iatt){
   //adds an attribute to the attribute list
   //the attribute type is a code for the fiTQun output being used
@@ -110,28 +129,59 @@ void histoFactory::init(){
   TH1D* hsetsum = new TH1D();
   hsetsum->SetDefaultSumw2(kTRUE);
 
-  ////////////////////////////////////////
-  //setup data histos
-  for (int isamp=0;isamp<nSamples;isamp++){
-    for (int ibin=0;ibin<nBins;ibin++){
-      for (int iatt=0;iatt<nAttributes;iatt++){
-         TString hname = "hdata_";
-         hname.Append(Form("samp%d_bin%d_att%d",isamp,ibin,iatt));
-         //cout<<"Making histogram: "<<hname.Data()<<endl;
-         hManager->setHistogram(isamp,ibin,0,iatt,1,getHistogramData(iatt,hname.Data()));
+  if (!separateNeutMode) {
+    ////////////////////////////////////////
+    //setup data histos
+    for (int isamp=0;isamp<nSamples;isamp++){
+      for (int ibin=0;ibin<nBins;ibin++){
+	for (int iatt=0;iatt<nAttributes;iatt++){
+	  TString hname = "hdata_";
+	  hname.Append(Form("samp%d_bin%d_att%d",isamp,ibin,iatt));
+	  //cout<<"Making histogram: "<<hname.Data()<<endl;
+	  hManager->setHistogram(isamp,ibin,0,iatt,1,getHistogramData(iatt,hname.Data()));
+	}
       }
     }
-  }
-  //setup mc histos
-  for (int isamp=0;isamp<nSamples;isamp++){
-    for (int ibin=0;ibin<nBins;ibin++){
-      for (int icomp=0;icomp<nComponents;icomp++){
-        for (int iatt=0;iatt<nAttributes;iatt++){
-           TString hname = "hmc_";
-           hname.Append(Form("samp%d_bin%d_comp%d_att%d",isamp,ibin,icomp,iatt));
-         //  cout<<"Making histogram: "<<hname.Data()<<endl;
-           hManager->setHistogram(isamp,ibin,icomp,iatt,0,getHistogram(iatt,hname.Data()));
-        }
+    //setup mc histos
+    for (int isamp=0;isamp<nSamples;isamp++){
+      for (int ibin=0;ibin<nBins;ibin++){
+	for (int icomp=0;icomp<nComponents;icomp++){
+	  for (int iatt=0;iatt<nAttributes;iatt++){
+	    TString hname = "hmc_";
+	    hname.Append(Form("samp%d_bin%d_comp%d_att%d",isamp,ibin,icomp,iatt));
+	    //  cout<<"Making histogram: "<<hname.Data()<<endl;
+	    hManager->setHistogram(isamp,ibin,icomp,iatt,0,getHistogram(iatt,hname.Data()));
+	  }
+	}
+      }
+    }
+  } else {
+    // setup data histos
+    for (int isamp=0;isamp<nSamples;isamp++){
+      for (int ibin=0;ibin<nBins;ibin++){
+	for (int iatt = 0; iatt < nAttributes; ++iatt) {
+	  TString hname = "hdata_";
+	  hname.Append(Form("samp%d_bin%d_att%d",isamp,ibin,iatt));
+	  //cout<<"Making histogram: "<<hname.Data()<<endl;
+	  hManager->setHistogram(isamp,ibin,0,iatt,1,getHistogramData(iatt,hname.Data()));
+	}
+      }
+    }
+    //setup mc histos
+    for (int isamp=0;isamp<nSamples;isamp++){
+      for (int ibin=0;ibin<nBins;ibin++){
+	for (int icomp=0;icomp<nComponents;icomp++){
+	  for (int imode = 0; imode < nModes; ++imode) {
+	    for (int iatt=0;iatt<nAttributes;iatt++){
+	      TString hname = "hmc_";
+	      hname.Append(Form("samp%d_bin%d_comp%d_mode%d_att%d",isamp,ibin,icomp,imode,iatt));
+	      //  cout<<"Making histogram: "<<hname.Data()<<endl;
+	      hManager->setHistogram(isamp,ibin,icomp,imode,iatt,0,getHistogram(iatt,hname.Data()));
+	      hname.Append("nom");
+	      hManager->setNominalHistogram(isamp,ibin,icomp,imode,iatt,getHistogram(iatt,hname.Data()));
+	    }
+	  }
+	}
       }
     }
   }
@@ -210,7 +260,6 @@ TH1D* histoFactory::getHistogram(int iatt, const char* thename){
  // if (iatt==1){
  //    hnew = new TH1D(thename,thename,nBinsNllEMu,-3000,6000);
  // }
-//  return hnew;
 }
 
 //calculates attributes from the raw fiTQun output
@@ -241,15 +290,6 @@ void histoFactory::normalizeHistos(double scale){
   hnorm = new TH1D("hnorm","hnorm",1,0,1);
  // scale = (double)nDataEvents/(double)nMCEvents;
   hnorm->SetBinContent(1,scale);
-  for (int ibin=0;ibin<nBins;ibin++){
-    for (int isamp=0;isamp<nSamples;isamp++){
-      for (int iatt=0;iatt<nAttributes;iatt++){
-        for (int icomp=0;icomp<nComponents;icomp++){
- //         hManager->getHistogram(isamp,ibin,icomp,iatt)->Scale(scale);
-        }
-      }
-    }
-  }
   return;
 }
 
@@ -261,7 +301,10 @@ void histoFactory::fillHistos(){
   //fill data histos
   for (int i=0;i<nevdata;i++){
     dataTree->GetEntry(i);
-    //fillAttributesData();
+    fillAttributesData();
+    if (i%100==0) {
+      std::cout<<i<<" "<<fqData->nsample<<" "<<fqData->nbin<<" "<<fqData->attribute[0]<<" "<<fqData->attribute[1]<<std::endl;
+    }
     for (int iatt=0;iatt<nAttributes;iatt++){
       hManager->fillHistogramData(fqData->nsample,fqData->nbin,iatt,
                                   fqData->attribute[iatt],fqData->evtweight);
@@ -272,9 +315,13 @@ void histoFactory::fillHistos(){
     mcTree->GetEntry(j);
     fillAttributesMC();
     for (int jatt=0;jatt<nAttributes;jatt++){
-      hManager->fillHistogram(fqMC->nsample,fqMC->nbin,fqMC->ncomponent,
-                              jatt,fqMC->attribute[jatt],fqMC->evtweight);
-    //  hManager->fillHistogram(fqMC->nsample,fqMC->nbin,fqMC->ncomponent,jatt,att[jatt],fqMC->evtweight);
+      if (!separateNeutMode) {
+	hManager->fillHistogram(fqMC->nsample,fqMC->nbin,fqMC->ncomponent,
+				jatt,fqMC->attribute[jatt],fqMC->rfgweight);
+      } else {
+	hManager->fillHistogram(fqMC->nsample, fqMC->nbin, fqMC->ncomponent, fqMC->nmode, jatt, fqMC->attribute[jatt], fqMC->rfgweight);
+	hManager->fillNominalHistogram(fqMC->nsample, fqMC->nbin, fqMC->ncomponent, fqMC->nmode, jatt, fqMC->attribute[jatt], fqMC->evtweight);
+      }
     }
   } 
   return;
@@ -284,6 +331,8 @@ void histoFactory::setDataTree(TChain* ch){
   dataTree=(TTree*)ch;
   fqData = new fqProcessedEvent(dataTree);
   nDataEvents = dataTree->GetEntries();
+  dataTree->GetEntry(0);
+  std::cout<<"got data entry 0"<<std::endl;
   return;
 }
 
@@ -297,6 +346,7 @@ void histoFactory::setDataTree(TTree* tr){
 void histoFactory::setMCTree(TTree* tr){
   mcTree=tr;
   fqMC = new fqProcessedEvent(mcTree);
+  fqMC->FillMap();
   nMCEvents = mcTree->GetEntries();
   return;
 }
@@ -304,6 +354,7 @@ void histoFactory::setMCTree(TTree* tr){
 void histoFactory::setMCTree(TChain* ch){
   mcTree=(TTree*)ch;
   fqMC = new fqProcessedEvent(mcTree);
+  fqMC->FillMap();
   nMCEvents = mcTree->GetEntries();
   return;
 }
