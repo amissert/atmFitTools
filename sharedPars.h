@@ -57,9 +57,6 @@ class sharedPars{
   int    PreProcNseMin;
   int     preProcAddMoreVars;
   double  PreProcInGateCut;
-  TString FVBinName0;
-  TString FVBinName1;
-  TString FVBinName2;
   TString fQAttName0;
   TString fQAttName1;
   TString fQAttName2;
@@ -75,8 +72,6 @@ class sharedPars{
   TString FVBinName3;
   TString FVBinName4;
   TString FVBinName5;
-  TString fQAttName0;
-  TString fQAttName1;
   TString MCComponentName0;
   TString MCComponentName1;
   TString MCComponentName2;

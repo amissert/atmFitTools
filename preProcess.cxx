@@ -1,3 +1,5 @@
+#ifndef  PREPROCESS_C
+#define  PREPROCESS_C
 #include "preProcess.h"
 #include "TObjArray.h"
 
@@ -46,7 +48,7 @@ void preProcess::setTree(TChain* chin){
 //sets up pointers
 void preProcess::setTree(TTree* trin){
   tr = trin;
-  fq = new fqReader(tr);
+  fq = new fqEvent(tr);
   vis = new visRing(fq); 
   return;
 }
@@ -59,7 +61,7 @@ void preProcess::setTree(TTree* trin, TTree *spline){
     //tr->AddFriend(trspline);
     std::cout<<"setup spline tree "<<trspline->GetEntries()<<std::endl;
   }
-  fq = new fqReader(tr);
+  fq = new fqEvent(tr);
   vis = new visRing(fq); 
   return;
 }
@@ -348,6 +350,7 @@ int preProcess::getComponent(){
 //loop over all events and sort into bins, samples and components
 void preProcess::preProcessIt(){
   int nev = tr->GetEntries();
+  int npassed = 0;
   //std::cout<<"nev = "<<nev<<std::endl;
   for (int i=0;i<nev;i++){
     //get info for event
@@ -358,6 +361,7 @@ void preProcess::preProcessIt(){
     if ((i%1000)==0) cout<<i<<endl;
     nbin=getBin();
     if (!passCuts()) continue;
+    npassed++;
     vis->fillVisVar(); //get visible ring information
     fillAttributes();
     ncomponent=getComponent();
@@ -368,6 +372,7 @@ void preProcess::preProcessIt(){
     trout->Fill();
     //if(isData) std::cout<<i<<" filling data "<<std::endl;
   }
+  return npassed;
 }
 
 ///////////////////////////////////////
@@ -527,7 +532,7 @@ preProcess::preProcess(){
 //construct from TTree
 preProcess::preProcess(TTree* trin,const char* name){
   tr=trin;
-  fq = new fqReader(tr);
+  fq = new fqEvent(tr);
   vis = new visRing(fq);
   setupNewTree();
   nameTag=name;
@@ -539,7 +544,7 @@ preProcess::preProcess(TTree* trin,const char* name){
 preProcess::preProcess(TChain* chin,const char* name){
   tr=(TTree*)chin;
   nameTag=name;
-  fq = new fqReader(tr);
+  fq = new fqEvent(tr);
   vis = new visRing(fq);
   setupNewTree();
   return;
@@ -551,7 +556,7 @@ preProcess::preProcess(TChain *mc, TChain *spline, const std::string name)
   trspline = (TTree*)spline;
   setupSplineTree(trspline);
   nameTag = name.c_str();
-  fq = new fqReader(tr);
+  fq = new fqEvent(tr);
   vis = new visRing(fq);
   setupNewTree();
 }
@@ -613,4 +618,4 @@ void preProcess::runPreProcessing(){
   return;
 }
 
-
+#endif

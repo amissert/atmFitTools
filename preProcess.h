@@ -95,7 +95,6 @@ class preProcess{
   float fq1rmincone[10][7];
   float fq1rperim[10][7];
   float evtweight;
-  float evtweight; // banff weight
   float rfgweight;
   float attribute[1000];
   float fqrcpar;

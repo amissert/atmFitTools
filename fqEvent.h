@@ -365,26 +365,26 @@ void fqEvent::Init(TTree *tree)
    fChain->SetMakeClass(1);
 
    fChain->SetBranchAddress("nring", &nring, &b_nring);
-   fChain->SetBranchAddress("nrun", &nrun, &b_nrun);
+  // fChain->SetBranchAddress("nrun", &nrun, &b_nrun);
    fChain->SetBranchAddress("nev", &nev, &b_nev);
-   fChain->SetBranchAddress("nsub", &nsub, &b_nsub);
+  // fChain->SetBranchAddress("nsub", &nsub, &b_nsub);
 //   fChain->SetBranchAddress("cate", &cate, &b_cate);
-   fChain->SetBranchAddress("potot", &potot, &b_potot);
-   fChain->SetBranchAddress("nhit", &nhit, &b_nhit);
-   fChain->SetBranchAddress("pomax", &pomax, &b_pomax);
+   //fChain->SetBranchAddress("potot", &potot, &b_potot);
+  // fChain->SetBranchAddress("nhit", &nhit, &b_nhit);
+//j   fChain->SetBranchAddress("pomax", &pomax, &b_pomax);
 //   fChain->SetBranchAddress("potota", &potota, &b_potota);
-   fChain->SetBranchAddress("nhita", &nhita, &b_nhita);
+   //fChain->SetBranchAddress("nhita", &nhita, &b_nhita);
    fChain->SetBranchAddress("nhitac", &nhitac, &b_nhitac);
 //   fChain->SetBranchAddress("pomaxa", &pomaxa, &b_pomaxa);
-   fChain->SetBranchAddress("wall", &wall, &b_wall);
-   fChain->SetBranchAddress("evis", &evis, &b_evis);
+//   fChain->SetBranchAddress("wall", &wall, &b_wall);
+//   fChain->SetBranchAddress("evis", &evis, &b_evis);
 //   fChain->SetBranchAddress("rtsum", &rtsum, &b_rtsum);
 //   fChain->SetBranchAddress("rtmax", &rtmax, &b_rtmax);
-   fChain->SetBranchAddress("wlen", &wlen, &b_wlen);
-   fChain->SetBranchAddress("ip", ip, &b_ip);
-   fChain->SetBranchAddress("pos", pos, &b_pos);
-   fChain->SetBranchAddress("dir", dir, &b_dir);
-   fChain->SetBranchAddress("dirtot", dirtot, &b_dirtot);
+//   fChain->SetBranchAddress("wlen", &wlen, &b_wlen);
+   fChain->SetBranchAddress("ip", ip, &b_ip);;
+ //  fChain->SetBranchAddress("pos", pos, &b_pos);
+ //  fChain->SetBranchAddress("dir", dir, &b_dir);
+//   fChain->SetBranchAddress("dirtot", dirtot, &b_dirtot);
 //   fChain->SetBranchAddress("ang", ang, &b_ang);
 //   fChain->SetBranchAddress("rtot", rtot, &b_rtot);
 //   fChain->SetBranchAddress("amom", amom, &b_amom);
@@ -406,7 +406,7 @@ void fqEvent::Init(TTree *tree)
  //  fChain->SetBranchAddress("adir", adir, &b_adir);
  //  fChain->SetBranchAddress("aang", &aang, &b_aang);
  //  fChain->SetBranchAddress("agood", &agood, &b_agood);
-   fChain->SetBranchAddress("wgain", &wgain, &b_wgain);
+//   fChain->SetBranchAddress("wgain", &wgain, &b_wgain);
 //   fChain->SetBranchAddress("nbad", &nbad, &b_nbad);
 //   fChain->SetBranchAddress("nbada", &nbada, &b_nbada);
 //   fChain->SetBranchAddress("msdir", msdir, &b_msdir);
@@ -487,14 +487,14 @@ void fqEvent::Init(TTree *tree)
    fChain->SetBranchAddress("posv", posv, &b_posv);
    fChain->SetBranchAddress("dirv", dirv, &b_dirv);
    fChain->SetBranchAddress("pmomv", pmomv, &b_pmomv);
-   fChain->SetBranchAddress("light_flag", light_flag, &b_light_flag);
-   fChain->SetBranchAddress("npar2", &npar2, &b_npar2);
-   fChain->SetBranchAddress("wallv2", wallv2, &b_wallv2);
-   fChain->SetBranchAddress("ipv2", ipv2, &b_ipv2);
-   fChain->SetBranchAddress("iorg", iorg, &b_iorg);
-   fChain->SetBranchAddress("posv2", posv2, &b_posv2);
-   fChain->SetBranchAddress("dirv2", dirv2, &b_dirv2);
-   fChain->SetBranchAddress("pmomv2", pmomv2, &b_pmomv2);
+   //fChain->SetBranchAddress("light_flag", light_flag, &b_light_flag);
+//   fChain->SetBranchAddress("npar2", &npar2, &b_npar2);
+ //  fChain->SetBranchAddress("wallv2", wallv2, &b_wallv2);
+//   fChain->SetBranchAddress("ipv2", ipv2, &b_ipv2);
+   //fChain->SetBranchAddress("iorg", iorg, &b_iorg);
+ //  fChain->SetBranchAddress("posv2", posv2, &b_posv2);
+ //  fChain->SetBranchAddress("dirv2", dirv2, &b_dirv2);
+ //  fChain->SetBranchAddress("pmomv2", pmomv2, &b_pmomv2);
    fChain->SetBranchAddress("numnu", &numnu, &b_numnu);
    fChain->SetBranchAddress("mode", &mode, &b_mode);
    fChain->SetBranchAddress("ipnu", ipnu, &b_ipnu);
@@ -773,6 +773,7 @@ void fqEvent::Show(Long64_t entry)
 }
 Int_t fqEvent::Cut(Long64_t entry)
 {
+  entry++;
 // This function may be called from Loop.
 // returns  1 if entry is accepted.
 // returns -1 otherwise.
