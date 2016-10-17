@@ -1,3 +1,6 @@
+#ifndef MARKOV_TOOLS
+#define MARKOV_TOOLS
+
 #include "TRandom2.h"
 #include "TMath.h"
 #include "TH1D.h"
@@ -7,6 +10,7 @@
 #include <iostream>
 #include "TFile.h"
 #include "atmFitPars.cxx"
+#include "TObject.h"
 
 #define NMCMCPARS 500
 
@@ -32,6 +36,7 @@ class markovTools{
    // This is the main constructor that is called by histoCompare
    markovTools(atmFitPars* atmpars, const char* outfilename="");
    void Init(int pars);
+   void initOutputTree();
 
    ///////////////////////////
    //variables
@@ -41,8 +46,8 @@ class markovTools{
    TTree* diffChain;
    int nPars;  //< total number of parameters
    int nParsEffective; //< total number of non-fixed parameters;
-   double effectivePars[NMCMCPARS]; //< array of non-fixed parameters
-   double nominalPars[NMCMCPARS]; //< array of nominal parameters
+   float effectivePars[NMCMCPARS]; //< array of non-fixed parameters
+   float nominalPars[NMCMCPARS]; //< array of nominal parameters
    int  effectiveIndex[NMCMCPARS]; //< indiciies of non-fixed parameters
    int  parBin[NMCMCPARS]; //< bin of given effective parameter
    int  parIndex[NMCMCPARS]; //< atmFitPars index effective parameter
@@ -51,14 +56,17 @@ class markovTools{
    int  parIsSyst[NMCMCPARS]; //< flag = 1 if parameter is systematic (flux or xsec) parameter
    int  useDiffProposal[NMCMCPARS]; //< flag = 1 if we're using a differential MCMC to propose parameter
    int iStep;  //< counter for total step number
-   double oldPars[NMCMCPARS]; //< array of parameters from previous step
+   float oldPars[NMCMCPARS]; //< array of parameters from previous step
    int fixPar[NMCMCPARS]; //< array of fix flags for each parameter
-   double oldL; //< likelihood value of previous step;
-   double tuneParameter; //< tunes the size of MCMC steps
-   double varPar[NMCMCPARS]; //< stores parameter standard deviations
-   double parDiff[NMCMCPARS]; //< saves the difference between mcmc steps
+   float oldL; //< likelihood value of previous step;
+   float tuneParameter; //< tunes the size of MCMC steps
+   float varPar[NMCMCPARS]; //< stores parameter standard deviations
+   float parDiff[NMCMCPARS]; //< saves the difference between mcmc steps
    int    parDiffIndex[NMCMCPARS]; //< atmFitPars index of the differential parameters
    int    ndiffpars; //< number of parameters in differential step chain
+   int    nfilled; //< number of times the step tree has been filled
+   int    nchangethresh; //< fill threshold for changing trees
+   int    noutfile;
 
    // output tree
    TTree* pathTree;
@@ -91,6 +99,7 @@ class markovTools{
    //I/O
    void savePath();
    void setTuneParameter(double value);
+   void changeFile();
 
    /////////////////////////
    //debugging
@@ -102,6 +111,43 @@ class markovTools{
 
 
 };
+
+/////////////////////////////////////////////////////
+// change to a new output file
+void markovTools::changeFile(){
+
+  // get current file name
+  TString foutname = fout->GetName();
+
+  // strip '.root'
+  foutname.Remove(foutname.Sizeof()-6);
+  // strip additional modifiers
+  int nstrip = foutname.First("_");
+  foutname.Remove(nstrip);
+
+  // increment files
+  noutfile++;;
+
+  // make new file name
+  TString foutnewname = foutname.Data();
+  foutnewname.Append(Form("_%d",noutfile));
+  foutnewname.Append(".root");
+
+  // close old file
+  cout<<"Closing file "<<fout->GetName()<<endl; 
+  fout->Close();
+
+  // make a new file
+  fout = new TFile(foutnewname.Data(),"recreate");
+  cout<<"Opened new file: "<<fout->GetName()<<endl;
+
+  // setup trees, addresses, etc  
+  initOutputTree(); 
+ 
+  //
+  return; 
+}
+
 
 
 /////////////////////////////////////////////////////
@@ -187,6 +233,11 @@ void markovTools::setMeans(histoManager* hmanager){
 }
 */
 
+/*
+void markovTools::saveCurrentPath(){
+  pathTree->Write();
+}
+*/
 
 void markovTools::savePath(){
   pathTree->Write();
@@ -338,7 +389,12 @@ int markovTools::acceptStepLnL(double newL){
 #ifdef T2K
     atmPars->acceptStep();
 #endif
+    // fill output tree
     pathTree->Fill();
+    nfilled++;
+    if ((nfilled%nchangethresh)==0){
+      changeFile();
+    }
     iaccept = 1;
   } 
 
@@ -557,7 +613,30 @@ void markovTools::proposeStep(){
   return;
 }
 
+/////////////////////////////////////////////
+// setup output tree
+void markovTools::initOutputTree(){
 
+  // make new output tree with parameters
+  pathTree = new TTree("MCMCpath","MCMCpath"); //< initialize new tree for steps
+
+
+  //branch setup
+  pathTree->Branch("npars",&nParsEffective,"npars/I");
+  pathTree->Branch("step",&iStep,"step/I");
+  pathTree->Branch("par",effectivePars,"par[500]/F");
+  pathTree->Branch("pardiff",parDiff,"pardiff[500]/F");
+  pathTree->Branch("parnominal",nominalPars,"parnominal[500]/F");
+  pathTree->Branch("parbin",parBin,"parbin[500]/I");
+  pathTree->Branch("parcomp",parComp,"parcomp[500]/I");
+  pathTree->Branch("paratt",parAtt,"paratt[500]/I");
+  pathTree->Branch("parindex",parIndex,"parindex[500]/I");
+  pathTree->Branch("parsyst",parIsSyst,"parsyst[500]/I");
+  pathTree->Branch("logL",&oldL,"logL/F");
+
+  //
+  return;
+}
 
 /////////////////////////////////////////////
 // initialization
@@ -571,6 +650,15 @@ void markovTools::Init(int npars){
 
   //current step counter
   iStep=0;
+
+  //file counter
+  noutfile=0;
+
+  //fill call counter
+  nfilled=0;
+
+  //counter to change files
+  nchangethresh=1000000;
 
   //set fix arrays etc
   for (int ipar=0;ipar<nPars;ipar++){
@@ -605,16 +693,18 @@ void markovTools::Init(int npars){
   //branch setup
   pathTree->Branch("npars",&nParsEffective,"npars/I");
   pathTree->Branch("step",&iStep,"step/I");
-  pathTree->Branch("par",effectivePars,"par[500]/D");
-  pathTree->Branch("pardiff",parDiff,"pardiff[500]/D");
-  pathTree->Branch("parnominal",nominalPars,"parnominal[500]/D");
+  pathTree->Branch("par",effectivePars,"par[500]/F");
+  pathTree->Branch("pardiff",parDiff,"pardiff[500]/F");
+  pathTree->Branch("parnominal",nominalPars,"parnominal[500]/F");
   pathTree->Branch("parbin",parBin,"parbin[500]/I");
-  pathTree->Branch("parcomp",parComp,"parcomp[200]/I");
+  pathTree->Branch("parcomp",parComp,"parcomp[500]/I");
   pathTree->Branch("paratt",parAtt,"paratt[500]/I");
   pathTree->Branch("parindex",parIndex,"parindex[500]/I");
   pathTree->Branch("parsyst",parIsSyst,"parsyst[500]/I");
-  pathTree->Branch("logL",&oldL,"logL/D");
+  pathTree->Branch("logL",&oldL,"logL/F");
 
+  //autosave options
+  //pathTree->SetAutoSave(100);
 
   //done
   return;
@@ -651,6 +741,8 @@ markovTools::markovTools(atmFitPars* fitpars, const char* outfilename){
   
   // initialize
   Init(fitpars->nTotPars); 
+
+
   return;
 }
 
@@ -661,3 +753,7 @@ void markovTools::setTuneParameter(double value)
   atmPars->setStepSize(tuneParameter);
 #endif
 }
+
+
+
+#endif

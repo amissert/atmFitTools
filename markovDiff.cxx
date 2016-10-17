@@ -50,13 +50,20 @@ class markovDiff{
 };
 
 void markovDiff::setouttree(){
+
+
   outfile = new TFile("mcmcdiff.root","RECREATE");
+  
+
+  //use same file
+
   diffpars = new TTree("MCMCdiff","MCMCdiff");
   diffpars->Branch("npars",&npars,"npars/I");
   diffpars->Branch("par1",par1,"par1[500]/D");
   diffpars->Branch("par2",par1,"par2[500]/D");
   diffpars->Branch("parindex",parindex,"parindex[500]/I");
   diffpars->Branch("pardiff",pardiff,"pardiff[500]/D");
+
   return;
 }
 
@@ -97,7 +104,9 @@ void markovDiff::fillDiffPars(int npairs){
   // Loop over mcmc points and select random pairs of points after
   // some burn-in.  For these pairs, find the difference between the parameters and 
   // save this difference to the new difference tree
-  
+ 
+//  mcmcpars->SetBranchStatus("*",0);
+//  mcmcpars->SetBranchStatus("logL",1);
 
   for (int i=0; i<npairs; i++){
     if ((i%500)==0) cout<<i<<endl;
@@ -113,7 +122,7 @@ void markovDiff::fillDiffPars(int npairs){
       par2[ipar] = par[ipar];
       pardiff[ipar] = par2[ipar]-par1[ipar];
     }
- //   diffpars->Fill(); 
+    diffpars->Fill(); 
   }
 
   diffpars->Write();
@@ -128,6 +137,7 @@ markovDiff::markovDiff(const char* fname, int burn){
   mcmcfile = new TFile(fname);
 
   mcmcpars = (TTree*) mcmcfile->Get("MCMCpath");
+
   nburn = burn; 
 
   return;

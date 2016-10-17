@@ -289,6 +289,12 @@ void histoCompare::runDEMCMC(int nsteps){
 //Run a MCMC of length nsteps
 void histoCompare::runMCMC(int nsteps){
 
+  ///////////////////////////////////////////////
+  //if no steps spefied, use number from par file
+  if (nsteps<0){
+    nsteps = MCMCNSteps;
+  }
+
   ///////////////////////////////////////
   //setup mcmc tools
   markovTools* mc = new markovTools(thePars,MCMCOutputFile.Data());
@@ -305,6 +311,10 @@ void histoCompare::runMCMC(int nsteps){
   double result = getTotLnL();
   mc->setL(result);//< sets the initial likelihood
 
+  ////////////////////////////////////////////////
+  //set save frequencey
+  int nsavesteps = 100;
+
   //loop through steps
   int currentstep=0;
   while (currentstep<nsteps){
@@ -315,6 +325,8 @@ void histoCompare::runMCMC(int nsteps){
     result = getTotLnL();
     //mc->acceptStepLnL(result,par); //< if step is accepted, istep++, and written to histo
     mc->acceptStepLnL(result);
+    //save to disk every nsavesteps steps
+   // if ((currentstep%nsavesteps)==0) mc->saveCurrentPath();
   }
 
   ///////////////////////
