@@ -2,9 +2,10 @@
 #define HISTOFACTORY_H
 
 #include "shared.h"
-#include "sharedPars.cxx"
+#include "sharedPars.h"
 #include "fqProcessedEvent.h"
-#include "histoManager.cxx"
+#include "TRandom2.h"
+#include "histoManager.h"
 
 using namespace std;
 
@@ -39,8 +40,11 @@ class histoFactory{
   int nMCEvents;  //number of MC events
   double normMC; //normalization factor for MC
   double att[NATTMAX]; //array of all attribute values
+  double totDataEvents;
+  double totMCEvents;
   TString parFileName; //name of parameter file at initialization
   sharedPars* runpars; //runtime paramters from parameter file
+  int flgUseSample; //set >0 to use as sample size
 
   /////////////////////////////////////////////////////////////
   //Methods
@@ -48,6 +52,13 @@ class histoFactory{
   TH1D* getHistogram(int iatt,const char* thename); //returns pointer to MC histogram
   TH1D* getHistogramData(int iatt,const char* thename); //returns pointer to Data histogram
   void fillHistos(); //fills all histograms
+  void fillHistosSample(int samplesize); //fills all histograms
+  void fillFakeHistos(int nmc, double mcmean, double mcwidth,
+                                  int ndata, double datamean, double datawidth,
+                                  double datashift); //fills all histograms
+  void fillFakeHistosNoStat(int nmc, double mcmean, double mcwidth,
+                                  int ndata, double datamean, double datawidth,
+                                  double datashift); //fills all histograms
   void setDataTree(TTree* tr);
   void setDataTree(TChain* ch);
   void setMCTree(TTree* tr);
@@ -57,12 +68,15 @@ class histoFactory{
   TString getOutputFileName(){return outputFileName;}
   void setOutputFileName(const char *name){outputFileName=name;}
   void normalizeHistos(double scale=-1.);
+  void runFakeFactory(int nmc, double mcmean, double mcwidth,
+                                  int ndata, double datamean, double datawidth,
+                                  double datashift,int flgstat=1); //< manufacture a fake data set
   void runHistoFactory(); //< this will run the factory and fill all histograms
 };
 
 #endif
 
 #ifndef HISTOFACTORY_C
-#include "histoFactory.cxx"
+//#include "histoFactory.cxx"
 #endif
 

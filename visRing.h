@@ -9,7 +9,7 @@
 #include "TMath.h"
 #include "TString.h"
 #include "iostream"
-#include "FVCalculators.cxx"
+#include "FVCalculators.h"
 #include <map>
 
 #define MAXNVIS 100

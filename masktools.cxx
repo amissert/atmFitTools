@@ -1,16 +1,8 @@
 #ifndef MASKTOOLS_C
 #define MASKTOOLS_C
 
-#include "TChain.h"
-#include "TFile.h"
-#include "TH1D.h"
-#include <iostream>
-#include "FVCalculators.cxx"
-#ifndef T2K
-#include "fqEvent.h"
-#else
-#include "t2kfqEvent.h"
-#endif
+#include "masktools.h"
+
 
 using namespace std;
 
@@ -18,31 +10,6 @@ int passMask(TH1D* hmask, double value){
   int ibin = hmask->FindBin(value);
   return (int)hmask->GetBinContent(ibin);
 }
-
-// a class to mask out spikes in hybrid pi0 data samples
-class masktools{
-  public:
-
-  // constructor
-  masktools();
-
-  // chain with all files
-  TChain* chdata;
-
-  // number of bins in histogram
-  int nbins;
-
-  // threshold for masking
-  double thresh;
-
-  // histgrams
-  TH1D* hwall;
-  TH1D* hmask;
-
-  // make a mask and save it
-  void makethismask(const char* filename);
-
-};
 
 void masktools::makethismask(const char* filename){
   
@@ -85,15 +52,5 @@ void masktools::makethismask(const char* filename){
 masktools::masktools(){
   
 }
-
-
-
-
-
-
-
-
-
-
 
 #endif

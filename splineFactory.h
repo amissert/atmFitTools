@@ -1,15 +1,14 @@
 #ifndef SPLINEFACTORY_H
 #define SPLINEFACTORY_H
 
-#include "hSplines.cxx"
+#include "hSplines.h"
 
 #include "shared.h"
-//#include "fqProcessedEvent.cxx"
 
 #include "histoManager.h"
-#include "sharedPars.cxx"
-#include "atmFitPars.cxx"
-#include "getSystWeight.cxx"
+#include "sharedPars.h"
+#include "atmFitPars.h"
+#include "getSystWeight.h"
 
 #define NHBINSMAX 300
 #define NPTSMAX   5
@@ -96,6 +95,6 @@ class splineFactory{
 
 
 #ifndef SPLINEFACTORY_C
-#include splineFactory.cxx
+//#include splineFactory.cxx
 #endif
 

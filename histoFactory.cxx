@@ -349,7 +349,7 @@ void histoFactory::fillFakeHistos(int nmc, double mcmean, double mcwidth,
 //  int ndata = 5000;
 
   // random nums
-  randy2 = new TRandom2(nmc);
+  TRandom2* randy2 = new TRandom2(nmc);
 
   // get total numbers of data and MC events
   int nevdata = ndata;
@@ -399,7 +399,7 @@ void histoFactory::fillFakeHistosNoStat(int nmc, double mcmean, double mcwidth,
 //  int ndata = 5000;
 
   // random nums
-  randy2 = new TRandom2(nmc);
+  TRandom2* randy2 = new TRandom2(nmc);
 
   // get total numbers of data and MC events
   int nevdata = nmc;

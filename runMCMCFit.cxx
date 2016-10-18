@@ -1,10 +1,15 @@
-#include "histoCompare.cxx"
-
+#include "histoCompare.h"
+#include <stdlib.h>
 using namespace std;
 
 
 int main(int argc, char* argv[]){
- 
+
+ // setup random
+ int rand_seed = atoi(argv[2]);
+ randy->SetSeed(rand_seed);
+ cout<<"TRandom seed is: "<<randy->GetSeed()<<endl;
+
  // get par file
  TString parfilename = argv[1];
  cout<<"Parameter file"<<parfilename.Data()<<endl;

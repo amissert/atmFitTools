@@ -1,10 +1,7 @@
 #ifndef GETSYSTWEIGHT_C
 #define GETSYSTWEIGHT_C
 
-#include "atmFitPars.cxx"
-#include "fqProcessedEvent.h"
-
-#include "TString.h"
+#include "getSystWeight.h"
 
 using namespace std;
 

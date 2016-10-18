@@ -3,7 +3,7 @@
 
 #include "shared.h"
 #include "TRandom2.h"
-#include "sharedPars.cxx"
+#include "sharedPars.h"
 
 #ifdef T2K
 #include "covXsec.h"
@@ -81,6 +81,9 @@ class atmFitPars{
   int getParBin(int ipar);
   int getParComp(int ipar);
   int getParAtt(int ipar);
+  void printParValues();
+  void fixAllAttPars(int iatt); //< fixes all parameters associated with a particluar attribute
+
   /////////////////////////////////////////////////////////////////////////////////////////////////
   double getParameter(int ipar){return pars[ipar];}
   double getHistoParameter(int ibin, int icomp, int iatt, int imod);
@@ -124,7 +127,7 @@ class atmFitPars{
 #endif
 
 #ifndef ATMFITPARS_C
-#include "atmFitPars.cxx"
+//#include "atmFitPars.cxx"
 #endif
 
 

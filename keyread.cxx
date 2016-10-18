@@ -1,45 +1,11 @@
 #ifndef KEYREAD_C 
 #define KEYREAD_C
 
+#include "keyread.h"
+
 //class to read inputs from card files
 
-#include<iostream>
-#include<fstream>
-#include<string>
-#include<TString.h>
-#include<map>
-
-//USAGE//
-//CREATE WITH keyread("<cardname.txt>")
-//ACCESS DATA FROM CARD FILE WITH I.E. .getKeyD("<variable_name>")
-//CARD PARAMETER FORMAT (WHITESPACE SENSITIVE)
-//<TYPE>,<NAME>=<VALUE>;
-//EX:
-//i,par1=20;
-//f,afloatpar=1.2;
-//s,astringpar=characters;
-//$ this particular line is a comment line
-////////
-
 using namespace std;
-
-#define LINESIZEMAX 1000
-class keyread{
-public:
- keyread(const char* afile); //initializer
- const char* fname;  //name of card file
- map<string,int> imap; //maps variable name to integer data
- map<string,double> dmap; //maps variable name to double data
- map<string,float> fmap;//maps variable name to float data
- map<string,TString> smap; //maps variable name to TString 
- void readFile(); //fills the maps
- void processLine(TString sline); //processes each line of card file
- double getKeyD(string key);  //call these to return value of variable key
- float  getKeyF(string key);
- int    getKeyI(string key);
- TString getKeyS(string key);
-
-};
 
 keyread::keyread(const char* afile){
   fname = afile;
@@ -72,14 +38,11 @@ void keyread::readFile(){
   TString sline;
   int nline=0;
   while(!file.eof()){
-   // cout<<"reading line: "<<nline<<endl;
     nline++;
     file.getline(line,LINESIZEMAX);
     for (int i=0;i<file.gcount();i++){
-      //cout<<"appending "<<line[i]<<" to tstring"<<endl;
       sline.Append(line[i]);
     }
-   // cout<<"keyread: processing line: "<<nline<<endl;
     processLine(sline);
     sline.Clear();
   }
@@ -104,7 +67,6 @@ void keyread::processLine(TString sline){
     return;
   }
   else {
- //   cout<<sline(0)<<" is not a valid type!!"<<endl;
     return;
   }
   ///get key name
@@ -124,21 +86,17 @@ void keyread::processLine(TString sline){
   //place key value in appropriate map
   if (stype(0)=='i'){
     ival = sval.Atoi();
-   // cout<<"mapping "<<skey.Data()<<" to "<<ival<<endl;
     imap[skey.Data()] =  ival;
   }
   if (stype(0)=='f'){
     fval = sval.Atof(); 
-  //  cout<<"mapping "<<skey.Data()<<" to "<<fval<<endl;
     fmap[skey.Data()]=fval;
   }
   if (stype(0)=='d'){
     dval=sval.Atof();
-  //  cout<<"mapping "<<skey.Data()<<" to "<<dval<<endl;
     dmap[skey.Data()]=dval;
   }
   if (stype(0)=='s'){
-//    cout<<"mapping "<<skey.Data()<<" to "<<sval.Data()<<endl;
     smap[skey.Data()]=sval;
   }
    

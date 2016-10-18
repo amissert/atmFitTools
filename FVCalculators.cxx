@@ -1,13 +1,7 @@
 #ifndef FVCALC_C
 #define FVCALC_C
 
-#include "TPolyLine3D.h"
-#include <TVector3.h>
-#include <TMath.h>
-#include <math.h>
-#include <iostream>
-#include "TRandom2.h"
-#include "TCanvas.h"
+#include "FVCalculators.h"
 
 using namespace std;
 
@@ -89,7 +83,7 @@ double calcToWallCustom(TVector3 *vpos, TVector3 *vdir, double dt){
 
 /////////////////////////////////////////////////////
 // estimate the perimeter of the cherenkov ring
-double calcMinCone(TVector3 *vpos, TVector3* vdir, int npts=50){
+double calcMinCone(TVector3 *vpos, TVector3* vdir, int npts){
 
   //////////////////////////////////////////////////////////////
   // each ray starts at initial point defined from given vertex
@@ -148,10 +142,10 @@ double calcMinCone(TVector3 *vpos, TVector3* vdir, int npts=50){
 
 
 
-
+;
 /////////////////////////////////////////////////////
 // estimate the perimeter of the cherenkov ring
-double calcPerimeter(TVector3 *vpos, TVector3* vdir, int npts=50, int visflg=0){
+double calcPerimeter(TVector3 *vpos, TVector3* vdir, int npts, int visflg){
   
 
   //////////////////////////////////////////////////////////////
@@ -274,52 +268,5 @@ double calcPhiWall(TVector3* vpos, TVector3* vdir){
 
 //////////////////////////////////////////////////////////////
 
-
-void towallValidataion(int nrays){
-
-  TCanvas* cc = new TCanvas("cc","cc",800,700);
-
-  const int NRAYS = nrays;
-
-  TPolyLine3D *rays[NRAYS];
-
-  TVector3 vpos(0,0,0);
-  TVector3 *vdir[NRAYS];
-
-   TRandom2 * randy = new TRandom2(nrays);
-
-  //make random directions
-  for (int i=0; i<nrays; i++){
-    double xdir = randy->Gaus(0,1);
-    double ydir = randy->Gaus(0,1);
-    double zdir = randy->Gaus(0,1);
-    vdir[i] = new TVector3(xdir,ydir,zdir);
-    vdir[i]->SetMag(1.);
-
-    //calc towall
-    TVector3* vposf = new TVector3(vpos.X(),vpos.Y(),vpos.Z());
-    calcToWallCustom(vposf,vdir[i],1.);
-    //make line
-    double xx[2];
-    double yy[2];
-    double zz[2];
-    xx[0] = vpos.X();
-    yy[0] = vpos.Y();
-    zz[0] = vpos.Z();
-    xx[1] = vposf->X();
-    yy[1] = vposf->Y();
-    zz[1] = vposf->Z();
-    rays[i] = new TPolyLine3D(2,xx,yy,zz);
-    if (i==0) rays[0]->Draw();
-    else{
-      rays[i]->Draw("same");
-    }
-  }
-
-  cc->Print("~/fvtest.png");
-
-  return;
-
-}
 
 #endif

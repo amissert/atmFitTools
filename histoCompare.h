@@ -1,17 +1,21 @@
 #ifndef HISTCOMPARE_H
 #define HISTCOMPARE_H
 
-#include "histoManager.cxx"
+#include "histoManager.h"
 #include "TMath.h"
 #include "TRandom2.h"
-#include "histoTransforms.cxx"
+#include "histoTransforms.h"
 #include "TFitter.h"
 #include "TCanvas.h"
 #include "TGraphAsymmErrors.h"
-#include "likelihood.cxx"
+#include "likelihood.h"
 #include "TGraph2D.h"
 #include "TRandom3.h"
 #include "shared.h"
+#include "TH2FV.h"
+#include "calcResErr.h"
+#include "markovTools.h"
+#include <time.h>
 
 using namespace std;
 
@@ -32,13 +36,15 @@ class histoCompare{
   int nAtt;  //nummboer of attributes
   int nMode;
   double tunePar; //tuning parameter for MCMC
-  //tools for histogram manager management
+  double nDOF; //< number of degrees of freedom in the fit
+  TString MCMCOutputFile;
   //created histo manager from file
   void readFromFile(const char* rootname,int isamp,int ibin, int icomp, int natt);
   // For T2K parameterization //
   void readFromFile(const char* rootname,int isamp,int ibin, int icomp, int imode, int natt);
   //
   histoManager* hManager;
+  markovTools* mcmctools;
   //atmospheric pars
   atmFitPars* thePars;
   sharedPars* runPars;
@@ -70,6 +76,7 @@ class histoCompare{
  
   //
   //post-fit tools and plotting
+  void useFakeData();
   void profileL(int ibin, int icomp, int iatt, int imod, double range, int npts=100);
   void profileL(int ipar,double range, int npts=100,int sameflg=0);
   void showFitHisto(int isamp,int ibin,int icomp,int iatt);
@@ -81,10 +88,10 @@ class histoCompare{
   void showModHiso(int isamp,int ibin, int icomp, int iatt, double smear, double bias);
   TH2D* show2DLnL(int parx, double xmin, double xmax, int pary, double ymin, double ymax, int npts=100);
   TGraph2D* show2DLnLG(int parx, double xmin, double xmax, int pary, double ymin, double ymax, int npts=100);
-  void runMCMC(int nsteps);
+  void runMCMC(int nsteps=-1);
+  TH2FV* showResidualError();
   void runDEMCMC(int nstep);
   void runDiffMCMC(int nsteps); //< fill with differential steps
- // double getErrLo(int ibin,int icomp,int iatt,int imod);
   double getErrLo(int isyst);
   double getErrHi(int isyst);
   TH1D* getModifiedHisto(int ibin, int icomp, int iatt){return hManager->getSumHistogramMod(ibin,icomp,iatt);}
@@ -136,6 +143,7 @@ class histoCompare{
   double getLnL(TH1D* h1, TH1D* h2);
   double getTotSumSq();
   double getTotLnL();
+  double getPriorLnL(); //< get only the likelihood contribution from flux/xsec priors
   void  getTotLnL1D(double& result,int npar, double par[]);
   void LnLFit();
   void LnLPreFit();
@@ -150,6 +158,8 @@ class histoCompare{
   void tuneMCMCOld(int ncyles=1,int nsteps=150,double goal=0.25);
   void calcRoughParErr();
 
+
+  
   //staticthis for fits
   static histoCompare* staticthis;
 };

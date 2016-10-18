@@ -10,12 +10,12 @@
 #include <deque>
 #include "THStack.h"
 #include "TLegend.h"
-#include "hSplines.cxx"
+#include "hSplines.h"
 #include "atmFitPars.h"
-#include "histoTransforms.cxx"
-#include "sharedPars.cxx"
+#include "histoTransforms.h"
+#include "sharedPars.h"
 #include "shared.h"
-#include "likelihood.cxx"
+#include "likelihood.h"
 #include "splineParReader.h"
 #ifndef T2K
 #include "fqProcessedEvent.h"
@@ -61,10 +61,14 @@ class histoManager{
   TGraph* gSum;
   double gTotIntegral;
   int useSplineFlg;
+  int useNormFlg; //< toggles normalization parameters when getting modified histograms
   double normFactor;
   double histoLogL;
+  double nDOF;
   hSplines* theSplines[NSAMPMAX][NBINMAX][NCOMPMAX][NATTMAX]; //splines for flux/xsec params
   hSplines* moreSplines[NSAMPMAX][NBINMAX][NCOMPMAX][NMODE][NATTMAX];
+  double physicalLoBound[NATTMAX]; //< stores physical lower bounds
+  int    applyPhysicalBound[NATTMAX]; //< flg for applying physical bounds
   TH1D* hData[NSAMPMAX][NBINMAX][NATTMAX];  //array of all Data histograms
   TLegend* Leg;  //for histogram drawing methods
   TH2D* h2d; //for 2D debugging histograms
@@ -92,14 +96,17 @@ class histoManager{
   ///////////////////////////
   //setters
   void setHistogram(int isamp, int ibin, int icomp, int iatt, int dataflg,TH1D* h);
+  void setLoBound(int iatt, double bound);
 #ifdef T2K
   void setHistogram(int isamp, int ibin, int icomp, int imode, int iatt, int dataflg, TH1D *h);
   void setNominalHistogram(int isamp, int ibin, int icomp, int imode, int iatt, TH1D *h);
 #endif
+
   ///////////////////////////
   //getters
   TH1D* getHistogram(int isamp, int ibin, int icomp, int iatt);
   TH1D* getModHistogram(int isamp, int ibin, int icomp, int iatt); //gets histogram modified from atm pars
+  TH1D* getModHistogramMC(int isamp, int ibin, int icomp, int iatt); //gets histogram modified from atm pars
   TGraph* getModGraph(int isamp, int ibin, int icomp, int iatt);
   TH1D* getModHistogramSlow(int isamp, int ibin, int icomp, int iatt); //gets histogram modified from atm pars
   TH1D* getHistogramData(int isamp, int ibin, int iatt){return hData[isamp][ibin][iatt];}
@@ -108,7 +115,6 @@ class histoManager{
   TH1D* getSumHistogramMod(int isamp, int ibin, int att, int normFlg=1);
   TH1D* getSplineModifiedHisto(int isamp, int ibin, int icomp, int iatt);
   double getSplineModifiedBin(int isamp, int ibin, int icomp, int iatt,int ihistobin);
-  
 #ifdef T2K
   TH1D* getHistogram(int isamp, int ibin, int icomp, int imode, int iatt); // neut 
   TH1D* getNominalHistogram(int isamp, int ibin, int icomp, int imode, int iatt);
@@ -116,6 +122,7 @@ class histoManager{
   hSplines* getSplines(int isamp, int ibin, int icomp, int imode, int iatt) {return moreSplines[isamp][ibin][icomp][imode][iatt];}
   TH1D* getSplineModifiedHisto(int isamp, int ibin, int icomp, int imode, int iatt);
 #endif
+
   ///////////////////////////  
   //plotting
   void showMCBreakdown(int isample,int ibin,int iatt);
@@ -125,6 +132,7 @@ class histoManager{
   void readSplinesFromFile(const char* rootname);
   void drawSpline(int isamp, int ibin, int icomp, int iatt, int hbin, int isyst);
   void drawSpline2D( int isamp, int ibin, int icomp, int iatt, int isyst);
+
   ///////////////////////////
   //debugging
   void showErrorComparison(int isamp, int ibin, int iatt);
@@ -134,5 +142,5 @@ class histoManager{
 #endif
 
 #ifndef HISTOMANAGER_C
-#include "histoManager.cxx"
+//#include "histoManager.cxx"
 #endif

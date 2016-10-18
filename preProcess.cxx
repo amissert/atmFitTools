@@ -117,7 +117,7 @@ void preProcess::processFile(const char* fname,const char* outname){
 void preProcess::makeTestFiles(const char* outdir, int testtype, int nmc, int ndata, int randseed){
 
   // random numbers
-  TRandom2* randy = new TRandom2(randseed);
+ // TRandom2* randy = new TRandom2(randseed);
 
   // file name
   TString fnamebase = "testbump_";
