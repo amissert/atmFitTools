@@ -124,10 +124,11 @@ class atmFitPars{
   void printPars(int ipar = -1);
 };
 
+
+#ifdef CINTMODE
+#include "atmFitPars.cxx"
 #endif
 
-#ifndef ATMFITPARS_C
-//#include "atmFitPars.cxx"
 #endif
 
 

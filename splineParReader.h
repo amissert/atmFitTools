@@ -70,4 +70,8 @@ public :
    TH1D* drawSpline(int ibin);
 };
 
+#ifdef CINTMODE
+#include "splineParReader.cxx"
+#endif
+
 #endif //

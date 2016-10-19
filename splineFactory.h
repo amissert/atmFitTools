@@ -90,11 +90,12 @@ class splineFactory{
 };
 
 
+#ifdef CINTMODE
+#include "splineFactory.cxx"
+#endif
+
 
 #endif
 
 
-#ifndef SPLINEFACTORY_C
-//#include splineFactory.cxx
-#endif
 

@@ -19,4 +19,7 @@ double calcPerimeter(TVector3 *vpos, TVector3* vdir, int npts=50, int visflg=0);
 double calcToWall(TVector3* vpostmp, TVector3* vdirtmp);
 double calcPhiWall(TVector3* vpos, TVector3* vdir);
 
+#ifdef CINTMODE
+#include "FVCalculators.cxx"
+#endif
 #endif

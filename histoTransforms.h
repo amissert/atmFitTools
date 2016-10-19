@@ -37,5 +37,8 @@ void smearThisHistoFastBias(TH1D &hh, double* hcontent, double bias, double norm
 void smearThisHistoFastMean(TH1D &hh, double* hcontent, double spread, double mean, double bias, double normscale=1.);
 double testtime();
 
+#ifdef CINTMODE
+#include "histoTransforms.cxx"
+#endif
 
 #endif

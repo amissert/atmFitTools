@@ -109,7 +109,8 @@ class sharedPars{
 };
 
 
-
-
+#ifdef CINTMODE
+#include "sharedPars.cxx"
+#endif
 
 #endif

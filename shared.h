@@ -15,7 +15,12 @@
 // uncomment to use shimpei's MC weights
 #define USE_ST_WEIGHTS
 
+// for global random
 extern TRandom2* randy;
+
+// uncomment to compile in interactive mode
+#define CINTMODE
+
 
 #define NSAMPMAX 5 // total number of samples (# of sub-events)
 #define NBINMAX 10  // total number of FV bins

@@ -115,4 +115,8 @@ class visRing{
  void testevent(int iev);
 };
 
+#ifdef CINTMODE
+#include "visRing.cxx"
+#endif
+
 #endif

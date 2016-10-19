@@ -239,4 +239,9 @@ public :
    virtual void     Show(Long64_t entry = -1);
 };
 
+#ifdef CINTMODE
+#include "fqProcessedEvent.cxx"
+#endif
+
+
 #endif // #ifdef fqProcessedEvent_cxx

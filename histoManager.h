@@ -139,8 +139,11 @@ class histoManager{
   void showSysParVariation(int isamp, int ibin, int icomp, int iatt, int isys,double varscale=1.0);
 };
 
+
+#ifdef CINTMODE
+#include "globalRandom.cxx"
+#include "histoManager.cxx"
 #endif
 
-#ifndef HISTOMANAGER_C
-//#include "histoManager.cxx"
+
 #endif

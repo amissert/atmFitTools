@@ -88,5 +88,7 @@ class TH2FV:public TH2Poly{
   
 };
 
-
+#ifdef CINTMODE
+#include "TH2FV.cxx"
+#endif
 #endif

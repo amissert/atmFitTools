@@ -26,6 +26,9 @@ void getSignif(TH1D* hmc, TH1D* hdata);
 double calcResError(TH1D* hmc, TH1D* hdata);
 void applyResError(TH1D* hmc, TH1D* hdata);
 
+#ifdef CINTMODE
+#endif "calcResErr.cxx"
+#endif
 
 
 #endif

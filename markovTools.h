@@ -110,6 +110,8 @@ class markovTools{
 
 };
 
-
+#ifdef CINTMODE
+#include "markovTools.cxx"
+#endif
 
 #endif

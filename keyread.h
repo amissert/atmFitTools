@@ -40,5 +40,8 @@ class keyread{
  TString getKeyS(string key);
 };
 
+#ifdef CINTMODE
+#include "keyread.cxx"
+#endif
 
 #endif

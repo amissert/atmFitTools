@@ -132,6 +132,7 @@ class preProcess{
 
 #endif
 
-#ifndef PREPROCESS_C
-//#include "preProcess.cxx"
+#ifdef CINTMODE
+#include "masktools.cxx"
+#include "globalRandom.cxx"
 #endif

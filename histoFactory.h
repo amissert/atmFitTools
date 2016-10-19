@@ -74,9 +74,13 @@ class histoFactory{
   void runHistoFactory(); //< this will run the factory and fill all histograms
 };
 
+#ifdef CINTMODe
+#include "fqProcessedEvent.cxx"
+#include "histoManager.cxx"
+#include "sharedPars.cxx"
 #endif
 
-#ifndef HISTOFACTORY_C
-//#include "histoFactory.cxx"
 #endif
+
+
 

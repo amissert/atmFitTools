@@ -49,5 +49,8 @@ class hSplines{
   int nHistoBins; //number of bins in histogram
 };
 
+#ifdef CINTMODE
+#include "hSplines.cxx"
+#endif
 
 #endif

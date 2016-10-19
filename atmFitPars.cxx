@@ -322,9 +322,10 @@ void atmFitPars::savePars(const char* filename){
   return;
 }
 
-TRandom2* randy2 = new TRandom2();
 
 void atmFitPars::setRandSysPar(){
+
+  TRandom2* randy2 = new TRandom2();
  // TRandom2* randy = new TRandom2();
   double parval;
 #ifndef T2K

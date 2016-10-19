@@ -9,5 +9,7 @@ using namespace std;
 
 double getSystWeight(const char* systype, fqProcessedEvent* mcevent, int ipar, double value);
 
-
+#ifdef CINTMODE
+#include "getSystWeight.cxx"
+#endif
 #endif
