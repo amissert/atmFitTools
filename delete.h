@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Fri Oct 14 10:06:48 2016 by ROOT version 5.28/00c
+// Wed Oct 19 10:58:11 2016 by ROOT version 5.28/00c
 // from TTree MCMCpath/MCMCpath
 // found on file: mcmctree.root
 //////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@ public :
    Float_t         pardiff[500];
    Float_t         parnominal[500];
    Int_t           parbin[500];
-   Int_t           parcomp[200];
+   Int_t           parcomp[500];
    Int_t           paratt[500];
    Int_t           parindex[500];
    Int_t           parsyst[500];

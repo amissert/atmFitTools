@@ -31,8 +31,8 @@ class makeCov{
   //tree of mcmc steps
   TTree* partree;
   // tree leaves
-  double par[500];
-  double parnominal[500];
+  float par[500];
+  float parnominal[500];
   int parbin[500];
   int parcomp[500];
   int paratt[500];

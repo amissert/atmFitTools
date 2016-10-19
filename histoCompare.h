@@ -1,21 +1,23 @@
 #ifndef HISTCOMPARE_H
 #define HISTCOMPARE_H
 
-#include "histoManager.h"
+#include <time.h>
+
 #include "TMath.h"
 #include "TRandom2.h"
-#include "histoTransforms.h"
 #include "TFitter.h"
-#include "TCanvas.h"
 #include "TGraphAsymmErrors.h"
-#include "likelihood.h"
 #include "TGraph2D.h"
 #include "TRandom3.h"
-#include "shared.h"
+#include "TCanvas.h"
+
+#include "histoManager.h"
+#include "histoTransforms.h"
 #include "TH2FV.h"
+#include "likelihood.h"
+#include "shared.h"
 #include "calcResErr.h"
 #include "markovTools.h"
-#include <time.h>
 
 using namespace std;
 

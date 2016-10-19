@@ -27,7 +27,7 @@ double calcResError(TH1D* hmc, TH1D* hdata);
 void applyResError(TH1D* hmc, TH1D* hdata);
 
 #ifdef CINTMODE
-#endif "calcResErr.cxx"
+#include "calcResErr.cxx"
 #endif
 
 
