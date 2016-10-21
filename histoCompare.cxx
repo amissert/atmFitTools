@@ -290,6 +290,11 @@ void histoCompare::runDEMCMC(int nsteps){
 void histoCompare::runMCMC(int nsteps){
 
   ///////////////////////////////////////////////
+  // print seed
+  int randseed = randy->GetSeed();
+  cout<<"random seed: "<<randseed<<endl;
+
+  ///////////////////////////////////////////////
   //if no steps spefied, use number from par file
   if (nsteps<0){
     nsteps = MCMCNSteps;
@@ -1235,7 +1240,7 @@ void histoCompare::LnLFit(){
         for (int isyspar=(thePars->nTotPars-thePars->nSysPars);isyspar<thePars->nTotPars;isyspar++){
           if ((thePars->fixPar[isyspar])!=1)fit->ReleaseParameter(isyspar);  
           cout<<"fitting parameter: "<<isyspar<<endl;
-          fit->ReleaseParameter(isyspar);
+         // fit->ReleaseParameter(isyspar);
         }
         //fit these pars first
         fit->ExecuteCommand("SIMPLEX",0,0);

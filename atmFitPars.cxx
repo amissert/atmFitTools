@@ -21,6 +21,13 @@ double atmFitPars::getHistoParameter(int ibin, int icomp, int iatt, int imod){
 }
 
 //////////////////////////////////////////////////
+// for event-by-event attribute modification
+double atmFitPars::getAttModParameter(int ibin, int icomp, int iatt, int imod){
+  int theindex = parIndex[ibin][icomp][iatt][imod];
+  return pars[theindex];
+}
+
+//////////////////////////////////////////////////
 // get specific parameters
 double atmFitPars::getNormParameter(int isamp, int ibin){
   int theindex = normParIndex[isamp][ibin];
@@ -181,6 +188,21 @@ void atmFitPars::fixAllSmearPars(int isfixed){
   return;
 }
 
+////////////////////////////////////////////////
+//Fix all flux and xsec systematics
+void atmFitPars::fixAllSystPars(int isfixed){
+
+  // get starting index
+  int istart = nTotPars-nSysPars;
+  int iend   = nTotPars-nNormPars;
+  for (int ipar = istart; ipar<iend; ipar++){
+    cout<<"fixing par: "<<ipar<<endl;
+    fixPar[ipar] = isfixed;
+  }
+  
+  return;
+}
+
 #ifdef T2K
 void atmFitPars::proposeStep()
 {
@@ -283,6 +305,7 @@ void atmFitPars::printPars(int ipar){
 }
 
 
+///////////////////////////////////////////////////////////////////////
 //read in all parameters from a file made from a call to "savePars"
 void atmFitPars::readPars(const char* filename){
   //open parameter file
@@ -292,6 +315,7 @@ void atmFitPars::readPars(const char* filename){
   double tmpunc[4000];
   int    tmpnpars;
   int    tmpnsys;
+  int    tmpindx[4000];
   TTree* parTree = (TTree*)fpars->Get("parTree");
   parTree->SetBranchAddress("nTotPars",&tmpnpars);
   parTree->SetBranchAddress("nSysPars",&tmpnsys);

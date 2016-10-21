@@ -87,6 +87,7 @@ class atmFitPars{
   /////////////////////////////////////////////////////////////////////////////////////////////////
   double getParameter(int ipar){return pars[ipar];}
   double getHistoParameter(int ibin, int icomp, int iatt, int imod);
+  double getAttModParameter(int ibin, int icomp, int iatt, int imod);
   double getSysParameter(int isys);
   double getNormParameter(int isamp, int ibin);
   void setParameter(int ipar, double value);
@@ -96,6 +97,7 @@ class atmFitPars{
   void fixParameter(int ipar);
   void fixParameter(int ibin,int icomp,int iatt, int imod);
   void fixAllSmearPars(int isfixed=1);
+  void fixAllSystPars(int isfixed=1);
   void fixAllPars(int isfixed=1);
   void setRandSysPar(); //sets systematic parameters to random values
   int  checkFixFlg(int ibin,int icomp,int iatt, int imod);

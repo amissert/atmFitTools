@@ -133,6 +133,8 @@ void markovTools::saveCurrentPath(){
 */
 
 void markovTools::savePath(){
+  cout<<"makrovTools: path tree has "<<pathTree->GetEntries()<<" points!"<<endl;
+  cout<<"markovTools: saving file "<<fout->GetName()<<endl;
   pathTree->Write();
   fout->Close();
   return;
@@ -619,7 +621,7 @@ markovTools::markovTools(int npars){
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-//construct from atmFitPars (this is constructor used in histoCompare so it must work) 
+//construct from atmFitPars (this is constructor used in histoCompare so it has to work) 
 markovTools::markovTools(atmFitPars* fitpars, const char* outfilename){
   TString foutname = outfilename;
   if (!foutname.CompareTo("")){
@@ -635,6 +637,9 @@ markovTools::markovTools(atmFitPars* fitpars, const char* outfilename){
   // initialize
   Init(fitpars->nTotPars); 
 
+  // print seed
+ // int randseed = randy->GetSeed();
+  //cout<<"random seed: "<<randseed<<endl;
 
   return;
 }

@@ -43,7 +43,7 @@ class masktools{
 
 };
 
-#ifndef CINTMODE
+#ifdef CINTMODE
 #include "masktools.cxx"
 #endif
 
