@@ -67,6 +67,8 @@ class markovTools{
    int    nfilled; //< number of times the step tree has been filled
    int    nchangethresh; //< fill threshold for changing trees
    int    noutfile;
+   int    NBurnIn; //< wait this many steps before saving MCMC
+
    // output tree
    TTree* pathTree;
    atmFitPars* atmPars;
@@ -77,8 +79,9 @@ class markovTools{
    void setPar(int ipar,double value){oldPars[ipar]=value;}
    void setL(double value){oldL=value; cout<<"Lset: "<<value<<endl;}
    void setParVar(int ipar,double value); //< sets parameter standard deviations
-   void setDiffChain(const char* fname); //< sets up the differential tree for DEMCMC
-
+   void setDiffChain(const char* fname,int chainflg = 0); //< sets up the differential tree for DEMCMC
+   void setDiffChain(TChain* ch); //< sets up the differential tree for DEMCMC
+   void initDiffChain();
    ////////////////////////
    //tree setup
    void setupPathTree();
@@ -112,6 +115,7 @@ class markovTools{
 
 #ifdef CINTMODE
 #include "markovTools.cxx"
+#include "globalRandom.cxx"
 #endif
 
 #endif

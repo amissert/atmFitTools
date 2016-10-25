@@ -30,6 +30,7 @@ void sharedPars::readParsFromFile(){
   flgUsePriorsInFit = kr->getKeyI("flgUsePriorsInFit");
   useSplinesFlg = kr->getKeyI("useSplinesFlg");
   MCMCNSteps= kr->getKeyI("MCMCNSteps");
+  MCMCNBurnIn = kr->getKeyI("MCMCNBurnIn");
   MCMCTunePar = kr->getKeyD("MCMCTunePar");
   normFactor = kr->getKeyD("normFactor");
   fixAllSmearFlg = kr->getKeyI("fixAllSmearFlg");

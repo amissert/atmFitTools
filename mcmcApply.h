@@ -1,6 +1,10 @@
 #ifndef MCMCAPPLY_H
 #define MCMCAPPLY_H
 
+#include "atmFitPars.h"
+#include "fqProcessedEvent.h"
+#include "mcmcReader.h"
+
 ///////////////////////////////////////////////////////////////
 // Class to apply parameters from MCMC for toy MC experiments
 //
@@ -23,12 +27,15 @@ class mcmcApply{
   fqProcessedEvent* mcEvent;
 
   // methods
-  void setFromMCMC;
-  void applyPars();
+  void setFromMCMC();
+  void applyPars(int iatt);
   
 };
 
 
+#ifdef CINTMODE
+#include "mcmcApply.cxx"
+#endif
 
 #endif
 

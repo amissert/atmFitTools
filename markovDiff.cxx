@@ -10,7 +10,8 @@ using namespace std;
 void markovDiff::setouttree(){
 
 
-  outfile = new TFile("mcmcdiff.root","RECREATE");
+  // open output file
+  outfile = new TFile(outFileName.Data(),"RECREATE");
   
 
   //use same file
@@ -49,8 +50,6 @@ void markovDiff::setaddresses(){
 
 //////////////////////////////////////////////////////////////////
 void markovDiff::fillDiffPars(int npairs){
-
-  TRandom2* randy = new TRandom2(npairs);
 
   // set branch addresses of input tree
   setaddresses();
@@ -91,7 +90,7 @@ void markovDiff::fillDiffPars(int npairs){
 //////////////////////////////////////////////////////////////////
 void markovDiff::fillDiffPars2(int npairs){
 
-  TRandom2* randy = new TRandom2(npairs);
+//  TRandom2* randy = new TRandom2(npairs);
 
   // set branch addresses of input tree
   setaddresses();
@@ -135,30 +134,31 @@ void markovDiff::fillDiffPars2(int npairs){
   return;
 }
 
+//////////////////////////////////////////////////////////
+// constructor
+markovDiff::markovDiff(const char* fname, int burn, int chainflg){
 
-markovDiff::markovDiff(const char* fname, int burn){
- 
-  mcmcfile = new TFile(fname);
+  // read in single mcmc path
+  if (chainflg==0){
+    mcmcfile = new TFile(fname);
+    mcmcpars = (TTree*) mcmcfile->Get("MCMCpath");
+    nburn = burn; 
+  }
 
-  mcmcpars = (TTree*) mcmcfile->Get("MCMCpath");
+  // read in many mcmc files
+  else{
+    TChain *mcmcChain = new TChain("MCMCpath");
+    mcmcChain->Add(fname);
+    mcmcpars = (TTree*)mcmcChain;
+    nburn = burn;
+  }
 
-  nburn = burn; 
-
+  outFileName = "mcmcdiff.root";
   return;
 }
 
 
 
-
-
-
-
 #endif
-
-
-
-
-
-
 
 

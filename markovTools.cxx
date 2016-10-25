@@ -41,15 +41,22 @@ void markovTools::changeFile(){
   return; 
 }
 
+/////////////////////////////////////////////////////
+// set pointer to another chian
+void markovTools::setDiffChain(TChain* mychain){
 
+  diffChain = (TTree*)mychain;
+  cout<<"markovTools: Using TChain with "<<diffChain->GetEntries()<<" entries!"<<endl;
+
+  initDiffChain();
+
+  //
+  return;
+}
 
 /////////////////////////////////////////////////////
-// does some initial setup for differentail step tree
-void markovTools::setDiffChain(const char* fname){
-
-  // setup chain of par differences
-  fDiffChain = new TFile(fname);
-  diffChain = (TTree*)fDiffChain->Get("MCMCdiff"); 
+// initial setup for DEMCMC
+void markovTools::initDiffChain(){
 
   // turn on relevant branches
   diffChain->SetBranchStatus("*",0);
@@ -93,7 +100,96 @@ void markovTools::setDiffChain(const char* fname){
   diffChain->SetBranchStatus("pardiff",1);;
 
   // talk about it
+//  cout<<"markovTools::setDiffChain(): Added chain of "<<nDiffSteps<<" differential steps "<<endl;
+
+  //
+  return;
+
+}
+
+
+/////////////////////////////////////////////////////
+// does some initial setup for differentail step tree
+void markovTools::setDiffChain(const char* fname, int flgchain){
+
+  // list of ROOT files will contain '*'
+//  TString names = fname;
+//  cout<<"makrovTools: diff files "<<fname<<endl;
+//  if (names.First("*")>=0){
+//    flgchain = 1;
+//  }
+//  else{
+//    flgchain = 0;
+//  }
+//  cout<<"makrovTools: using chian? "<<flgchain<<endl;
+
+  // setup chain of par differences
+
+  fDiffChain = new TFile(fname);
+  diffChain = (TTree*)fDiffChain->Get("MCMCdiff"); 
+  cout<<"markovTools: using file with tree of size "<<diffChain->GetEntries()<<endl;
+
+ // TChain* mychain = new TChain("MCMCdiff");
+ /// if (flgchain==0){
+   // fDiffChain = new TFile(fname);
+   // diffChain = (TTree*)fDiffChain->Get("MCMCdiff"); 
+ // }
+ // else{
+   // cout<<"makrovTools: making chain "<<flgchain<<endl;
+   // mychain->Add(names.Data());
+   // cout<<"markovTools: using chian with "<<diffChain->GetEntries()<<" entries"<<endl;
+   // diffChain = (TTree*)mychain;
+ // }
+
+
+  // initialize
+  initDiffChain();
+
+  /*
+  // turn on relevant branches
+  diffChain->SetBranchStatus("*",0);
+  diffChain->SetBranchStatus("pardiff",1);
+  diffChain->SetBranchStatus("npars",1);
+  diffChain->SetBranchStatus("parindex",1);
+
+  // set addresses
+  diffChain->SetBranchAddress("pardiff",parDiff);
+  diffChain->SetBranchAddress("npars",&ndiffpars);
+  int atmDiffIndex[NMCMCPARS]; //< temporary array for atmFitPars indicies
+  diffChain->SetBranchAddress("parindex",atmDiffIndex);
+
+  // get number of steps
+  nDiffSteps = diffChain->GetEntries();
+
+  // set ndiffpars variable and atmDiffIndex
+  diffChain->GetEntry(0);
+
+  // by default, do not use differential proposal
+  for (int ipar=0; ipar<nParsEffective; ipar++){
+    useDiffProposal[ipar] = 0.;
+  }
+
+  // loop over the list of differential parameters
+  for (int idiffpar = 0; idiffpar<ndiffpars; idiffpar++){
+    int atmindex = atmDiffIndex[idiffpar]; //< index in full list
+    // try to find a matching parameter in effective par list
+    for (int imcmcpar=0; imcmcpar<nParsEffective; imcmcpar++){
+      int atmindex_mcmc = parIndex[imcmcpar];
+      // if a match is found, use differential chain for that parameter
+      if (atmindex==atmindex_mcmc){
+         useDiffProposal[imcmcpar] = 1;
+         parDiffIndex[imcmcpar] = idiffpar;
+      }
+    }
+  }
+
+  // ignore all but pardiff branch
+  diffChain->SetBranchStatus("*",0);
+  diffChain->SetBranchStatus("pardiff",1);;
+
+  // talk about it
   cout<<"markovTools::setDiffChain(): Added chain of "<<nDiffSteps<<" differential steps "<<endl;
+  */
 
   // cd back to output file 
   fout->cd();
@@ -263,6 +359,7 @@ int markovTools::acceptStepLnLDiff(double newL){
 
 /////////////////////////////////////////////
 //decide if new parameters shoudl be accepted
+//this is the one used by histoCompare
 int markovTools::acceptStepLnL(double newL){
 
 
@@ -285,7 +382,7 @@ int markovTools::acceptStepLnL(double newL){
     atmPars->acceptStep();
 #endif
     // fill output tree
-    pathTree->Fill();
+    if (nfilled>NBurnIn) pathTree->Fill();
     nfilled++;
     if ((nfilled%nchangethresh)==0){
       changeFile();
@@ -630,6 +727,8 @@ markovTools::markovTools(atmFitPars* fitpars, const char* outfilename){
   else{
     fout = new TFile(foutname.Data(),"RECREATE");
   }
+
+  cout<<"markovTools: MCMC output file: "<<fout->GetName()<<endl;
 
   pathTree = new TTree("MCMCpath","MCMCpath"); //< initialize new tree for steps
   atmPars = fitpars;

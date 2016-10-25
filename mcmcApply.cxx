@@ -9,7 +9,7 @@ mcmcApply::mcmcApply(atmFitPars* fitpars, mcmcReader* mcmcpars, fqProcessedEvent
 
   // set pointers
   fitPars = fitpars;
-  mcmcReader = mcmcreader;
+  mcmcPars = mcmcpars;
   mcEvent = mcevent;
 
 }
@@ -21,7 +21,8 @@ void mcmcApply::setFromMCMC(){
   // loop over mcmc pars and set int fitPars
   for (int ipar=0; ipar<mcmcPars->npars; ipar++){
     int atmparindex = mcmcPars->parindex[ipar];
-    fitpars->setParameter(atmparindex, (double)mcmcPars->par[ipar]);
+    cout<<"set par "<<atmparindex<<" "<<" <- "<<ipar<<" "<<mcmcPars->par[ipar]<<endl;
+    fitPars->setParameter(atmparindex, (double)mcmcPars->par[ipar]);
   }
 
   return;
@@ -38,14 +39,19 @@ void mcmcApply::applyPars(int iatt){
   int event_comp = mcEvent->ncomponent;
 
   // get smear parameter
-  double smear = fitpars->getAttModParameter(event_bin, event_comp, iatt, 0);
+  double smear = fitPars->getAttModParameter(event_bin, event_comp, iatt, 0);
 
   // get bias parameter
-  double bias = fitpars->getAttModParameter(event_bin, event_comp, iatt, 1);
+  double bias = fitPars->getAttModParameter(event_bin, event_comp, iatt, 1);
 
   // apply parameters
+  cout<<"comp: "<<event_comp<<endl;
+  cout<<"bin: "<<event_bin<<endl;
+  cout<<"bias: "<<bias<<endl;
+  cout<<"smear: "<<smear<<endl;
+  cout<<"attribute "<<iatt<<" "<<mcEvent->attribute[iatt]<<" -> ";
   mcEvent->attribute[iatt] = smear*mcEvent->attribute[iatt] + bias;
-
+  cout<<mcEvent->attribute[iatt]<<endl;
   return;
 }
 

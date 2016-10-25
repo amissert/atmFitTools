@@ -83,9 +83,8 @@ class TH2FV:public TH2Poly{
   void InitFVBins7();
   void InitStdBins(double wall1, double wall2, double towall1,
                    double towall2, double towall3, double towall4);
+  //ClassDef(TH2FV,1);
 
-//  ClassDef(TH2FV,1);
-  
 };
 
 #ifdef CINTMODE

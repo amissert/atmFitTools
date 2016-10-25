@@ -7,10 +7,12 @@
 #include "TH2D.h"
 #include <math.h>
 #include "TTree.h"
+#include "TChain.h"
+#include "shared.h"
 #include <iostream>
 #include "TFile.h"
 
-#define NMCMCPARS 500
+//#define NMCMCPARS 500
 
 
 /////////////////////////////////////////////////////
@@ -19,7 +21,7 @@ class markovDiff{
   public:
 
   // constructor
-  markovDiff(const char* fname, int burn=0);
+  markovDiff(const char* fname, int burn=0,int chainflg=0);
 
   // internal vars
   TFile* mcmcfile;
@@ -31,8 +33,9 @@ class markovDiff{
   float par1[NMCMCPARS]; //< vector of pars at point 1
   float par2[NMCMCPARS]; //< vector of pars at point 2
   float pardiff[NMCMCPARS]; //< difference vector between points
-  int    parindex[NMCMCPARS]; //< atmFitPars index of each parameter
+  int   parindex[NMCMCPARS]; //< atmFitPars index of each parameter
   int npars;
+  TString outFileName; //< name of the output file
  
   // methods
   void fillDiffPars(int npairs); // fill the TTree of parameter difference vectors
@@ -43,7 +46,8 @@ class markovDiff{
 };
 
 #ifdef CINTMODE
-#include "markovDiff.h"
+#include "markovDiff.cxx"
+#include "globalRandom.cxx"
 #endif
 
 #endif

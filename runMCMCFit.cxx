@@ -7,8 +7,8 @@ int main(int argc, char* argv[]){
 
  // setup random
  int rand_seed = atoi(argv[2]);
- randy->SetSeed(rand_seed);
-// randy = new TRandom2(rand_seed);
+// randy->SetSeed(rand_seed);
+ randy = new TRandom2(rand_seed);
  cout<<"TRandom seed is: "<<randy->GetSeed()<<endl;
 
  // get par file
@@ -23,11 +23,22 @@ int main(int argc, char* argv[]){
 
  // set up the fit
  hc->MCMCOutputFile = outfilename.Data();
- hc->thePars->fixAllAttPars(1);
  hc->hManager->setLoBound(3,0);
- hc->hManager->setLoBound(4,0);
- hc->thePars->readPars("/nfs/data41/t2k/amissert/atmos/head/atmFitTools/initial_lnlfit.root");
- hc->tunePar = 0.044;
+ hc->hManager->setLoBound(2,0);
+ hc->thePars->readPars("/nfs/data41/t2k/amissert/atmos/head/atmFitTools/pars/initial_lnlfit_pars.root");
+ hc->setPar(26,1.0);
+ hc->setPar(27,0.0);
+ hc->setPar(154,1.0);
+ hc->setPar(155,0.0);
+ hc->setPar(106,1.0);
+ hc->setPar(107,0.0);
+ hc->thePars->fixPar[26];
+ hc->thePars->fixPar[27];
+ hc->thePars->fixPar[154];
+ hc->thePars->fixPar[155];
+ hc->thePars->fixPar[106];
+ hc->thePars->fixPar[107];
+ hc->tunePar = 0.055;
 
 
  // run the mcmc
@@ -37,22 +48,6 @@ int main(int argc, char* argv[]){
  return 0;
 
 }
-
-
-/*
-int rootrun(const char* parfilename){
-
- // make new histogram comparison object
- histoCompare* hc= new histoCompare(parfilename);
-
- // run the mcmc
- hc->runMCMC(-1); 
-
- //
- return 0;
-}
-
-*/
 
 
 

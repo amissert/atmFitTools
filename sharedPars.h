@@ -93,6 +93,7 @@ class sharedPars{
   TString hFactoryDataFiles;
   TString splineFactoryOutput;
   int MCMCNSteps;
+  int MCMCNBurnIn;
   double MCMCTunePar;
   int useSplinesFlg;
   int fixAllSmearFlg;

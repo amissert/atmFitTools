@@ -248,9 +248,28 @@ void histoCompare::runDEMCMC(int nsteps){
 
   ///////////////////////////////////////
   //setup mcmc tools
-  markovTools* mc = new markovTools(thePars);
+  markovTools* mc = new markovTools(thePars,MCMCOutputFile.Data());
   mc->setTuneParameter(tunePar);
-  mc->setDiffChain(diffChainFileName.Data());
+  //see if we're using a chain or a single file
+  if (diffChainFileName.First("*")>=0){
+    TChain* mychain = new TChain("MCMCdiff");
+    mychain->Add(diffChainFileName.Data());
+    mc->setDiffChain(mychain);
+  }
+  else{
+   mc->setDiffChain(diffChainFileName.Data());
+  }
+
+
+  ///////////////////////////////////////////////
+  //if no steps spefied, use number from par file
+  if (nsteps<0){
+    nsteps = MCMCNSteps;
+  }
+
+  ///////////////////////////////////////////////
+  //set burn-in before parameters are saved
+  mc->NBurnIn = MCMCNBurnIn;
 
   ///////////////////////////////////////////////
   //fill parameter array and set uncertainties
@@ -794,17 +813,14 @@ void histoCompare::showFitResult(int isamp,int ibin,int iatt){
   hMod = (TH1D*)hManager->getSumHistogramMod(isamp,ibin,iatt)->Clone("hmod");
 
   // get nominal histgram (also normalized)
-  hTmp = hManager->getSumHistogram(isamp,ibin,iatt);
+  hTmp = hManager->getSumHistogram(isamp,ibin,iatt,1);
 
   // draw MC histograms
   hMod->SetLineColor(kBlue);
   hTmp->SetLineColor(kRed);
-//  hTmp->Scale(hMod->Integral()/hTmp->Integral());
  
   // draw data histograms
   hManager->hData[isamp][ibin][iatt]->SetMarkerStyle(8);
-//  hTmp->Draw("h");
-//  hMod->Draw("sameh");
   hManager->hData[isamp][ibin][iatt]->Draw("e");
   hTmp->Draw("sameh");
   hMod->Draw("sameh");
@@ -1793,6 +1809,9 @@ histoCompare::histoCompare(const char* parfile, bool sep)
 
   //MCMC nsteps;
   MCMCNSteps = runPars->MCMCNSteps;
+
+  //MCMC nburn
+  MCMCNBurnIn = runPars->MCMCNBurnIn;
 
   //read in pre-filled histograms using histoManager
   int nbins = runPars->nFVBins;

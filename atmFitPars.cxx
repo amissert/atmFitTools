@@ -307,26 +307,66 @@ void atmFitPars::printPars(int ipar){
 
 ///////////////////////////////////////////////////////////////////////
 //read in all parameters from a file made from a call to "savePars"
+//can also be used to continue a mcmc run. If the 
 void atmFitPars::readPars(const char* filename){
+
+  //flag for continue mcmc
+  int flgContinue = 0;
+
   //open parameter file
   TFile* fpars = new TFile(filename);
-  //get parameter tree
+  TTree* parTree = (TTree*)fpars->Get("parTree");
+  if (parTree==NULL){
+    flgContinue = 1;
+    parTree = (TTree*)fpars->Get("MCMCpath");
+    cout<<"atmFitPars: continuing MCMC path from "<<filename<<endl;
+  }
+
+  //temparary tree variables
   double tmpars[4000];
+  float ftmpars[4000];
+  float tmplogl;
   double tmpunc[4000];
   int    tmpnpars;
   int    tmpnsys;
   int    tmpindx[4000];
-  TTree* parTree = (TTree*)fpars->Get("parTree");
-  parTree->SetBranchAddress("nTotPars",&tmpnpars);
-  parTree->SetBranchAddress("nSysPars",&tmpnsys);
-  parTree->SetBranchAddress("pars",tmpars);
-  parTree->SetBranchAddress("parUnc",tmpunc);
-  parTree->GetEntry(0);
+  if (!flgContinue){
+    parTree->SetBranchAddress("nTotPars",&tmpnpars);
+    parTree->SetBranchAddress("nSysPars",&tmpnsys);
+    parTree->SetBranchAddress("pars",tmpars);
+    parTree->SetBranchAddress("parUnc",tmpunc);
+    parTree->GetEntry(0);
+  }
+  else{
+    int nbest = parTree->GetEntries() - 1.;
+    float logbest = 1e6;
+    parTree->SetBranchAddress("npars",&tmpnpars);
+    parTree->SetBranchAddress("par",ftmpars);
+    parTree->SetBranchAddress("parindex",tmpindx);
+    parTree->SetBranchAddress("logL",&tmplogl);
+    // find best entry
+    for (int i=0; i<parTree->GetEntries(); i++){
+      parTree->GetEntry(i);
+      if (tmplogl<logbest){
+        logbest=tmplogl;
+        nbest = i;
+      }
+    }
+    cout<<"best entry: "<<nbest<<endl;
+    parTree->GetEntry(nbest);
+  }
   //set parameter explicitly to make sure arrays are filled as well
-  for (int ipar=0;ipar<nTotPars;ipar++){
-    cout<<"setting parameter # "<<ipar<<" to "<<tmpars[ipar]<<endl;
-    setParameter(ipar,tmpars[ipar]);
-    parUnc[ipar] = tmpunc[ipar];
+  for (int ipar=0;ipar<tmpnpars;ipar++){
+    if(!flgContinue){
+      cout<<"setting parameter # "<<ipar<<" to "<<tmpars[ipar]<<endl;
+      setParameter(ipar,tmpars[ipar]);
+      parUnc[ipar] = tmpunc[ipar];
+    }
+    else{
+      int theparindex=tmpindx[ipar];
+      cout<<"setting parameter # "<<theparindex<<" to "<<ftmpars[ipar]<<endl;
+      setParameter(theparindex,ftmpars[ipar]);
+    }
   }
   return;
 }

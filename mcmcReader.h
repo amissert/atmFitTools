@@ -57,6 +57,9 @@ public :
    virtual void     Show(Long64_t entry = -1);
 };
 
+#ifdef CINTMODE
+#include "mcmcReader.cxx"
+#endif
 
 
 #endif // #ifdef mcmcReader_cxx
