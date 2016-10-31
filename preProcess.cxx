@@ -688,7 +688,9 @@ int preProcess::getBest2RFitID(){
       ngLnLBest=fq->fqmrnll[ifit];
     }
   }
-  best2RID = fq->fqmrifit[bestindex];
+//  best2RID = fq->fqmrifit[bestindex];
+  best2RID = bestindex;
+//  cout<<"best fit index: "<<fq->fqmrmom[bestindex][1]<<endl;
   return bestindex;
 }
 
@@ -788,6 +790,8 @@ void preProcess::setupNewTree(){
   tr->SetBranchStatus("nchilds",1);
   tr->SetBranchStatus("ichildidx",1);
   tr->SetBranchStatus("iflgscnd",1);
+  tr->SetBranchStatus("nchilds",1);
+  tr->SetBranchStatus("iprntidx",1);
 #ifdef USE_XL_WEIGHTS
   tr->SetBranchStatus("wgt*",1);
 #endif
@@ -803,7 +807,7 @@ void preProcess::setupNewTree(){
   trout = tr->CloneTree(0); //clone but don't copy data
   trout->CopyAddresses(tr); //set addresses
   //add new branches
-  trout->Branch("attribute",attribute,"attribute[1000]/F");
+  trout->Branch("attribute",attribute,"attribute[100]/F");
   trout->Branch("fqrcpar",&fqrcpar,"fqrcpar/F");
   trout->Branch("ncomponent",&ncomponent,"ncomponent/I");
   trout->Branch("nsample",&nsample,"nsample/I");
@@ -817,9 +821,9 @@ void preProcess::setupNewTree(){
   trout->Branch("nvpi0",&vis->nvpi0,"nvpi0/I");
   trout->Branch("nvp",&vis->nvp,"nvp/I");
   trout->Branch("nvk",&vis->nvk,"nvk/I");
-  trout->Branch("visbrightness",vis->visbrightness,"visbrightness[100]/D");
+  trout->Branch("visbrightness",vis->visbrightness,"visbrightness[nvis]/D");
   trout->Branch("viswall",vis->viswall,"viswall[100]/D");
-  trout->Branch("vistowall",vis->vistowall,"vistowall[100]/D");
+  trout->Branch("vistowall",vis->vistowall,"vistowall[nvis]/D");
   trout->Branch("vismrwall1",&vis->vismrwall1,"vismrwall1/D");
   trout->Branch("vismrwall2",&vis->vismrwall2,"vismrwall2/D");
   trout->Branch("vismrtowall1",&vis->vismrtowall1,"vismrtowall1/D");
@@ -834,10 +838,10 @@ void preProcess::setupNewTree(){
   trout->Branch("vismrt2",&vis->vismrt2,"vismrt2/D");
   trout->Branch("vismrtype1",&vis->vismrtype1,"vismrtype1/I");
   trout->Branch("vismrtype2",&vis->vismrtype2,"vismrtype2/I");
-  trout->Branch("vistime",vis->vistime,"vistime[100]/D");
-  trout->Branch("vispid",vis->vispid,"vispid[100]/I");
-  trout->Branch("visscndpid",vis->visscndpid,"visscndpid[100]/I");
-  trout->Branch("visscndparentid",vis->visscndparentid,"visscndparentid[100]/I");
+  trout->Branch("vistime",vis->vistime,"vistime[nvis]/D");
+  trout->Branch("vispid",vis->vispid,"vispid[nvis]/I");
+  trout->Branch("visscndpid",vis->visscndpid,"visscndpid[nvis]/I");
+  trout->Branch("visscndparentid",vis->visscndparentid,"visscndparentid[nvis]/I");
   // fitqun
   trout->Branch("fqwall",&wall,"fqwall/F");
   trout->Branch("fqtowall",&towall,"fqtowall/F");

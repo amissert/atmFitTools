@@ -32,13 +32,13 @@ int main(int argc, char* argv[]){
  hc->setPar(155,0.0);
  hc->setPar(106,1.0);
  hc->setPar(107,0.0);
- hc->thePars->fixPar[26];
- hc->thePars->fixPar[27];
- hc->thePars->fixPar[154];
- hc->thePars->fixPar[155];
- hc->thePars->fixPar[106];
- hc->thePars->fixPar[107];
- hc->tunePar = 0.055;
+ hc->thePars->fixPar[26]=1;
+ hc->thePars->fixPar[27]=1;
+ hc->thePars->fixPar[154]=1;
+ hc->thePars->fixPar[155]=1;
+ hc->thePars->fixPar[106]=1;
+ hc->thePars->fixPar[107]=1;
+ hc->tunePar = 0.022;
 
 
  // run the mcmc

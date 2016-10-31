@@ -345,7 +345,7 @@ void atmFitPars::readPars(const char* filename){
     parTree->SetBranchAddress("parindex",tmpindx);
     parTree->SetBranchAddress("logL",&tmplogl);
     // find best entry
-    for (int i=0; i<parTree->GetEntries(); i++){
+    for (int i=parTree->GetEntries()-1; i<parTree->GetEntries(); i++){
       parTree->GetEntry(i);
       if (tmplogl<logbest){
         logbest=tmplogl;

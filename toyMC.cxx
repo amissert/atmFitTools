@@ -106,11 +106,16 @@ void toyMC::fillArrayDirect(int isamp, int ibin, int iatt, int npts){
     hArr->setHistoContents(hadd);
   }
 
+  hCompare->hManager->hData[isamp][ibin][iatt]->SetMarkerStyle(8);
+  hCompare->hManager->hData[isamp][ibin][iatt]->SetMarkerSize(1.2);
   hCompare->hManager->hData[isamp][ibin][iatt]->Draw("e");
-  hCompare->hManager->getSumHistogram(isamp,ibin,iatt)->Draw("same");
+  hCompare->hManager->getSumHistogram(isamp,ibin,iatt)->SetLineColor(kRed);
+  hCompare->hManager->getSumHistogram(isamp,ibin,iatt)->SetLineWidth(2);
+  hCompare->hManager->getSumHistogram(isamp,ibin,iatt)->Draw("sameh");
   for (int ipt=0; ipt<npts; ipt++){
     hArr->histos[ipt]->SetLineColor(kBlue);
-    hArr->histos[ipt]->Draw("same");
+    hArr->histos[ipt]->SetLineWidth(1);
+    hArr->histos[ipt]->Draw("sameh");
   }
 
   return;

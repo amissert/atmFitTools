@@ -12,7 +12,9 @@
 #include "FVCalculators.h"
 #include <map>
 
-#define MAXNVIS 100
+#define MAXNVIS 200
+#define VERBOSE
+
 
 using namespace std;
 
@@ -57,7 +59,9 @@ class visRing{
  double getVisTowall(int index, int scndflg);
  void printsecondaryindex(int ipid);
  void printsecondaryinfo(int idx);
+ void printprimaryinfo();
  int hasdschild(int vcindex);
+ int hasussegment(int vcindex);
  int pdg2geant(int ipid);
  map<int,double> massof;
  map<int,TString> nameof;
@@ -90,6 +94,7 @@ class visRing{
  double emom[MAXNVIS]; //momentum of e+-
  double gammom[MAXNVIS]; //momentum of gammas
  double protmom[MAXNVIS]; //momentum of proton
+ int    vischild[MAXNVIS]; //momentum of proton
  double vismrbrightness; // multi-ring parameter (strength of 2nd strongest ring);
  double vismrt1; // time of MVR
  double vismrt2; // time of 2MVR

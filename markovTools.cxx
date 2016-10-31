@@ -113,11 +113,15 @@ void markovTools::initDiffChain(){
 void markovTools::setDiffChain(const char* fname, int flgchain){
 
   // list of ROOT files will contain '*'
-//  TString names = fname;
+  TString names = fname;
 //  cout<<"makrovTools: diff files "<<fname<<endl;
-//  if (names.First("*")>=0){
-//    flgchain = 1;
-//  }
+  if (names.First("*")>=0){
+    TChain* chain = new TChain("MCMCdiff");
+    chain->Add(fname);
+    setDiffChain(chain);
+   initDiffChain();
+   return;
+  }
 //  else{
 //    flgchain = 0;
 //  }
