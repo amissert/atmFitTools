@@ -64,7 +64,8 @@ class markovTools{
    float parDiff[NMCMCPARS]; //< saves the difference between mcmc steps
    int    parDiffIndex[NMCMCPARS]; //< atmFitPars index of the differential parameters
    int    ndiffpars; //< number of parameters in differential step chain
-   int    nfilled; //< number of times the step tree has been filled
+   int    nFilled; //< number of times the step tree has been filled
+   int    nAccepted; //< number of times the step tree has been filled
    int    nchangethresh; //< fill threshold for changing trees
    int    noutfile;
    int    NBurnIn; //< wait this many steps before saving MCMC

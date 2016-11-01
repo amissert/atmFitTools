@@ -314,9 +314,7 @@ void histoCompare::runDEMCMC(int nsteps){
 //Run a MCMC of length nsteps
 void histoCompare::runMCMC(int nsteps){
 
-  ///////////////////////////////////////////////
-  // print tune para
-  cout<<"MCMC tune parameter: "<<tunePar<<endl;
+
 
   ///////////////////////////////////////////////
   // print seed
@@ -349,6 +347,10 @@ void histoCompare::runMCMC(int nsteps){
   //set save frequencey
   int nsavesteps = 100;
 
+  ///////////////////////////////////////////////
+  // print tune parameter
+  cout<<"MCMC tune parameter: "<<tunePar<<endl;
+
   //loop through steps
   int currentstep=0;
   while (currentstep<nsteps){
@@ -358,9 +360,7 @@ void histoCompare::runMCMC(int nsteps){
     //getTotLnL1D(result, npars,par);   
     result = getTotLnL();
     //mc->acceptStepLnL(result,par); //< if step is accepted, istep++, and written to histo
-    mc->acceptStepLnL(result);
-    //save to disk every nsavesteps steps
-   // if ((currentstep%nsavesteps)==0) mc->saveCurrentPath();
+    int isaccept = mc->acceptStepLnL(result);
   }
 
   ///////////////////////

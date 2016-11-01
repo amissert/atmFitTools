@@ -387,8 +387,10 @@ int markovTools::acceptStepLnL(double newL){
     atmPars->acceptStep();
 #endif
     // fill output tree
-    if (nfilled>NBurnIn) pathTree->Fill();
-    nfilled++;
+    if (nAccepted>NBurnIn){
+      pathTree->Fill();
+    }
+    nAccepted++;
  //   if ((nfilled%nchangethresh)==0){
  //     changeFile();
  //   }
@@ -652,7 +654,8 @@ void markovTools::Init(int npars){
   noutfile=0;
 
   //fill call counter
-  nfilled=0;
+  nFilled=0;
+  nAccepted=0;
 
   //counter to change files
   nchangethresh=1000000;
