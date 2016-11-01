@@ -106,6 +106,18 @@ class sharedPars{
   int flgUseNormPars;
   int flgFixAllSmearPars;
   int flgUsePriorsInFit;
+  double smearPriorWidthAtt0;
+  double smearPriorWidthAtt1;
+  double smearPriorWidthAtt2;
+  double smearPriorWidthAtt3;
+  double smearPriorWidthAtt4;
+  double smearPriorWidthAtt5;
+  double biasPriorWidthAtt0;
+  double biasPriorWidthAtt1;
+  double biasPriorWidthAtt2;
+  double biasPriorWidthAtt3;
+  double biasPriorWidthAtt4;
+  double biasPriorWidthAtt5;
  
 };
 

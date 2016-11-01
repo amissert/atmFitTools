@@ -94,6 +94,7 @@ class atmFitPars{
   void setSysParameter(int ipar, double value);
   void setParameter(int ibin, int icomp, int iatt, int imod, double value); 
   void setSysParUnc(int isys,double value){sysParUnc[isys]=value;}
+  void setHistoParPrior(int iatt, int imod, double value);
   void fixParameter(int ipar);
   void fixParameter(int ibin,int icomp,int iatt, int imod);
   void fixAllSmearPars(int isfixed=1);

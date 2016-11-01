@@ -73,6 +73,19 @@ void sharedPars::readParsFromFile(){
   nComponents = kr->getKeyI("nComponents");
   nAttributes  = kr->getKeyI("nAttributes"); 
   nSysPars    = kr->getKeyI("nSysPars");
+  smearPriorWidthAtt0 = kr->getKeyD("smearPriorWidthAtt0");
+  smearPriorWidthAtt1 = kr->getKeyD("smearPriorWidthAtt1");
+  smearPriorWidthAtt2 = kr->getKeyD("smearPriorWidthAtt2");
+  smearPriorWidthAtt3 = kr->getKeyD("smearPriorWidthAtt3");
+  smearPriorWidthAtt4 = kr->getKeyD("smearPriorWidthAtt4");
+  smearPriorWidthAtt5 = kr->getKeyD("smearPriorWidthAtt5");
+  biasPriorWidthAtt0 = kr->getKeyD("biasPriorWidthAtt0");
+  biasPriorWidthAtt1 = kr->getKeyD("biasPriorWidthAtt1");
+  biasPriorWidthAtt2 = kr->getKeyD("biasPriorWidthAtt2");
+  biasPriorWidthAtt3 = kr->getKeyD("biasPriorWidthAtt3");
+  biasPriorWidthAtt4 = kr->getKeyD("biasPriorWidthAtt4");
+  biasPriorWidthAtt5 = kr->getKeyD("biasPriorWidthAtt5");
+
 #ifdef NMODE
   nModes = NMODE;
 #endif

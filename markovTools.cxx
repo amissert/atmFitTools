@@ -369,6 +369,7 @@ int markovTools::acceptStepLnL(double newL){
 
   double alpha = (oldL-newL); //< get difference in LnL
   double rand = randy->Rndm(); //< throw a random number
+//  cout<<"alpha: "<<alpha<<" logrand" <<TMath::Log(rand)<<endl;
   int iaccept = 0; //< acceptance flag
   /////////////////////////////
   //chekc if we should accept
@@ -388,9 +389,9 @@ int markovTools::acceptStepLnL(double newL){
     // fill output tree
     if (nfilled>NBurnIn) pathTree->Fill();
     nfilled++;
-    if ((nfilled%nchangethresh)==0){
-      changeFile();
-    }
+ //   if ((nfilled%nchangethresh)==0){
+ //     changeFile();
+ //   }
     iaccept = 1;
   } 
 

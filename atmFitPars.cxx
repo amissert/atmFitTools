@@ -3,6 +3,23 @@
 
 #include "atmFitPars.h"
 
+/////////////////////////////////////////////////////////////////
+// Set all of the imod (0 for smear, 1 for bias) parameters
+// for parameters modifing attribute iatt to the value "value"
+void atmFitPars::setHistoParPrior(int iatt, int imod, double value){
+
+  for (int ipar=0; ipar<nTotPars-nSysPars; ipar++){
+    int theatt = attOfPar[ipar];
+    int thetype = typeOfPar[ipar]; //< smear or bias parameter?
+    if ((thetype==imod)&&(theatt==iatt)){
+     cout<<"setting shape par "<<imod<<" prior for attribute "<<iatt<<" to: "<<value<<endl;
+     setGausPrior(ipar,value);
+    }
+  }
+  
+  return;
+}
+
 //////////////////////////////////////////////////
 // print all parameter values
 void atmFitPars::printParValues(){

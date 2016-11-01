@@ -19,7 +19,7 @@
 extern TRandom2* randy;
 
 // uncomment to compile in interactive mode
-#define CINTMODE
+//#define CINTMODE
 
 
 #define NSAMPMAX 5 // total number of samples (# of sub-events)

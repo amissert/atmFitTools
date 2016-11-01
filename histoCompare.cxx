@@ -132,15 +132,21 @@ void histoCompare::tuneMCMC(int ncycles,int nsteps,double goal){
   for (int icycle=0;icycle<ncycles;icycle++){
     double xaccepted=0.;
     int   istep=0;
+    double Lprevstep = Linit;
+    double Lprevaccept = Linit;
     while (istep<nsteps){
       cout<<"----------"<<"step : "<<istep<<"---------------"<<endl;;
       mcmc->proposeStep(); //< propose a new step
       result = getTotLnL();
-      cout<<"hc: Likelihood "<<Linit<<" -> "<<result<<" diff: "<<result-Linit<<endl;
+      cout<<"hc: Likelihood "<<Lprevstep<<" -> "<<result<<" diff: "<<result-Lprevstep<<endl;
+      cout<<"hc: From last step: "<<result - Lprevaccept<<endl;
       if (mcmc->acceptStepLnL(result)){ //< check if new step is accepted
+        cout<<"ACCEPTED!"<<" total distance: "<<result-Linit<<endl;
+        Lprevaccept = result;
         xaccepted++; 
       }
       istep = mcmc->iStep;
+      Lprevstep = result;
     }
 
     double rate = xaccepted/(double)nsteps;
@@ -307,6 +313,10 @@ void histoCompare::runDEMCMC(int nsteps){
 ///////////////////////////////////////////////
 //Run a MCMC of length nsteps
 void histoCompare::runMCMC(int nsteps){
+
+  ///////////////////////////////////////////////
+  // print tune para
+  cout<<"MCMC tune parameter: "<<tunePar<<endl;
 
   ///////////////////////////////////////////////
   // print seed
@@ -1804,8 +1814,8 @@ histoCompare::histoCompare(const char* parfile, bool sep)
   //Use smear parameters or no?
   flgFixAllSmearPars = runPars->flgFixAllSmearPars;
 
-  //Should we use priors in this fit?
-  flgUsePriorsInFit = runPars->flgUsePriorsInFit;
+
+
 
   //MCMC nsteps;
   MCMCNSteps = runPars->MCMCNSteps;
@@ -1835,7 +1845,17 @@ histoCompare::histoCompare(const char* parfile, bool sep)
     setupSplines(runPars->splineFactoryOutput.Data());
   };
 
-
+  //Should we use priors in this fit?
+  flgUsePriorsInFit = runPars->flgUsePriorsInFit;
+  // if we're using priors, get them
+  if (flgUsePriorsInFit){
+    for (int iatt=0; iatt<nattributes; iatt++){
+      double smearwidth =  runPars->kr->getKeyD(Form("smearPriorWidthAtt%d",iatt));
+      double biaswidth =  runPars->kr->getKeyD(Form("biasPriorWidthAtt%d",iatt));
+      thePars->setHistoParPrior(iatt,0,smearwidth);
+      thePars->setHistoParPrior(iatt,1,biaswidth);
+    }
+  }
 }
 
 
