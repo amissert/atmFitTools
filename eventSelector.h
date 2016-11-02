@@ -12,7 +12,7 @@ class eventSelector{
 
  eventSelector();
 
- int selectNuMu(double momentum, double pidlike, double nring, double wall=0, double towall=0);
+ int selectNuMu(int nhitac,double momentum, double pidlike, double nring, double wall=0, double towall=0);
 
 };
 

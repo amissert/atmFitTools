@@ -12,6 +12,7 @@ toyMC::toyMC(){
 }
 
 /////////////////////////////////////////////////////////////////
+// set the pointers to the mc events and the post-mcmc parameters
 void toyMC::setChains(TChain* chmc, TChain* chpars){
 
   chMC = chmc;
@@ -24,6 +25,7 @@ void toyMC::setChains(TChain* chmc, TChain* chpars){
 }
 
 ////////////////////////////////////////////////////////////////
+//  read parameters from a random point in the MCMC cloud
 int toyMC::getRandomMCMCPoint(){
   int nmax = chPars->GetEntries();
   int randpoint = randy->Integer(nmax);
@@ -33,44 +35,42 @@ int toyMC::getRandomMCMCPoint(){
 }
 
 ////////////////////////////////////////////////////////////////
+// 
 void toyMC::testToy(int nmcmcpts){
-  
+ 
+
+   // test seed histograms
    TH1D* hE = new TH1D("hE","hE",20,0,2000);
-   hArr = new modHistoArray(hE,nmcmcpts);
+//   hArr = new modHistoArray(hE,nmcmcpts);
+   TH1D* hPID = new TH1D("hpid","hpid",30,-2000,2000);
+   hArr = new modHistoArray(hPID,nmcmcpts);
+
+   // histo array
+
+   // max # of events
    int nevmax = chMC->GetEntries();
+
+   // for selecting signal
    eventSelector* evsel = new eventSelector();
 
-   
+  
+   // get list of mcmc points
    int thepoints[100];
    for (int i=0; i<nmcmcpts; i++){
      thepoints[i] =  getRandomMCMCPoint();
    }
-   
-//   nevmax = 1000;
-//   for (int iev=0; iev<nevmax; iev++){
-//     if ((iev%100)==0) cout<<"getting entry "<<iev<<endl;
-//     chMC->GetEntry(iev);
-//     for (int i=0; i<nmcmcpts; i++){
-//       cout<<"point: "<<i<<endl;
-//       chPars->GetEntry(thepoints[i]);
-//       modifier->setFromMCMC(); //< modifies attribute[]
-//       double pmom = mcEvent->fq1rmom[0][2];
-//       double elike = mcEvent->attribute[0];
-//       double nring = (double)mcEvent->fqmrnring[0];
-//       if (evsel->selectNuMu(pmom,elike,nring)){
-//         hArr->histos[i]->Fill(pmom);
-//       }
-//     }
-//   }
-
-   nevmax = 1000;
+  
+   // loops
+   nevmax = 1000; //< max number of mc events to use
    for (int i=0; i<nmcmcpts; i++){
      cout<<"point: "<<i<<endl;
-     chPars->GetEntry(thepoints[i]);
-     modifier->setFromMCMC(); //< modifies attribute[]
+     chPars->GetEntry(thepoints[i]); //< read in post-fit pars
+     modifier->setFromMCMC(); //< set parameters 
      for (int iev=0; iev<nevmax; iev++){
        if ((iev%100)==0) cout<<"getting entry "<<iev<<endl;
        chMC->GetEntry(iev);
+       modifier->applyPars(); //< actually modifies att[]
+       hArr->histos[i]->Fill(mcEvent->attribute[0]);
      }
    }
 

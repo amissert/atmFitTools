@@ -20,7 +20,9 @@ modHistoArray::modHistoArray(TH1D* hseed,int ninit){
 
 
   // initialize array
-  init(ninit);
+  nHistos = 0;
+  currentIndex = 0;
+  if (ninit>=0) init(ninit);
 
 }
 
@@ -40,15 +42,15 @@ void modHistoArray::drawArray(){
 //setup array of histos
 void modHistoArray::init(int ninit){
 
+  nHistos = 0;
   for (int i=0; i<ninit; i++){
     TString hname = nameTag.Data();
     hname.Append(Form("_%d",i));
     histos[i] = (TH1D*)hSeed->Clone(hname.Data());
     histos[i]->Reset();
+    nHistos++;
   } 
-
   currentIndex = 0;
-  nHistos = 0;
 
   return;
 }

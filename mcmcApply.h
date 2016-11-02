@@ -28,7 +28,7 @@ class mcmcApply{
 
   // methods
   void setFromMCMC();
-  void applyPars(int iatt);
+  void applyPars(int iatt=-1);
   
 };
 

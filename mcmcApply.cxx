@@ -38,20 +38,32 @@ void mcmcApply::applyPars(int iatt){
   // get this event's component 
   int event_comp = mcEvent->ncomponent;
 
-  // get smear parameter
-  double smear = fitPars->getAttModParameter(event_bin, event_comp, iatt, 0);
+  // modify single parameter if specified
+  if (iatt>=0){
 
-  // get bias parameter
-  double bias = fitPars->getAttModParameter(event_bin, event_comp, iatt, 1);
+    // get smear parameter
+    double smear = fitPars->getAttModParameter(event_bin, event_comp, iatt, 0);
 
-  // apply parameters
-  cout<<"comp: "<<event_comp<<endl;
-  cout<<"bin: "<<event_bin<<endl;
-  cout<<"bias: "<<bias<<endl;
-  cout<<"smear: "<<smear<<endl;
-  cout<<"attribute "<<iatt<<" "<<mcEvent->attribute[iatt]<<" -> ";
-  mcEvent->attribute[iatt] = smear*mcEvent->attribute[iatt] + bias;
-  cout<<mcEvent->attribute[iatt]<<endl;
+    // get bias parameter
+    double bias = fitPars->getAttModParameter(event_bin, event_comp, iatt, 1);
+
+    // apply parameters
+    cout<<"comp: "<<event_comp<<endl;
+    cout<<"bin: "<<event_bin<<endl;
+    cout<<"bias: "<<bias<<endl;
+    cout<<"smear: "<<smear<<endl;
+    cout<<"attribute "<<iatt<<" "<<mcEvent->attribute[iatt]<<" -> ";
+    mcEvent->attribute[iatt] = smear*mcEvent->attribute[iatt] + bias;
+    cout<<mcEvent->attribute[iatt]<<endl;
+
+  }
+  // otherwise, modify them all
+  else{
+    for (int jatt=0; jatt<fitPars->nAttributes; jatt++){
+      applyPars(jatt);
+    }
+  }
+
   return;
 }
 
