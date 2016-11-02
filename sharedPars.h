@@ -118,6 +118,13 @@ class sharedPars{
   double biasPriorWidthAtt3;
   double biasPriorWidthAtt4;
   double biasPriorWidthAtt5;
+  int flgUsePhysLoBound;
+  int flgUseFitParFile;
+  int nBinBuffer;
+//  double physBoundAtt0;
+//  double physBoundAtt1;
+//  double physBoundAtt2;
+//  double physBoundAtt3;
  
 };
 

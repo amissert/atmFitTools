@@ -21,6 +21,7 @@ class atmFitPars{
   //constructors
   atmFitPars(int isamp, int ibin, int icomp, int iatt, int nsyst=0);
   atmFitPars(int isamp, int ibin, int icomp, int iatt, const char* systype); 
+
   // use this constructor
   atmFitPars(const char* parfile); //constructs from parameter file
 #ifdef T2K

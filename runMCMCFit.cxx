@@ -27,9 +27,9 @@ int main(int argc, char* argv[]){
  
  // set up the fit
  hc->MCMCOutputFile = outfilename.Data();
- hc->hManager->setLoBound(3,0);
- hc->hManager->setLoBound(2,0);
- hc->thePars->readPars("/nfs/data41/t2k/amissert/atmos/head/atmFitTools/pars/lnlfit_priors.root");
+// hc->hManager->setLoBound(3,0);
+// hc->hManager->setLoBound(2,0);
+// hc->thePars->readPars("/nfs/data41/t2k/amissert/atmos/head/atmFitTools/pars/lnlfit_priors.root");
 
  // run the mcmc
  hc->runMCMC(-1); 

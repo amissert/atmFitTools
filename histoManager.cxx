@@ -86,7 +86,7 @@ TH1D* histoManager::getSumHistogramNominal(int isamp, int ibin, int iatt, int no
 
   //////////////////////////////////////////
   // number of edge bins to ignore
-  int nbinbuffer = 3;
+  int nBinBuffer = 3;
   nDOF = 0.;
 
   ///////////////////////////////////////////
@@ -102,7 +102,7 @@ TH1D* histoManager::getSumHistogramNominal(int isamp, int ibin, int iatt, int no
       	hSumHistoMod[isamp][ibin][iatt]->SetBinContent(jbin,normpar*content);
         if (icomp==(nComponents-1)){
         //  double normpar = fitPars->getNormParameter(isamp,ibin);
-          if ((jbin>nbinbuffer) && jbin<(tmppointer->GetNbinsX()-nbinbuffer)){
+          if ((jbin>nBinBuffer) && jbin<(tmppointer->GetNbinsX()-nBinBuffer)){
             histoLogL+=evalLnL(hData[isamp][ibin][iatt]->GetBinContent(jbin),
                                normFactor*hSumHistoMod[isamp][ibin][iatt]->GetBinContent(jbin));
             nDOF++;
@@ -133,7 +133,7 @@ TH1D* histoManager::getSumHistogramNominal(int isamp, int ibin, int iatt, int no
       }
       // calculate likelihood after last component has been added
       if (icomp==(nComponents-1)){
-        if ((jbin>nbinbuffer) && jbin<(tmppointer->GetNbinsX()-nbinbuffer)){
+        if ((jbin>nBinBuffer) && jbin<(tmppointer->GetNbinsX()-nBinBuffer)){
           histoLogL+=evalLnL(hData[isamp][ibin][iatt]->GetBinContent(jbin),
                                normFactor*hSumHistoMod[isamp][ibin][iatt]->GetBinContent(jbin));
         }
@@ -170,7 +170,7 @@ TH1D* histoManager::getSumHistogramMod(int isamp, int ibin, int iatt, int normFl
 
   //////////////////////////////////////////
   // number of edge bins to ignore
-  int nbinbuffer = 3;
+  nBinBuffer = 3;
   nDOF = 0.;
 
   ///////////////////////////////////////////
@@ -193,7 +193,7 @@ TH1D* histoManager::getSumHistogramMod(int isamp, int ibin, int iatt, int normFl
       	hSumHistoMod[isamp][ibin][iatt]->SetBinContent(jbin,normpar*content);
         // if on last component, compare to data and calc log L
         if (icomp==(nComponents-1)){
-          if ((jbin>nbinbuffer) && jbin<(tmppointer->GetNbinsX()-nbinbuffer)){
+          if ((jbin>nBinBuffer) && jbin<(tmppointer->GetNbinsX()-nBinBuffer)){
             histoLogL+=evalLnL(hData[isamp][ibin][iatt]->GetBinContent(jbin),
                                normFactor*hSumHistoMod[isamp][ibin][iatt]->GetBinContent(jbin));
 //            cout<<"histoLogL: "<<histoLogL<<endl;
@@ -228,7 +228,7 @@ TH1D* histoManager::getSumHistogramMod(int isamp, int ibin, int iatt, int normFl
       }
       // calculate likelihood after last component has been added
       if (icomp==(nComponents-1)){
-        if ((jbin>nbinbuffer) && jbin<(tmppointer->GetNbinsX()-nbinbuffer)){
+        if ((jbin>nBinBuffer) && jbin<(tmppointer->GetNbinsX()-nBinBuffer)){
           histoLogL+=evalLnL(hData[isamp][ibin][iatt]->GetBinContent(jbin),
                                normFactor*hSumHistoMod[isamp][ibin][iatt]->GetBinContent(jbin));
         }
@@ -882,6 +882,7 @@ histoManager::histoManager(const char* rootname,int nsamp,int nbin,int ncomp,int
   nameTag.Append(rootname);
   useSplineFlg=0;
   useNormFlg=1;
+  nBinBuffer = 2;
   return;
 }
 

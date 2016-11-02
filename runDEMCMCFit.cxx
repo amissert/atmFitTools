@@ -35,9 +35,9 @@ int main(int argc, char* argv[]){
  // set up the fit
  hc->MCMCOutputFile = outfilename.Data();
  cout<<"hc output file: "<<hc->MCMCOutputFile.Data()<<endl;
- hc->hManager->setLoBound(2,0);
- hc->hManager->setLoBound(3,0);
- hc->thePars->readPars("/nfs/data41/t2k/amissert/atmos/head/atmFitTools/pars/initial_lnlfit_pars.root");
+// hc->hManager->setLoBound(2,0);
+// hc->hManager->setLoBound(3,0);
+// hc->thePars->readPars("/nfs/data41/t2k/amissert/atmos/head/atmFitTools/pars/initial_lnlfit_pars.root");
  hc->diffChainFileName = diffnames.Data();
  hc->tunePar = 0.02;
 

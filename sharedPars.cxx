@@ -85,7 +85,9 @@ void sharedPars::readParsFromFile(){
   biasPriorWidthAtt3 = kr->getKeyD("biasPriorWidthAtt3");
   biasPriorWidthAtt4 = kr->getKeyD("biasPriorWidthAtt4");
   biasPriorWidthAtt5 = kr->getKeyD("biasPriorWidthAtt5");
-
+  flgUsePhysLoBound = kr->getKeyI("flgUsePhysLoBound");
+  flgUseFitParFile = kr->getKeyI("flgUseFitParFile");
+  nBinBuffer = kr->getKeyI("nBinBuffer");
 #ifdef NMODE
   nModes = NMODE;
 #endif

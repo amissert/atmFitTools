@@ -65,6 +65,7 @@ class histoManager{
   double normFactor;
   double histoLogL;
   double nDOF;
+  int nBinBuffer; //< number of bins near edge of histogram to ignore when calculating likelihood
   hSplines* theSplines[NSAMPMAX][NBINMAX][NCOMPMAX][NATTMAX]; //splines for flux/xsec params
   hSplines* moreSplines[NSAMPMAX][NBINMAX][NCOMPMAX][NMODE][NATTMAX];
   double physicalLoBound[NATTMAX]; //< stores physical lower bounds

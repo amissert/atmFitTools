@@ -324,7 +324,7 @@ void atmFitPars::printPars(int ipar){
 
 ///////////////////////////////////////////////////////////////////////
 //read in all parameters from a file made from a call to "savePars"
-//can also be used to continue a mcmc run. If the 
+//can also be used to continue a mcmc run. 
 void atmFitPars::readPars(const char* filename){
 
   //flag for continue mcmc

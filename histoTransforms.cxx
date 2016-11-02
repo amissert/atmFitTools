@@ -128,6 +128,7 @@ double graph2histo(TGraph* gr, TH1D* h){
 }
 
 
+/*
 /////////////////////////////////////////////////////////////
 // Modify histogram filled by graph with physical lower bound
 // Can be used as a template for enforcing an upper bound as well
@@ -165,6 +166,47 @@ void applyLoBound(TGraph* gr, TH1D* h, double lobound){
   //
   return;
 }
+*/
+
+
+/////////////////////////////////////////////////////////////
+// Modify histogram filled by graph with physical lower bound
+// Can be used as a template for enforcing an upper bound as well
+void applyLoBound(TGraph* gr, TH1D* h, double lobound){
+  
+  // get bin width (assume constant);
+  double binw = h->GetBinWidth(1);
+
+  // identify the critical bin
+  int critbin = -1;
+  for (int ibin=0; ibin<=h->GetNbinsX(); ibin++){
+     double centerval = h->GetBinCenter(ibin);
+     if (centerval>lobound){
+       critbin = ibin;
+       break;
+     }
+  }
+
+  // integrate un-physical bins
+  double binsum=0;
+  for (int ibin=(critbin-1); ibin>=0; ibin--){
+    binsum+=h->GetBinContent(ibin);
+  }
+ 
+  // add to critical bin
+  h->SetBinContent(critbin,h->GetBinContent(critbin)+binsum);
+
+  // clear un-physical bins
+  for (int ibin=(critbin-1); ibin>=0; ibin--){
+    h->SetBinContent(ibin,0.);
+  }
+  
+  //
+  return;
+}
+
+
+
 
 /////////////////////////////////////////////////////
 // Similar to TGraph constructor with with more care

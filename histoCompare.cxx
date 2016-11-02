@@ -6,6 +6,44 @@
 
 histoCompare* histoCompare::staticthis;
 
+//////////////////////////////////////////////////
+// Print summary histograms after running the fit
+void histoCompare::printFitSummary(const char* outdir){
+
+  // setup new canvas
+  TCanvas *can = new TCanvas("can","can",700,900);
+  can->Divide(2,3);
+
+
+  // plot root name
+  TString plotroot = "fit_result_";
+
+  // loop over attributes, bins, and samples and print all 
+  for (int isamp=0; isamp<nSamp; isamp++){
+    for (int iatt=0; iatt<nAtt; iatt++){
+
+       // get plot name
+       TString plotname = outdir;
+       plotname.Append(plotroot.Data());
+       plotname.Append(Form("sample_%d_",isamp));
+       plotname.Append(Form("attribute_%d",iatt));
+       plotname.Append(".png");
+
+       // fill each pad with the fit results
+       for (int ibin=0; ibin<nBin; ibin++){
+         can->cd(ibin+1);
+         showFitResult(isamp,ibin,iatt);
+       }
+       
+       cout<<"Saving plot: "<<plotname.Data()<<endl;
+       can->Print(plotname.Data());
+    }
+  }
+
+  return;
+}
+
+
 
 /////////////////////////////////////////////
 //get a rough estimation (fron 1D likelihood proflie)
@@ -315,7 +353,6 @@ void histoCompare::runDEMCMC(int nsteps){
 void histoCompare::runMCMC(int nsteps){
 
 
-
   ///////////////////////////////////////////////
   // print seed
   int randseed = randy->GetSeed();
@@ -345,11 +382,17 @@ void histoCompare::runMCMC(int nsteps){
 
   ////////////////////////////////////////////////
   //set save frequencey
-  int nsavesteps = 100;
+//  int nsavesteps = 100;
+
+  ///////////////////////////////////////////////
+  //Number of burn-in steps
+  mc->NBurnIn = MCMCNBurnIn;
 
   ///////////////////////////////////////////////
   // print tune parameter
   cout<<"MCMC tune parameter: "<<tunePar<<endl;
+
+
 
   //loop through steps
   int currentstep=0;
@@ -830,10 +873,15 @@ void histoCompare::showFitResult(int isamp,int ibin,int iatt){
   hTmp->SetLineColor(kRed);
  
   // draw data histograms
+  double xmin = hManager->hData[isamp][ibin][iatt]->GetBinLowEdge(hManager->nBinBuffer+1);
+  int nbinstot = hManager->hData[isamp][ibin][iatt]->GetNbinsX();
+  double xmax =  hManager->hData[isamp][ibin][iatt]->GetBinLowEdge(nbinstot-hManager->nBinBuffer);
+  hManager->hData[isamp][ibin][iatt]->GetXaxis()->SetRangeUser(xmin,xmax);
   hManager->hData[isamp][ibin][iatt]->SetMarkerStyle(8);
   hManager->hData[isamp][ibin][iatt]->Draw("e");
   hTmp->Draw("sameh");
   hMod->Draw("sameh");
+
   //
   return;
 }
@@ -1683,31 +1731,7 @@ void histoCompare::readFromFile(const char* filerootname,int nsamp, int nbin, in
   // read in histograms
   hManager = new histoManager(filerootname,nsamp,nbin,ncomp,natt);
   
-
-  /*
-  double ndataevents=0;
-  double nmcevents=0;
-  double events;
-  //count total events
-  for (int jsamp=0;jsamp<nSamp;jsamp++){
-    for (int jbin=0;jbin<nBin;jbin++){
-      for (int jatt=0;jatt<nAtt;jatt++){
-        events =  hManager->hData[jsamp][jbin][jatt]->Integral();
-        cout<<"histo "<<jsamp<<"-"<<nbin<<"-"<<jatt<<" has "<<events<<" events."<<endl;
-        ndataevents+=events;
-        for (int jcomp=0;jcomp<nComp;jcomp++){
-          events = hManager->hMC[jsamp][jbin][jcomp][jatt]->Integral();
-          cout<<"MC histo "<<jsamp<<"-"<<jbin<<"-"<<jcomp<<"-"<<jatt<<" has "<<events<<" events."<<endl;
-          nmcevents+=events;
-        }
-      }
-    }
-  }
-
-
-  Norm = ndataevents/nmcevents;;
-  */
-
+  //
   return;
 }
 
@@ -1814,9 +1838,6 @@ histoCompare::histoCompare(const char* parfile, bool sep)
   //Use smear parameters or no?
   flgFixAllSmearPars = runPars->flgFixAllSmearPars;
 
-
-
-
   //MCMC nsteps;
   MCMCNSteps = runPars->MCMCNSteps;
 
@@ -1830,7 +1851,8 @@ histoCompare::histoCompare(const char* parfile, bool sep)
   int nattributes  = runPars->nAttributes;
   TString histofilename = runPars->hFactoryOutput;
   readFromFile(histofilename.Data(),nsamples,nbins,ncomponents,nattributes); 
-  
+  hManager->nBinBuffer = runPars->nBinBuffer;
+
   //setup fit parameters
   thePars = new atmFitPars(parfile);
   hManager->setFitPars(thePars);
@@ -1856,6 +1878,24 @@ histoCompare::histoCompare(const char* parfile, bool sep)
       thePars->setHistoParPrior(iatt,1,biaswidth);
     }
   }
+
+  //Read in parameters from previous fit?
+  if (runPars->flgUseFitParFile){
+    thePars->readPars(runPars->kr->getKeyS("fitParFile"));
+  }
+
+  //Are there physical bounds?
+  if (runPars->flgUsePhysLoBound){
+    cout<<"histoCompare: Using physical bounds!"<<endl;
+    for (int iatt=0; iatt<nattributes; iatt++){
+      double physbound = runPars->kr->getKeyD(Form("physLoBoundAtt%d",iatt));
+      if (physbound>=0){
+        hManager->setLoBound(iatt,physbound);      
+      }
+    }
+    return;
+  }
+
 }
 
 

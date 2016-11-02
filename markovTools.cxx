@@ -387,8 +387,11 @@ int markovTools::acceptStepLnL(double newL){
     atmPars->acceptStep();
 #endif
     // fill output tree
+//    cout<<"accepted!"<<endl;
+    
     if (nAccepted>NBurnIn){
       pathTree->Fill();
+//      cout<<"filled!"<<endl;
     }
     nAccepted++;
  //   if ((nfilled%nchangethresh)==0){
@@ -659,6 +662,9 @@ void markovTools::Init(int npars){
 
   //counter to change files
   nchangethresh=1000000;
+
+  //default number of burn-in steps
+  NBurnIn = 0;
 
   //set fix arrays etc
   for (int ipar=0;ipar<nPars;ipar++){

@@ -80,6 +80,7 @@ class histoCompare{
  
   //
   //post-fit tools and plotting
+  void printFitSummary(const char* outdir);
   void useFakeData();
   void profileL(int ibin, int icomp, int iatt, int imod, double range, int npts=100);
   void profileL(int ipar,double range, int npts=100,int sameflg=0);
