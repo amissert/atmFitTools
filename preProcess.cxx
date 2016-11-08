@@ -3,6 +3,43 @@
 
 #include "preProcess.h"
 
+////////////////////////////////////////////////////////////////
+// Calculate the neutrino energy for each 1R hypothesis and fill
+// the arrays
+void preProcess::calcNeutrinoEnergy(){
+
+  fq->calcEnu();
+
+  /*
+  // for each sub-event
+  for (int ise=0; ise<fq->fqnse; ise++){
+    for (int ipid=1; ipid<=2; ipid++){
+  
+      // get reconstructed direction
+      TVector3 rcdir;
+      rcdir.SetXYZ(fq->fq1rdir[0][ipid][0],fq->fq1rdir[0][ipid][1],fq->fq1rdir[0][ipid][2]);
+     
+      // get rc momentum
+      float pmom = (float)fq->fq1rmom[0][ipid];
+      
+      // calc nu energy
+      if (ipid==1){
+        fq1renu[0][ipid] = (float)calcEnu(pmom,rcdir,0); //< assume electron
+      }
+      if (ipid==2){
+        fq1renu[0][ipid] = (float)calcEnu(pmom,rcdir,1); //< asume muon 
+      }
+
+    }
+  }
+  */
+
+  //
+  return;
+}
+
+
+
 /////////////////////////////////////////////////////////////////
 // Setup the FV bin histogram for getFVBin()
 void preProcess::setFVBinHisto(){
@@ -193,29 +230,30 @@ void preProcess::makeTestFiles(const char* outdir, int testtype, int nmc, int nd
 //Gets a weight for an event
 //Usefull for making fake data sets
 float preProcess::getWeight(){
+
   evtweight = 1.0;
   if (useWeights){
     evtweight = gWeight->Eval(fq->fq1rmom[0][2],0,"s");
   }
+  if (!ntupleType.CompareTo("T2KMCReduced")){
+    evtweight=fq->totwgt;
+  }
 
-// if using skimmed tree from Xiaoyue, calculate event weight
-// based on these variables in the ntuples
-#ifdef USE_XL_WEIGHTS
-
-
-  evtweight *= fq->wgtosc1[3]; // for Xiaoyue MC
-  evtweight *= fq->wgtflx[3]; // for Xiaoyue MC
-
-#endif
-#ifdef USE_ST_WEIGHTS
-
-  //////////////////////////////////////////////
-  // For Shimpei MC
-  double w_maxsolact =0.35;
-  evtweight *= ((1. - w_maxsolact)*fq->flxh11[0]+w_maxsolact*fq->flxh11[2])/fq->flxh06[1];
-  evtweight *= fq->oscwgt; // for Shimpei MC
-
-#endif
+  // if using skimmed tree from Xiaoyue, calculate event weight
+  // based on these variables in the ntuples
+  if (!ntupleType.CompareTo("Atmospheric")){
+    #ifdef USE_XL_WEIGHTS
+    evtweight *= fq->wgtosc1[3]; // for Xiaoyue MC
+    evtweight *= fq->wgtflx[3]; // for Xiaoyue MC
+    #endif
+    #ifdef USE_ST_WEIGHTS
+    //////////////////////////////////////////////
+    // For Shimpei MC
+    double w_maxsolact =0.35;
+    evtweight *= ((1. - w_maxsolact)*fq->flxh11[0]+w_maxsolact*fq->flxh11[2])/fq->flxh06[1];
+    evtweight *= fq->oscwgt; // for Shimpei MC
+    #endif
+  }
 
   // fake normalization bump
   if (fakeNormFlg){
@@ -595,6 +633,7 @@ int preProcess::getComponent(){
       if (vis->nvmu==1) return 1;
       if (vis->nvpip==1) return 1;
       if (vis->nvp==1)   return 1;
+      if (vis->nvk==1)   return 1;
     }
 
     // select weak MR events
@@ -638,33 +677,57 @@ int preProcess::getComponent(){
   return -1;
 }
 
+////////////////////////////////////////////////////////////////////
 //loop over all events and sort into bins, samples and components
 int preProcess::preProcessIt(){
+
+  // get all events 
   int nev = tr->GetEntries();
+
+  // keep count of how many pass preliminary cuts
   int naccepted = 0;
+
+  // loop over events in tree
   for (int i=0;i<nev;i++){
+
     //get info for event
     if ((i%1000)==0) cout<<"event:  "<<i<<endl;
-
     tr->GetEntry(i);
+
     //calc FV bin and fill FV variables
     nbin=getBin();
     if (nbin<0.) continue;
+
     //apply cuts
     if (!passCuts()) continue;
     naccepted++;
+
     // hybrid pi0s don't have the right banks for VR counting
-    if (MCComponents!=3) vis->fillVisVar(); //get visible ring information
+    if (ntupleType.CompareTo("Hybrid")!=0) vis->fillVisVar(); // get visible ring information
+
+    // calculate attributes from fiTQun variables
     fillAttributes(fq);
+   
+    // calculations of neutrino energy
+    calcNeutrinoEnergy();
+
+    // get the MC component based on visible information
     ncomponent=getComponent();
-    if (fakeShiftFlg){
-      if (ncomponent==0){
-//        attributeMap["fqelike"] = attributeMap["fqelike"] + 50.;
-        attribute[0] = attribute[0] +50.;
-      }
-    }
+
+    // add fake shift if needed
+//    if (fakeShiftFlg){
+//      if (ncomponent==0){
+//        attribute[0] = attribute[0] +50.;
+//      }
+//    }
+
+    // find which sample the event belongs to   
     nsample=getSample();
+
+    // get the total weight for this event
     evtweight=getWeight();
+
+    // fill output histogram
     trout->Fill();
   }
 
@@ -792,6 +855,12 @@ void preProcess::setupNewTree(){
   tr->SetBranchStatus("iflgscnd",1);
   tr->SetBranchStatus("nchilds",1);
   tr->SetBranchStatus("iprntidx",1);
+  tr->SetBranchStatus("*vc",1);
+  if (!ntupleType.CompareTo("T2KMCReduced")){
+    tr->SetBranchStatus("totwgt");
+    tr->SetBranchStatus("normwgt");
+  }
+  if (!ntupleType.CompareTo("T2KMCReduced")) tr->SetBranchStatus("totwgt");
 #ifdef USE_XL_WEIGHTS
   tr->SetBranchStatus("wgt*",1);
 #endif
@@ -800,7 +869,6 @@ void preProcess::setupNewTree(){
   tr->SetBranchStatus("flxh11",1);
   tr->SetBranchStatus("flxh06",1);
 #endif
-  tr->SetBranchStatus("*vc",1);
 
   // make new output tree that is clone of old tree,
   // with a few extra branchs
@@ -842,11 +910,12 @@ void preProcess::setupNewTree(){
   trout->Branch("vispid",vis->vispid,"vispid[nvis]/I");
   trout->Branch("visscndpid",vis->visscndpid,"visscndpid[nvis]/I");
   trout->Branch("visscndparentid",vis->visscndparentid,"visscndparentid[nvis]/I");
-  // fitqun
+  // additional fitqun-related
   trout->Branch("fqwall",&wall,"fqwall/F");
   trout->Branch("fqtowall",&towall,"fqtowall/F");
   trout->Branch("fq1rwall",fq1rwall,"fq1rwall[10][7]/F");
   trout->Branch("fq1rtowall",fq1rtowall,"fq1rtowall[10][7]/F");
+  trout->Branch("fq1renu",fq->fq1renu,"fq1renu[2]/F");
   trout->Branch("towallv",towallv,"towallv[50]");
   trout->Branch("wallv2",&wallv2,"wallv2");
   trout->Branch("evtweight",&evtweight,"evtweight/F");

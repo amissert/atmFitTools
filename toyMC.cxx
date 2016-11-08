@@ -19,6 +19,8 @@ void toyMC::setChains(TChain* chmc, TChain* chpars){
   chPars = chpars;
 
   mcEvent = new fqProcessedEvent(chMC);
+  mcEvent->useImportantOnly();
+
   mcmcPars = new mcmcReader(chPars);
 
   return;
@@ -34,13 +36,164 @@ int toyMC::getRandomMCMCPoint(){
   return randpoint;
 }
 
+
+////////////////////////////////////////////////////////////////
+// make map of uncertainties for nu mu events
+void toyMC::makeFVMapNuMu(int nmcmcpts, int mcevents){
+
+   // make array of histos
+   cout<<"Initializing array of histograms..."<<endl;
+   TH1D* hE = new TH1D("hE","hE",20,0,2000);
+   TH2FV* hfv = new TH2FV("hfv",1);
+   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
+
+   // get list of mc events
+   int nevmax = chMC->GetEntries();
+   if (mcevents<nevmax) nevmax = mcevents;
+
+   // for selecting signal
+   eventSelector* evsel = new eventSelector();
+  
+   // get list of mcmc points
+   cout<<"Making list of MCMC points"<<endl;
+   randomList* mcmclist = new randomList(nmcmcpts,chPars->GetEntries(),nmcmcpts);
+
+   /*
+   // loops!
+   for (int iev=0; iev<nevmax; iev++){
+
+   // read in event
+   if ((iev%100)==0) cout<<"toyMC: getting event: "<<iev<<endl;
+   chMC->GetEntry(iev);
+   if (mcEvent->ncomponent==5) continue;
+   
+   hfv->Reset();
+
+   for (int i=0; i<nmcmcpts; i++){
+     
+     // read mcmc pars and apply them
+     chPars->GetEntry(mcmclist->getAt(i));
+     modifier->applyPars();
+
+     // see if event passes cuts
+     double lmom = mcEvent->attribute[3];
+     double lpid = mcEvent->attribute[0];
+     int ipass = evsel->selectNuMu(mcEvent->nhitac,
+                                     lmom,
+                                     lpid,
+                                     0,0,0);
+     // if it passes fill histos
+     if (ipass!=1) continue;
+     TVector3 rcdir;
+     rcdir.SetXYZ(mcEvent->fq1rdir[0][2][0],mcEvent->fq1rdir[0][2][1],mcEvent->fq1rdir[0][2][2]);
+     float enu_rc = calcEnu(lmom,rcdir,1);
+     int fvbin = hfv->Fill(mcEvent->fq1rtowall[0][2],mcEvent->fq1rwall[0][2]) - 1;
+     if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu_rc, mcEvent->evtweight);
+
+    } //< end MCMC pars loop
+
+  } //< end MC events loop
+  */
+
+  for (int i=0; i<nmcmcpts; i++){
+    chPars->GetEntry(mcmclist->getAt(i));
+    modifier->setFromMCMC();
+    for (int iev=0; iev<nevmax; iev++){
+      // read in event
+      if ((iev%5000)==0) cout<<"toyMC: getting event: "<<iev<<endl;
+      chMC->GetEntry(iev);
+      if (mcEvent->ncomponent==5) continue;
+      modifier->applyPars();
+      // see if event passes cuts
+      double lmom = mcEvent->attribute[3];
+      double lpid = mcEvent->attribute[0];
+      int ipass = evsel->selectNuMu(mcEvent->nhitac,
+                                     lmom,
+                                     lpid,
+                                     0,0,0);
+      // if it passes fill histos
+      if (ipass!=1) continue;
+      TVector3 rcdir;
+      rcdir.SetXYZ(mcEvent->fq1rdir[0][2][0],mcEvent->fq1rdir[0][2][1],mcEvent->fq1rdir[0][2][2]);
+      float enu_rc = calcEnu(lmom,rcdir,1);
+      int fvbin = hArrFV->hFV[i]->Fill(mcEvent->fq1rtowall[0][2],mcEvent->fq1rwall[0][2],mcEvent->evtweight) - 1;
+      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu_rc, mcEvent->evtweight);
+    }
+  }
+  return;
+
+}
+
+
+
+/////////////////////////////////////////////////////////////////
+// see uncertainty in reconstructed enu spectrum
+void toyMC::runToyNuMuEnu(int nmcmcpts, int nmcevents){
+
+   // make array of histos
+   cout<<"Initializing array of histograms..."<<endl;
+   TH1D* hE = new TH1D("hE","hE",20,0,2000);
+   hArr = new modHistoArray(hE,nmcmcpts);
+
+   // get list of mc events
+   int nevmax = chMC->GetEntries();
+   cout<<"Making list of MC events"<<endl;
+   randomList* evlist = new randomList(nmcevents,nevmax,nmcevents);
+  
+   // for selecting signal
+   eventSelector* evsel = new eventSelector();
+  
+   // get list of mcmc points
+   cout<<"Making list of MCMC points"<<endl;
+   randomList* mcmclist = new randomList(nmcmcpts,chPars->GetEntries(),nmcmcpts);
+
+   // loops
+   for (int i=0; i<nmcmcpts; i++){
+
+     // read MCMC pars
+     cout<<"point: "<<mcmclist->getAt(i)<<endl;
+     chPars->GetEntry(mcmclist->getAt(i)); //< read in post-fit pars
+     modifier->setFromMCMC(); //< set parameters 
+
+     for (int iev=0; iev<nmcevents; iev++){
+       
+       // read in event
+       if ((iev%100)==0){
+         cout<<"getting entry "<<iev<<endl;
+         cout<<"getting entry "<<evlist->getAt(iev)<<endl;
+       }
+
+//       chMC->GetEntry(evlist->getAt(iev));
+       chMC->GetEntry((iev));
+       if (mcEvent->ncomponent==5) continue;
+       modifier->applyPars(); //< actually modifies att[]
+
+       // see if event passes cuts
+       double lmom = mcEvent->attribute[3];
+       double lpid = mcEvent->attribute[0];
+       int ipass = evsel->selectNuMu(mcEvent->nhitac,
+                                     lmom,
+                                     lpid,
+                                     0,0,0);
+       // if it passes fill histos
+       if (ipass!=1) continue;
+       TVector3 rcdir;
+       rcdir.SetXYZ(mcEvent->fq1rdir[0][2][0],mcEvent->fq1rdir[0][2][1],mcEvent->fq1rdir[0][2][2]);
+       float enu_rc = calcEnu(lmom,rcdir,1);
+       hArr->histos[i]->Fill(enu_rc,mcEvent->evtweight);
+     }
+   }
+
+   return;
+}
+
 ////////////////////////////////////////////////////////////////
 // 
 void toyMC::testToy(int nmcmcpts){
  
 
    // test seed histograms
-   TH1D* hE = new TH1D("hE","hE",20,0,2000);
+//   TH1D* hE = new TH1D("hE","hE",20,0,2000);
 //   hArr = new modHistoArray(hE,nmcmcpts);
    TH1D* hPID = new TH1D("hpid","hpid",30,-2000,2000);
    hArr = new modHistoArray(hPID,nmcmcpts);
@@ -52,7 +205,6 @@ void toyMC::testToy(int nmcmcpts){
 
    // for selecting signal
    eventSelector* evsel = new eventSelector();
-
   
    // get list of mcmc points
    int thepoints[100];
@@ -61,7 +213,7 @@ void toyMC::testToy(int nmcmcpts){
    }
   
    // loops
-   nevmax = 1000; //< max number of mc events to use
+   nevmax = 10000; //< max number of mc events to use
    for (int i=0; i<nmcmcpts; i++){
      cout<<"point: "<<i<<endl;
      chPars->GetEntry(thepoints[i]); //< read in post-fit pars
@@ -70,12 +222,30 @@ void toyMC::testToy(int nmcmcpts){
        if ((iev%100)==0) cout<<"getting entry "<<iev<<endl;
        chMC->GetEntry(iev);
        modifier->applyPars(); //< actually modifies att[]
+
+       // see if event passes cuts
+       double lmom = mcEvent->attribute[3];
+       double lpid = mcEvent->attribute[0];
+//       int ipass = evsel->selectNuMu(mcEvent->nhitac,
+//                                     lmom,
+//                                     lpid,
+//                                     0,0,0);
+//       if (ipass!=1) continue;
+//
        hArr->histos[i]->Fill(mcEvent->attribute[0]);
      }
    }
 
 
    return;
+}
+
+void toyMC::setAtmFitPars(const char* parfile){
+  
+  fitPars = new atmFitPars(parfile); 
+
+  modifier = new mcmcApply(fitPars, mcmcPars, mcEvent);
+
 }
 
 ////////////////////////////////////////////////////////////////
@@ -120,8 +290,6 @@ void toyMC::fillArrayDirect(int isamp, int ibin, int iatt, int npts){
 
   return;
 }
-
-
 
 
 

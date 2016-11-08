@@ -5,6 +5,48 @@
 
 using namespace std;
 
+/////////////////////////////////////////////////////
+// Use only branches essential for cuts
+void fqProcessedEvent::useImportantOnly(){
+  
+  fChain->SetBranchStatus("*",0);
+  
+  // fiTQun
+  fChain->SetBranchStatus("fq1r*",1);
+  fChain->SetBranchStatus("fqmrnring",1);
+
+  // FC 
+  fChain->SetBranchStatus("nhitac",1);
+
+  // processed vars
+  fChain->SetBranchStatus("n*",1);
+  fChain->SetBranchStatus("at*",1);
+  fChain->SetBranchStatus("ev*",1);
+ 
+  return;
+}
+
+/////////////////////////////////////////////////////
+// see if event passes numu cuts
+int fqProcessedEvent::passesNuMuCuts(){
+
+   if (nhitac>16) return 0; //< FC cut
+   if ((attribute[momentumIndex]) < 30.) return 0; //< Evis cut
+   if (attribute[PIDIndex] > 0.) return 0; //< e/mu pid cut
+   if (fqmrnring[0]>1) return 0; //< RC cut
+
+   return 1;
+}
+
+
+///////////////////////////////////////////////
+// Get derivative weight (working on it)
+float fqProcessedEvent::getOscPower(){
+
+  if (TMath::Abs(mode)==1) return 1.;
+  return 0.;
+
+}
 
 fqProcessedEvent::fqProcessedEvent(TTree *tree)
 {
@@ -50,6 +92,11 @@ Long64_t fqProcessedEvent::LoadTree(Long64_t entry)
 
 void fqProcessedEvent::Init(TTree *tree)
 {
+
+
+   momentumIndex=3;
+   PIDIndex=0;
+
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch
    // pointers of the tree will be set.

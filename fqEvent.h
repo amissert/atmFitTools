@@ -11,7 +11,9 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include <TMath.h>
 #include "shared.h"
+#include "TVector3.h"
 #include <TString.h>
 
 class fqEvent {
@@ -267,6 +269,7 @@ public :
    Float_t         fq1rdir[10][7][3];   //[fqnse]
    Float_t         fq1rdconv[10][7];   //[fqnse]
    Float_t         fq1reloss[10][7];   //[fqnse]
+   Float_t         fq1renu[2];
    Int_t           fqpi0pcflg[2];
    Float_t         fqpi0mom1[2];
    Float_t         fqpi0mom2[2];
@@ -812,6 +815,9 @@ public :
 
    TBranch        *b_wgtosc1;   //!
    TBranch        *b_wgtflx;   //!
+
+   TString ntupleType;
+   float calcEnu();
 
    fqEvent(TTree *tree=0,const char* ntuple_type = "");
    virtual ~fqEvent();

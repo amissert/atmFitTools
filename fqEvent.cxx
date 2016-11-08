@@ -5,6 +5,92 @@
 
 using namespace std;
 
+float fqEvent::calcEnu(){
+
+   /*
+    int ipid = 1;
+
+    float V = 27.;
+    TVector3 vt2kbeam;
+    vt2kbeam.SetXYZ(0.669764,-0.742171,0.024228); //need to put in actual value
+    TVector3 vldir;
+    vldir.SetXYZ(fq1rdir[0][ipid][0],fq1rdir[0][ipid][1],fq1rdir[0][ipid][2]);
+    float mp = 938.3;
+    float mn = 939.5;
+    float ml;
+    if (ipid ==1 ) ml = 0.511;
+    if (ipid ==2 ) ml = 105.65;
+    float El = fq1rmom[0][ipid];
+    float pl = sqrt(El*El - ml*ml);
+    float costh = vt2kbeam.Unit().Dot(vldir.Unit());
+    float enu = ( (2.*(mn-V)*El) - (ml*ml) + (2.*mn*V) - (V*V) + (mp*mp) - (mn*mn) )
+           / (2.*(mn - V - El + pl*costh ) );
+    cout<<"enu"<<enu<<endl;
+    if (enu<0) cout<<"fuck!"<<endl;
+    return enu;
+  */
+
+  // T2K beam
+  TVector3 t2kbeam;
+  t2kbeam.SetXYZ(0.669764,-0.742179,0.024228);
+
+  // masses
+  float Mp = 938.3;
+  float Mn = 939.5;
+  float Me = 0.511;
+  float Mmu = 106.65;
+  float Ml = 0.;
+
+  // binding
+  float V = 27.;
+  float Enu = 0.;
+  for (int ipid=1; ipid<=2; ipid++){
+    
+    // reconstructed direction
+    TVector3 rcdir;
+    rcdir.SetXYZ(fq1rdir[0][ipid][0],fq1rdir[0][ipid][1],fq1rdir[0][ipid][2]);
+
+    // lepton mass
+    if (ipid==1) Ml = Me;
+    if (ipid==2) Ml = Mmu;
+
+    // lepton momenum
+    float Pl = fq1rmom[0][ipid];
+
+    // lepton energy
+    float El = TMath::Sqrt( (Pl*Pl) + (Ml*Ml) );
+
+    // cosine to beam
+//    float costh = t2kbeam.Unit().Dot(rcdir.Unit());
+    float costh = 0.669764*fq1rdir[0][ipid][0] + -0.742179*fq1rdir[0][ipid][1] + 0.024228*fq1rdir[0][ipid][2];
+
+    // RC neutrino energy
+//    Enu = ( (Mp*Mp) - ((Mn-V)*(Mn-V)) - (Ml*Ml) + (2.*(Mn-V)*El) )/
+//          ( 2.*( Mn - V - El + (Pl*costh) ) );
+
+    Enu = (Mn -V)*El - ((Ml*Ml)/2.);
+    Enu += Mn*V - (V*V/2.);
+    Enu += ( Mp*Mp - Mn*Mn)/2.;
+    Enu /= (Mn-V-El+(Pl*costh));
+
+
+
+    fq1renu[ipid-1] = Enu; 
+
+
+    if (Enu<0.){
+      cout<<"-----"<<endl;
+      cout<<"Pl "<<Pl<<endl;
+      cout<<"ipid: "<<ipid<<endl;
+      cout<<"Enu: "<<Enu<<endl;
+      cout<<"cosbm: "<<costh<<endl;
+    }
+  }
+//  cout<<"Enu"<<Enu<<endl;
+
+  return Enu;
+}
+
 
 fqEvent::fqEvent(TTree *tree, const char* ntupletype)
 {
@@ -18,6 +104,7 @@ fqEvent::fqEvent(TTree *tree, const char* ntupletype)
       tree = (TTree*)gDirectory->Get("h1");
 
    }
+   ntupleType = ntupletype;
    Init(tree);
 }
 
@@ -52,7 +139,8 @@ void fqEvent::Init(TTree *tree, const char* ntuple_type)
 {
 
    // specify the type of the ntuple to set addresses for
-   TString ntype = ntuple_type; 
+//   TString ntype = ntuple_type; 
+   TString ntype = ntupleType; 
    if (!ntype.CompareTo("")){ ntype = "Atmospheric"; }
 
    // The Init() function is called when the selector needs to initialize

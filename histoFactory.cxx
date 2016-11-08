@@ -78,7 +78,6 @@ void histoFactory::runHistoFactory(){
   cout<<"histoFactory: Number of MC events: "<<mcTree->GetEntries()<<endl;
 
   cout<<"histoFactory: Initializing histograms..."<<endl;  
-
   //Initialize  histograms
   init();
 
@@ -257,6 +256,8 @@ void histoFactory::fillHistos(){
   // get total numbers of data and MC events
   int nevdata = dataTree->GetEntries();
   int nevmc   = mcTree->GetEntries();
+//  nevmc=1000;
+//  nevdata=1000;
   cout<<"histoFactory: Number of Data entries: "<<nevdata<<endl;
   cout<<"histoFactory: Number of MC entries: "<<nevmc<<endl;
 
@@ -296,6 +297,8 @@ void histoFactory::fillHistosSample(int nsampsize){
   // get total numbers of data and MC events
   int nevdata = dataTree->GetEntries();
   int nevmc   = mcTree->GetEntries();
+//  nevdata=100;
+//  nevmc=600000;
   cout<<"histoFactory: Number of Data entries: "<<nevdata<<endl;
   cout<<"histoFactory: Number of MC entries: "<<nevmc<<endl;
 
@@ -304,10 +307,12 @@ void histoFactory::fillHistosSample(int nsampsize){
   if (nevdata<nsampsize) nsampsize = nevdata;
 
   //fill data histos
+  cout<<"Filling data histos...."<<endl;
   for (int i=0;i<nsampsize;i++){
     // get a random event
     int ievent = randy->Integer(nevdata);
     dataTree->GetEntry(ievent);
+    if ((i%5000)==0) cout<<"getting event: "<<i<<endl;
     for (int iatt=0;iatt<nAttributes;iatt++){
       hManager->fillHistogramData(fqData->nsample,fqData->nbin,iatt,
                                   fqData->attribute[iatt],fqData->evtweight);
@@ -315,8 +320,10 @@ void histoFactory::fillHistosSample(int nsampsize){
    }
   }
 
+  cout<<"Filling MC histos...."<<endl;
   //fill MC histos
   for (int j=0;j<nevmc;j++){
+    if ((j%5000)==0) cout<<"getting event: "<<j<<endl;
     mcTree->GetEntry(j);
     //fillAttributesMC();
     for (int jatt=0;jatt<nAttributes;jatt++){
@@ -432,14 +439,21 @@ void histoFactory::fillFakeHistosNoStat(int nmc, double mcmean, double mcwidth,
 
 void histoFactory::setDataTree(TChain* ch){
   dataTree=(TTree*)ch;
-  fqData = new fqProcessedEvent(dataTree);
-  nDataEvents = dataTree->GetEntries();
+  setDataTree(dataTree);
+//  fqData = new fqProcessedEvent(dataTree);
+//  nDataEvents = dataTree->GetEntries();
   return;
 }
 
 void histoFactory::setDataTree(TTree* tr){
   dataTree=tr;
   fqData = new fqProcessedEvent(dataTree);
+  // branch setup
+  dataTree->SetBranchStatus("*",0);
+  dataTree->SetBranchStatus("n*",1);
+  dataTree->SetBranchStatus("at*",1);
+  dataTree->SetBranchStatus("evtweight",1);
+
   nDataEvents = dataTree->GetEntries();
   return;
 }
@@ -448,13 +462,18 @@ void histoFactory::setMCTree(TTree* tr){
   mcTree=tr;
   fqMC = new fqProcessedEvent(mcTree);
   nMCEvents = mcTree->GetEntries();
+  // branch setup
+  mcTree->SetBranchStatus("*",0);
+  mcTree->SetBranchStatus("n*",1);
+  mcTree->SetBranchStatus("at*",1);
+  mcTree->SetBranchStatus("evtweight",1);
+
   return;
 }
 
 void histoFactory::setMCTree(TChain* ch){
   mcTree=(TTree*)ch;
-  fqMC = new fqProcessedEvent(mcTree);
-  nMCEvents = mcTree->GetEntries();
+  setMCTree(mcTree);
   return;
 }
 

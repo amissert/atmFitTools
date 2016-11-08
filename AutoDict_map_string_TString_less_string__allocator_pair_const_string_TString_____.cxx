@@ -1,4 +1,4 @@
-#include "histoCompare.h"
+#include "toyMC.h"
 #include "string"
 #include "TString.h"
 #ifdef __CINT__ 

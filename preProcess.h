@@ -16,6 +16,7 @@
 #include "TH2FV.h"
 #include "TObjArray.h"
 #include "masktools.h"
+#include "calcEnu.h"
 #include "shared.h"
 
 #define NFILEMAX 5000
@@ -91,6 +92,7 @@ class preProcess{
   float fq1rtowall[10][7];
   float fq1rmincone[10][7];
   float fq1rperim[10][7];
+//  float fq1renu[10][7];
   float evtweight;
   float attribute[1000];
   float fqrcpar;
@@ -124,6 +126,8 @@ class preProcess{
   //muon momenum distribution)
   void setWeightHistogram(const char* file, const char * name);
   void makeTestFiles(const char* outdir, int testtype, int nmc, int ndata, int randseed); //< makes test files
+  void calcNeutrinoEnergy();
+
   private:
 
   int flgAddMoreVars;
