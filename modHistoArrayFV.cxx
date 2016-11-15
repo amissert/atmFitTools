@@ -143,7 +143,8 @@ void modHistoArrayFV::printUncMap(const char* plotdir){
 
   TCanvas* cc = new TCanvas("cc","cc",700,800);
   cc->Divide(2,3);
-
+ 
+  // number of events
   for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
     cc->cd(fvbin+1);
     double mean = hNevents[fvbin]->GetMean();
@@ -157,7 +158,27 @@ void modHistoArrayFV::printUncMap(const char* plotdir){
     hNevents[fvbin]->GetYaxis()->SetTitle("# of throws");
     hNevents[fvbin]->GetYaxis()->SetTitleSize(0.05);
     hNevents[fvbin]->Draw();
+    TString plotname = plotdir;
+    plotname.Append("NumOfEvents_Unc.png");
+    cc->Print(plotname.Data());
   }
+  TString plotname = plotdir;
+  plotname.Append("NumOfEvents_Unc.png");
+  cc->Print(plotname.Data());
+
+  // distribution uncertainty
+  for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
+    cc->cd(fvbin+1);
+    binUnc[fvbin]->SetBit(TH1::kNoTitle);    
+    hNevents[fvbin]->SetStats(0);
+    binUnc[fvbin]->SetFillColor(kOrange);
+    binUnc[fvbin]->GetXaxis()->SetTitle("Erec [MeV]");
+    binUnc[fvbin]->Draw("e2");
+  }
+  plotname = plotdir;
+  plotname.Append("Enu_Distributions.png");
+  cc->Print(plotname.Data());
+
 
 }
 

@@ -745,7 +745,12 @@ int preProcess::getBest2RFitID(){
 
   for (int ifit=0;ifit<nfits;ifit++){
     int fitID = TMath::Abs(fq->fqmrifit[ifit]); //< fit fit ID code
-    if ((TMath::Abs(fitID-20000000))>100) continue; //< we want best 2R fits
+//    if ((TMath::Abs(fitID-20000000))>100) continue; //< we want best 2R fits
+    if (TMath::Abs(fitID)==20000033){
+      bestindex = ifit;
+      ngLnLBest=fq->fqmrnll[ifit];
+      break; //< we want best 2R fits
+    }
     if (fq->fqmrnll[ifit]<ngLnLBest){
       bestindex = ifit;
       ngLnLBest=fq->fqmrnll[ifit];
@@ -774,6 +779,33 @@ void preProcess::fillAttributes(fqEvent* fqevent){
 }
 
 
+///////////////////////////////////////////
+float preProcess::getRCParameter(fqEvent* fqevent){
+  
+  // get best 2R ID
+  int ibest = getBest2RFitID();
+
+  // get best 1R Likelihood 
+  float best1Rnglnl = fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
+ 
+  // get min 2R mom
+  fqrcpmin = (float)TMath::Min(fqevent->fqmrmom[best2RID][0],fqevent->fqmrmom[best2RID][1]);
+  fqrclike = (float)fqevent->fq1rnll[0][2]-fqevent->fqmrnll[best2RID];
+
+  // get bins
+  int binx = hRCPar->GetXaxis()->FindBin(fqrcpmin);
+  int biny = hRCPar->GetYaxis()->FindBin(fqrclike);
+  float rcpar = hRCPar->GetBinContent(binx,biny);
+
+  //
+//  cout<<"pmin: "<<pmin<<endl;
+//  cout<<"Ldiff: "<<Ldiff<<endl;
+//  cout<<"RCpar: "<<rcpar<<endl;
+  
+  return rcpar;
+}
+
+
 ////////////////////////////////////////
 //fills cmap of possible fitqun attributes
 void preProcess::fillAttributeMap(fqEvent* fqevent){
@@ -782,10 +814,11 @@ void preProcess::fillAttributeMap(fqEvent* fqevent){
   attributeMap["fqelike"] = fqevent->fq1rnll[0][2]-fqevent->fq1rnll[0][1];
 
   // Ring Counting (RC) parameter
-  int ibest = getBest2RFitID();
-  double best1Rnglnl = fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
-  fqrcpar = best1Rnglnl-fqevent->fqmrnll[ibest];
-  attributeMap["fqrcpar"] = fqrcpar;
+//  int ibest = getBest2RFitID();
+//  double best1Rnglnl = fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
+//  fqrcpar = best1Rnglnl-fqevent->fqmrnll[ibest];
+  fqrcpar = getRCParameter(fqevent);
+  attributeMap["fqrcpar"] = getRCParameter(fqevent);
 
   // Reconstructed distance from wall
   attributeMap["fqwall"] = wall;
@@ -877,6 +910,8 @@ void preProcess::setupNewTree(){
   //add new branches
   trout->Branch("attribute",attribute,"attribute[100]/F");
   trout->Branch("fqrcpar",&fqrcpar,"fqrcpar/F");
+  trout->Branch("fqrcpmin",&fqrcpmin,"fqrcpmin/F");
+  trout->Branch("fqrclike",&fqrclike,"fqrcliker/F");
   trout->Branch("ncomponent",&ncomponent,"ncomponent/I");
   trout->Branch("nsample",&nsample,"nsample/I");
   trout->Branch("nbin",&nbin,"nbin/I");
@@ -932,8 +967,11 @@ void preProcess::setupNewTree(){
 preProcess::preProcess(){
   nFiles=0;
   useWeights=0;
+  
+  // get ring-counting parameter
+  TFile* frcpar = new TFile("./data/SingleRingness.root");
+  hRCPar =  (TH2D*)frcpar->Get("hnum_interpolatedzeros");
 }
-
 
 //////////////////////////////////////////
 //read in parameters and run preprocessing!

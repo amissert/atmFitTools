@@ -78,14 +78,15 @@ float fqEvent::calcEnu(){
     fq1renu[ipid-1] = Enu; 
 
 
-    if (Enu<0.){
-      cout<<"-----"<<endl;
-      cout<<"Pl "<<Pl<<endl;
-      cout<<"ipid: "<<ipid<<endl;
-      cout<<"Enu: "<<Enu<<endl;
-      cout<<"cosbm: "<<costh<<endl;
-    }
+//    if (Enu<0.){
+//      cout<<"-----"<<endl;
+//      cout<<"Pl "<<Pl<<endl;
+//      cout<<"ipid: "<<ipid<<endl;
+//      cout<<"Enu: "<<Enu<<endl;
+//      cout<<"cosbm: "<<costh<<endl;
+//    }
   }
+
 //  cout<<"Enu"<<Enu<<endl;
 
   return Enu;
