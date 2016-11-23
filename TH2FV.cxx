@@ -648,17 +648,6 @@ void TH2FV::Init(){
   if (fBinType==4) InitStdBins(140.,260.,550.,6000.,1050.,1050.);
 
 
-
-
-//  if (fBinType==2) InitFVBins2();
-//  if (fBinType==3) InitFVBins3(); //< template for perimeter bins
-//  if (fBinType==4) InitFVBins4(); //< template for perimeter bins
-//  if (fBinType==5) InitFVBins5(); //< template for perimeter bins
-//  if (fBinType==6) InitFVBins6(); //< template for perimeter bins
-//  if (fBinType==7) InitFVBins7(); //< template for perimeter bins
-
-
-
   return;
 }
 

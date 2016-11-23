@@ -28,7 +28,7 @@ void fqProcessedEvent::useImportantOnly(){
 
 /////////////////////////////////////////////////////
 // see if event passes numu cuts
-int fqProcessedEvent::passesNuMuCuts(){
+int fqProcessedEvent::passMuCuts(){
 
    if (nhitac>16) return 0; //< FC cut
    if ((attribute[momentumIndex]) < 30.) return 0; //< Evis cut
@@ -37,6 +37,24 @@ int fqProcessedEvent::passesNuMuCuts(){
 
    return 1;
 }
+
+
+/////////////////////////////////////////////////////
+// see if event passes nue cuts
+int fqProcessedEvent::passECuts(){
+
+   if (nhitac>16) return 0; //< FC cut
+   if ((attribute[momentumIndex]) < 100.) return 0; //< Evis cut
+   if (attribute[PIDIndex] < 0.) return 0; //< e/mu pid cut
+   if (fqmrnring[0]>1) return 0; //< RC cut
+   if (fqpi0par>0) return 0;
+//   float Lpi0 = fq1rnll[0][1] - fqpi0nll[0]; 
+//   float pmome = fq1rmom[0][1];
+//   float pi0par = Lpi0 - 70. - ((140.-70.)/(40.- 120.))*(pmome - 120.);
+
+   return 1;
+}
+
 
 
 ///////////////////////////////////////////////
@@ -110,7 +128,8 @@ void fqProcessedEvent::Init(TTree *tree)
    fChain = tree;
    fCurrent = -1;
    fChain->SetMakeClass(1);
-
+   fChain->SetBranchAddress("fqrcpar",&fqrcpar);
+   fChain->SetBranchAddress("fqpi0par",&fqpi0par);
    fChain->SetBranchAddress("nev", &nev, &b_nev);
    fChain->SetBranchAddress("nhitac", &nhitac, &b_nhitac);
    fChain->SetBranchAddress("npar", &npar, &b_npar);
@@ -211,8 +230,9 @@ void fqProcessedEvent::Init(TTree *tree)
    fChain->SetBranchAddress("wallv2", &wallv2, &b_wallv2);
    fChain->SetBranchAddress("evtweight", &evtweight, &b_evtweight);
    fChain->SetBranchAddress("best2RID", &best2RID, &b_best2RID);
-   fChain->SetBranchAddress("fq1rperim", fq1rperim, &b_fq1rperim);
-   fChain->SetBranchAddress("fq1rmincone", fq1rmincone, &b_fq1rmincone);
+   fChain->SetBranchAddress("oscpower",oscpower);
+//   fChain->SetBranchAddress("fq1rperim", fq1rperim, &b_fq1rperim);
+//   fChain->SetBranchAddress("fq1rmincone", fq1rmincone, &b_fq1rmincone);
 //#ifdef USE_ATM_WEIGHTS
 //   fChain->SetBranchAddress("wgtosc1", wgtosc1);
 //   fChain->SetBranchAddress("wgtflx", wgtflx);

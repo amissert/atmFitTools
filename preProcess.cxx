@@ -143,9 +143,12 @@ void preProcess::processFile(const char* fname,const char* outname){
 
   //clean up
   if (neventsnew>0) fout->Write();
+//  intree->Delete();
+//  trout->Delete();
   fin->Close();
   fout->Close();
-  
+//  cout<<"is pointer null? "<<trout->GetEntries()<<endl;
+//  trout->Delete();
   return;   
 }
 
@@ -232,6 +235,7 @@ void preProcess::makeTestFiles(const char* outdir, int testtype, int nmc, int nd
 float preProcess::getWeight(){
 
   evtweight = 1.0;
+
   if (useWeights){
     evtweight = gWeight->Eval(fq->fq1rmom[0][2],0,"s");
   }
@@ -375,13 +379,20 @@ int preProcess::getBin(){
 
   ////////////////////////////////////////////////////////////
   //calculate fiducial volume variables
-  //use electron hypothesis
+  //use best hypothesis
   TVector3 vpos;
-  vpos.SetXYZ(fq->fq1rpos[0][2][0],fq->fq1rpos[0][2][1],fq->fq1rpos[0][2][2]);
   TVector3 vdir;
-  vdir.SetXYZ(fq->fq1rdir[0][2][0],fq->fq1rdir[0][2][1],fq->fq1rdir[0][2][2]);
+  if (fq->fq1rnll[0][1]<=fq->fq1rnll[0][2]){
+    vpos.SetXYZ(fq->fq1rpos[0][1][0],fq->fq1rpos[0][1][1],fq->fq1rpos[0][1][2]);
+    vdir.SetXYZ(fq->fq1rdir[0][1][0],fq->fq1rdir[0][1][1],fq->fq1rdir[0][1][2]);
+  }
+  else{
+    vpos.SetXYZ(fq->fq1rpos[0][2][0],fq->fq1rpos[0][2][1],fq->fq1rpos[0][2][2]);
+    vdir.SetXYZ(fq->fq1rdir[0][2][0],fq->fq1rdir[0][2][1],fq->fq1rdir[0][2][2]);
+  }
   wall = calcWall2(&vpos);
   towall = calcToWall(&vpos,&vdir);
+
   // calculate additional fv variables as well
   for (int isubev=0; isubev<fq->fqnse; isubev++){
     vpos.SetXYZ(fq->fq1rpos[isubev][2][0],fq->fq1rpos[isubev][2][1],fq->fq1rpos[isubev][2][2]);
@@ -393,6 +404,7 @@ int preProcess::getBin(){
     fq1rwall[isubev][1] = calcWall2(&vpos);
     fq1rtowall[isubev][1] = calcToWall(&vpos,&vdir);
   }
+
   //true towall
   for (int ipart=0; ipart<fq->npar; ipart++){
     vpos.SetXYZ(fq->posv[0],fq->posv[1],fq->posv[2]);
@@ -400,6 +412,7 @@ int preProcess::getBin(){
     towallv[ipart]=calcToWall(&vpos,&vdir);
     wallv2=calcWall2(&vpos);
   }
+
   // even more FV related variables
   if (flgAddMoreVars>0){
      // add 1r perimiter and mincone	  
@@ -490,8 +503,8 @@ int preProcess::passCuts(){
 
   ////////////////
   //FV Basic Cuts
-  if (wall<WallMin) return 0; 
-  if (towall<ToWallMin) return 0;  
+//  if (WallMin>0) if (wall<WallMin) return 0; 
+//  if (ToWallMin>0) if (towall<ToWallMin) return 0;  
 
   /////////////////////////
   //Number of subevent cuts
@@ -687,32 +700,55 @@ int preProcess::preProcessIt(){
   // keep count of how many pass preliminary cuts
   int naccepted = 0;
 
+  // cout fill visible?
+  int fillVisibleFlg = 1;
+  if (ntupleType.CompareTo("Hybrid")==0) fillVisibleFlg = 0;
+  if (ntupleType.CompareTo("Cosmic")==0) fillVisibleFlg = 0;
+
+  // calculate the neutrino energy?
+  int calcNuEnergyFlg = 1;
+  if (ntupleType.CompareTo("Hybrid")==0) calcNuEnergyFlg = 0;
+  if (ntupleType.CompareTo("Cosmic")==0) calcNuEnergyFlg = 0;
+
+  // need fo calc weights?
+  int calcWeightFlg = 1;
+  if (ntupleType.CompareTo("Hybrid")==0) calcNuEnergyFlg = 0;
+  if (ntupleType.CompareTo("Cosmic")==0) calcNuEnergyFlg = 0;
+ 
+  // need to find bin?
+  int getBinFlg = 1;
+
+  // get the true components?
+  int getCompFlg = 1;
+  if (ntupleType.CompareTo("Cosmic")==0) getCompFlg = 0;
+  if (ntupleType.CompareTo("Hybrid")==0) getCompFlg = 0;
+
+
   // loop over events in tree
+  nbin = 0;
   for (int i=0;i<nev;i++){
 
     //get info for event
-    if ((i%1000)==0) cout<<"event:  "<<i<<endl;
+    if ((i%10)==0) cout<<"event:  "<<i<<endl;
     tr->GetEntry(i);
 
     //calc FV bin and fill FV variables
-    nbin=getBin();
+    if (getBinFlg) nbin=getBin();;
     if (nbin<0.) continue;
 
-    //apply cuts
-    if (!passCuts()) continue;
-    naccepted++;
 
+    naccepted++;
     // hybrid pi0s don't have the right banks for VR counting
-    if (ntupleType.CompareTo("Hybrid")!=0) vis->fillVisVar(); // get visible ring information
+    if (fillVisibleFlg) vis->fillVisVar(); // get visible ring information
 
     // calculate attributes from fiTQun variables
     fillAttributes(fq);
    
     // calculations of neutrino energy
-    calcNeutrinoEnergy();
+    if (calcNuEnergyFlg) calcNeutrinoEnergy();
 
     // get the MC component based on visible information
-    ncomponent=getComponent();
+    if (getCompFlg) ncomponent=getComponent();
 
     // add fake shift if needed
 //    if (fakeShiftFlg){
@@ -725,7 +761,7 @@ int preProcess::preProcessIt(){
     nsample=getSample();
 
     // get the total weight for this event
-    evtweight=getWeight();
+    if (calcWeightFlg) evtweight=getWeight();
 
     // fill output histogram
     trout->Fill();
@@ -736,29 +772,25 @@ int preProcess::preProcessIt(){
 
 ///////////////////////////////////////
 //returns the index of the best 2R fit
-int preProcess::getBest2RFitID(){
+// ! temporary change to return fit 20000033 !
+int preProcess::getBest2RFitID(fqEvent* fqevent){
   
-  int nfits = fq->fqnmrfit;
+  int nfits = (int)fqevent->fqnmrfit;
 
   double ngLnLBest = 10000000.;
   int bestindex = 0;
-
+//  cout<<"nfits: "<<nfits<<endl; 
   for (int ifit=0;ifit<nfits;ifit++){
-    int fitID = TMath::Abs(fq->fqmrifit[ifit]); //< fit fit ID code
-//    if ((TMath::Abs(fitID-20000000))>100) continue; //< we want best 2R fits
-    if (TMath::Abs(fitID)==20000033){
+//    cout<<"hcecking: "<<ifit<<endl;
+    int fitID = TMath::Abs(fqevent->fqmrifit[ifit]); //< fit fit ID code
+    if (fitID==20000033){
+//      cout<<"best!"<<endl;
       bestindex = ifit;
-      ngLnLBest=fq->fqmrnll[ifit];
-      break; //< we want best 2R fits
-    }
-    if (fq->fqmrnll[ifit]<ngLnLBest){
-      bestindex = ifit;
-      ngLnLBest=fq->fqmrnll[ifit];
+     // break; //< we want best 2R fits
     }
   }
-//  best2RID = fq->fqmrifit[bestindex];
+  
   best2RID = bestindex;
-//  cout<<"best fit index: "<<fq->fqmrmom[bestindex][1]<<endl;
   return bestindex;
 }
 
@@ -783,7 +815,7 @@ void preProcess::fillAttributes(fqEvent* fqevent){
 float preProcess::getRCParameter(fqEvent* fqevent){
   
   // get best 2R ID
-  int ibest = getBest2RFitID();
+  int ibest = getBest2RFitID(fqevent);
 
   // get best 1R Likelihood 
   float best1Rnglnl = fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
@@ -805,6 +837,14 @@ float preProcess::getRCParameter(fqEvent* fqevent){
   return rcpar;
 }
 
+///////////////////////////////////////
+// get the pi0 parameter
+float preProcess::getPi0Parameter(fqEvent* fqevent){
+   float Lpi0 = fqevent->fq1rnll[0][1] - fqevent->fqpi0nll[0]; 
+   float pi0mom = fqevent->fqpi0mass[0];
+   float pi0par = Lpi0 - 70. - ((140.-70.)/(40.- 120.))*(pi0mom - 120.);
+   return pi0par;
+}
 
 ////////////////////////////////////////
 //fills cmap of possible fitqun attributes
@@ -819,6 +859,10 @@ void preProcess::fillAttributeMap(fqEvent* fqevent){
 //  fqrcpar = best1Rnglnl-fqevent->fqmrnll[ibest];
   fqrcpar = getRCParameter(fqevent);
   attributeMap["fqrcpar"] = getRCParameter(fqevent);
+
+  // pi0 parameter
+  fqpi0par = getPi0Parameter(fqevent);
+  attributeMap["fqpi0par"] = fqpi0par;
 
   // Reconstructed distance from wall
   attributeMap["fqwall"] = wall;
@@ -890,8 +934,9 @@ void preProcess::setupNewTree(){
   tr->SetBranchStatus("iprntidx",1);
   tr->SetBranchStatus("*vc",1);
   if (!ntupleType.CompareTo("T2KMCReduced")){
-    tr->SetBranchStatus("totwgt");
-    tr->SetBranchStatus("normwgt");
+    tr->SetBranchStatus("totwgt",1);
+    tr->SetBranchStatus("normwgt",1);
+    tr->SetBranchStatus("oscpower",1);
   }
   if (!ntupleType.CompareTo("T2KMCReduced")) tr->SetBranchStatus("totwgt");
 #ifdef USE_XL_WEIGHTS
@@ -907,14 +952,19 @@ void preProcess::setupNewTree(){
   // with a few extra branchs
   trout = tr->CloneTree(0); //clone but don't copy data
   trout->CopyAddresses(tr); //set addresses
+
+  
   //add new branches
-  trout->Branch("attribute",attribute,"attribute[100]/F");
+  
+  trout->Branch("attribute",attribute,"attribute[10]/F");
   trout->Branch("fqrcpar",&fqrcpar,"fqrcpar/F");
   trout->Branch("fqrcpmin",&fqrcpmin,"fqrcpmin/F");
   trout->Branch("fqrclike",&fqrclike,"fqrcliker/F");
+  trout->Branch("fqpi0par",&fqpi0par,"fqpi0par/F");
   trout->Branch("ncomponent",&ncomponent,"ncomponent/I");
   trout->Branch("nsample",&nsample,"nsample/I");
   trout->Branch("nbin",&nbin,"nbin/I");
+
   // visible ring counting
   trout->Branch("nvis",&vis->nvis,"nvis/I");
   trout->Branch("nvmu",&vis->nvmu,"nvmu/I");
@@ -924,9 +974,11 @@ void preProcess::setupNewTree(){
   trout->Branch("nvpi0",&vis->nvpi0,"nvpi0/I");
   trout->Branch("nvp",&vis->nvp,"nvp/I");
   trout->Branch("nvk",&vis->nvk,"nvk/I");
-  trout->Branch("visbrightness",vis->visbrightness,"visbrightness[nvis]/D");
-  trout->Branch("viswall",vis->viswall,"viswall[100]/D");
-  trout->Branch("vistowall",vis->vistowall,"vistowall[nvis]/D");
+  
+  
+//  trout->Branch("visbrightness",vis->visbrightness,"visbrightness[nvis]/D");
+//  trout->Branch("viswall",vis->viswall,"viswall[100]/D");
+//  trout->Branch("vistowall",vis->vistowall,"vistowall[nvis]/D");
   trout->Branch("vismrwall1",&vis->vismrwall1,"vismrwall1/D");
   trout->Branch("vismrwall2",&vis->vismrwall2,"vismrwall2/D");
   trout->Branch("vismrtowall1",&vis->vismrtowall1,"vismrtowall1/D");
@@ -941,10 +993,12 @@ void preProcess::setupNewTree(){
   trout->Branch("vismrt2",&vis->vismrt2,"vismrt2/D");
   trout->Branch("vismrtype1",&vis->vismrtype1,"vismrtype1/I");
   trout->Branch("vismrtype2",&vis->vismrtype2,"vismrtype2/I");
-  trout->Branch("vistime",vis->vistime,"vistime[nvis]/D");
-  trout->Branch("vispid",vis->vispid,"vispid[nvis]/I");
-  trout->Branch("visscndpid",vis->visscndpid,"visscndpid[nvis]/I");
-  trout->Branch("visscndparentid",vis->visscndparentid,"visscndparentid[nvis]/I");
+//  trout->Branch("vistime",vis->vistime,"vistime[nvis]/D");
+//  trout->Branch("vispid",vis->vispid,"vispid[nvis]/I");
+//  trout->Branch("visscndpid",vis->visscndpid,"visscndpid[nvis]/I");
+//  trout->Branch("visscndparentid",vis->visscndparentid,"visscndparentid[nvis]/I");
+
+//  /*
   // additional fitqun-related
   trout->Branch("fqwall",&wall,"fqwall/F");
   trout->Branch("fqtowall",&towall,"fqtowall/F");
@@ -955,8 +1009,8 @@ void preProcess::setupNewTree(){
   trout->Branch("wallv2",&wallv2,"wallv2");
   trout->Branch("evtweight",&evtweight,"evtweight/F");
   trout->Branch("best2RID",&best2RID,"best2RID/I");
-  trout->Branch("fq1rperim",fq1rperim,"fq1rperim[10][7]/F");
-  trout->Branch("fq1rmincone",fq1rmincone,"fq1rmincone[10][7]/F");
+//  trout->Branch("fq1rperim",fq1rperim,"fq1rperim[10][7]/F");
+//  trout->Branch("fq1rmincone",fq1rmincone,"fq1rmincone[10][7]/F");
 
   return;
 }

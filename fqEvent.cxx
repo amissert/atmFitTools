@@ -160,7 +160,7 @@ void fqEvent::Init(TTree *tree, const char* ntuple_type)
 
 
    // for Atmoserphic data and MC
-   if (!ntype.CompareTo("Atmospheric")){
+//   if (!ntype.CompareTo("Atmospheric")){
    fChain->SetBranchAddress("nring", &nring, &b_nring);
    fChain->SetBranchAddress("nrun", &nrun, &b_nrun);
    fChain->SetBranchAddress("nev", &nev, &b_nev);
@@ -266,8 +266,8 @@ void fqEvent::Init(TTree *tree, const char* ntuple_type)
    fChain->SetBranchAddress("fqmsdir", fqmsdir, &b_fqmsdir);
    fChain->SetBranchAddress("wgtosc1", wgtosc1, &b_wgtosc1);
    fChain->SetBranchAddress("wgtflx", wgtflx);
-   }
-   if (!ntype.CompareTo("T2KMCReduced")){
+//   }
+//   if (!ntype.CompareTo("T2KMCReduced")){
    fChain->SetBranchAddress("nring", &nring, &b_nring);
    fChain->SetBranchAddress("nev", &nev, &b_nev);
    fChain->SetBranchAddress("nhitac", &nhitac, &b_nhitac);
@@ -357,7 +357,7 @@ void fqEvent::Init(TTree *tree, const char* ntuple_type)
    fChain->SetBranchAddress("t2knuenpi0", &t2knuenpi0, &b_t2knuenpi0);
    fChain->SetBranchAddress("t2knueflag", &t2knueflag, &b_t2knueflag);
    fChain->SetBranchAddress("totwgt", &totwgt, &b_totwgt);
-   }
+//   }
    // for all
    fChain->SetBranchAddress("Npvc", &Npvc, &b_Npvc);
    fChain->SetBranchAddress("Ipvc", Ipvc, &b_Ipvc);
