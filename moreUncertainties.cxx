@@ -34,15 +34,15 @@ void moreUncertainties::init(){
 
 void moreUncertainties::fillFVHisto(TChain* ch){
 
- TH1D* hwall = new TH1D("hwall","hwall",50,0,200);
- TH1D* hwallunc = new TH1D("hwall","hwall",50,0,200);
+  hwall = new TH1D("hwall","hwall",50,0,200);
+  hwallunc = new TH1D("hwall","hwall",50,0,200);
 
  int nev = ch->GetEntries();
  for (int iev=0; iev<nev; iev++){
    ch->GetEntry(iev);
    double wall = mcevent->fqwall;
    double towall = mcevent->fqtowall;
-   float totalunc = getTotalUncertainty();
+   float totalunc = getTotalUncertainty(mcevent->wallv,wall);
    hwallunc->Fill(wall,mcevent->evtweight*totalunc);
    if (mcevent->wallv<0.) hwall->Fill(wall,mcevent->evtweight);
  }
@@ -54,35 +54,45 @@ void moreUncertainties::fillFVHisto(TChain* ch){
 
 }
 
-float moreUncertainties::getEnteringNormUnc(){
-  if (mcevent->wallv < 0.) return enteringNormUncertainty;
+
+//////////////////////////////////////////////////////
+// fractional uncertainty from not simulating all of dead region
+float moreUncertainties::getEnteringWallNormUnc(float wallv){
+  if (wallv < 0.) return wallNormUncertainty;
   return 0.;
 }
 
-float moreUncertainties::getTotalUncertainty(){
+
+//////////////////////////////////////////////////////
+// fractional uncertainty from not simulating all of dead region
+float moreUncertainties::getEnteringNormUnc(float wallv){
+  if (wallv < 0.) return enteringNormUncertainty;
+  return 0.;
+}
+
+float moreUncertainties::getTotalUncertainty(float wallv, float wallrc){
 
   float totalunc = .0;
 
-  float enteringWallUnc = getEnteringWallUnc();
+  float enteringWallUnc = getEnteringWallUnc(wallv,wallrc);
   totalunc += (enteringWallUnc*enteringWallUnc);
 
-  float normunc = getEnteringNormUnc();
+  float normunc = getEnteringNormUnc(wallv);
   totalunc += (normunc*normunc);
+
+  float wallnormunc = getEnteringWallNormUnc(wallv);
+  totalunc += (wallnormunc*wallnormunc);
 
   return TMath::Sqrt(totalunc);
 
 }
 
+///////////////////////////////////////////////////
+// fractional uncertainty from wall shape
+float moreUncertainties::getEnteringWallUnc(float wallv, float wallrc){
 
-float moreUncertainties::getEnteringWallUnc(){
+  if (wallv<=0.) return gEnteringWallUnc->Eval(wallrc);
 
-  // get reconstructed wall
-  float  wall = mcevent->fqwall;
-
-  // get true wall
-  float wallv = mcevent->wallv;
-
-  if (wallv<=0.) return gEnteringWallUnc->Eval(wall);
   return 0.;
 
 }

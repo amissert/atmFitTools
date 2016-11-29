@@ -102,45 +102,96 @@ void TH2FV::DrawStdView(const char* opts){
 
 double TH2FV::GetBinCenterY(int binx, int biny){
   int globalbin = GetBin(binx, biny);
-  return fCenter[globalbin-1][1];
+  return fCenter[globalbin][1];
 }
 
 double TH2FV::GetBinCenterY(int nbin){
-  return fCenter[nbin-1][1];
+  return fCenter[nbin][1];
 }
 
 double TH2FV::GetBinCenterX(int binx, int biny){
   int globalbin = GetBin(binx, biny);
-  return fCenter[globalbin-1][0];
+  return fCenter[globalbin][0];
 }
 
 double TH2FV::GetBinCenterX(int nbin){
-  return fCenter[nbin-1][0];
+  return fCenter[nbin][0];
 }
+
+//////////////////////////////////////////////////////////
+// Make a square diagonal histogram
+void TH2FV::AddSquareDiagonalBins(int nbinstot, double maxval){
+  double xx[4];
+  double yy[4];
+  double dl = maxval/(double)nbinstot;
+
+  // add along diagonal
+  double lowercorner = 0.;
+  for (int ibin=0; ibin<nbinstot; ibin++){
+    xx[0]=lowercorner;
+    xx[1]=lowercorner+dl;
+    xx[2]=lowercorner+dl;
+    yy[0]=lowercorner;
+    yy[1]=lowercorner;
+    yy[2]=lowercorner+dl;
+    lowercorner+=dl;
+    cout<<"called: "<<endl;
+    AddBinWithCenter(3,xx,yy);
+//    AddBin(3,xx,yy);
+  }
+
+  // add all other
+  double lowercornerx = 0.;
+  double lowercornery = 0.;
+  for (int ibinx=0; ibinx<nbinstot; ibinx++){
+    for (int ibiny=0; ibiny<nbinstot; ibiny++){
+      xx[0] = lowercornerx;
+      yy[0] = lowercornery;
+      xx[1] = lowercornerx+dl;
+      yy[1] = lowercornery;
+      xx[2] = lowercornerx+dl;
+      yy[2] = lowercornery+dl;
+      xx[3] = lowercornerx;
+      yy[3] = lowercornery+dl;
+      lowercornery+=dl;
+      AddBinWithCenter(4,xx,yy);
+    }
+    lowercornerx+=dl;
+    lowercornery=0.;
+  }
+  return;
+}
+
 
 
 //////////////////////////////////////////////////////
 // Adds a bin and updates the list of bin centers
+// Use this method to add bins if you want to find the bin
+// centers later using GetBinCenterX()...
 void TH2FV::AddBinWithCenter(int n, double* xx, double* yy){
 
   //Add the bin
   AddBin(n,xx,yy);
+//  fAdded++;
+
+  //Update center list
+  AddBinCenter(n,xx,yy);
 
   //first calculate the center
-  TVector2 vcenter;
-  vcenter.Set(0.,0.);
-  for (int i=0; i<n; i++){
-    TVector2 vertex;
-    vertex.Set(xx[i],yy[i]);
-    vcenter = vcenter + vertex;
-  }
-  double norm = 1./(double)n;
-  vcenter = vcenter*norm;
+//  TVector2 vcenter;
+//  vcenter.Set(0.,0.);
+//  for (int i=0; i<n; i++){
+//    TVector2 vertex;
+//    vertex.Set(xx[i],yy[i]);
+//    vcenter = vcenter + vertex;
+//  }
+//  double norm = 1./(double)n;
+//  vcenter = vcenter*norm;
 
   // fill the center array
-  int N = GetNumberOfBins();
-  fCenter[N-1][0] = vcenter.X();
-  fCenter[N-1][1] = vcenter.Y();
+//  int N = GetNumberOfBins();
+//  if (N!=0) fCenter[N-1][0] = vcenter.X();
+//  if (N!=0) fCenter[N-1][1] = vcenter.Y();
 
   return;
 
@@ -153,6 +204,7 @@ void TH2FV::AddBinCenter(int n, double* xx, double* yy){
   //first calculate the center
   TVector2 vcenter;
   vcenter.Set(0.,0.);
+  
   for (int i=0; i<n; i++){
     TVector2 vertex;
     vertex.Set(xx[i],yy[i]);
@@ -162,9 +214,12 @@ void TH2FV::AddBinCenter(int n, double* xx, double* yy){
   vcenter = vcenter*norm;
 
   // fill the center array
+//  int N = GetNumberOfBins();
+//  cout<<fAdded<<endl;
+//  cout<<NHBINSMAX<<endl;
   int N = GetNumberOfBins();
-  fCenter[N-1][0] = vcenter.X();
-  fCenter[N-1][1] = vcenter.Y();
+  fCenter[N][0] = vcenter.X();
+  fCenter[N][1] = vcenter.Y();
 
   return;
 
@@ -639,8 +694,10 @@ int TH2FV::LineIntersects(double* binx, double* biny){
 
 
 void TH2FV::Init(){
-
+ 
+  fAdded = 0;
   if (fBinType==-1) InitSplitDiagonal();
+  if (fBinType==-2) AddSquareDiagonalBins(fNBinsX,fXMax);
   if (fBinType==0) InitFVBins();
   if (fBinType==1) InitStdBins(80.,200.,300.,6000.,800.,800.);
   if (fBinType==2) InitStdBins(80.,200.,550.,6000.,1050.,1050.);

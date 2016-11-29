@@ -31,9 +31,13 @@ void fqProcessedEvent::useImportantOnly(){
 int fqProcessedEvent::passMuCuts(){
 
    if (nhitac>16) return 0; //< FC cut
+//   cout<<"pass 1"<<endl;
    if ((attribute[momentumIndex]) < 30.) return 0; //< Evis cut
+//   cout<<"pass 2"<<endl;
    if (attribute[PIDIndex] > 0.) return 0; //< e/mu pid cut
+//   cout<<"pass 3"<<endl;
    if (fqmrnring[0]>1) return 0; //< RC cut
+//   cout<<"pass 3"<<endl;
 
    return 1;
 }
@@ -221,7 +225,7 @@ void fqProcessedEvent::Init(TTree *tree)
    fChain->SetBranchAddress("nvp", &nvp, &b_nvp);
    fChain->SetBranchAddress("nvk", &nvk, &b_nvk);
    //fChain->SetBranchAddress("nvoth", &nvoth, &b_nvoth);;
-   fChain->SetBranchAddress("vispid", vispid, &b_vispid);
+//   fChain->SetBranchAddress("vispid", vispid, &b_vispid);
    fChain->SetBranchAddress("fqwall", &fqwall, &b_fqwall);
    fChain->SetBranchAddress("fqtowall", &fqtowall, &b_fqtowall);
    fChain->SetBranchAddress("fq1rwall", fq1rwall, &b_fq1rwall);
