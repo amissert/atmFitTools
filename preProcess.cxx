@@ -8,31 +8,10 @@
 // the arrays
 void preProcess::calcNeutrinoEnergy(){
 
+  // fill fq1renu[2]
+  //  -fq1renu[0] -> e-like energy
+  //  -fq1renu[1] -> mu-like energy
   fq->calcEnu();
-
-  /*
-  // for each sub-event
-  for (int ise=0; ise<fq->fqnse; ise++){
-    for (int ipid=1; ipid<=2; ipid++){
-  
-      // get reconstructed direction
-      TVector3 rcdir;
-      rcdir.SetXYZ(fq->fq1rdir[0][ipid][0],fq->fq1rdir[0][ipid][1],fq->fq1rdir[0][ipid][2]);
-     
-      // get rc momentum
-      float pmom = (float)fq->fq1rmom[0][ipid];
-      
-      // calc nu energy
-      if (ipid==1){
-        fq1renu[0][ipid] = (float)calcEnu(pmom,rcdir,0); //< assume electron
-      }
-      if (ipid==2){
-        fq1renu[0][ipid] = (float)calcEnu(pmom,rcdir,1); //< asume muon 
-      }
-
-    }
-  }
-  */
 
   //
   return;
@@ -723,6 +702,10 @@ int preProcess::preProcessIt(){
   if (ntupleType.CompareTo("Cosmic")==0) getCompFlg = 0;
   if (ntupleType.CompareTo("Hybrid")==0) getCompFlg = 0;
 
+  // apply T2K selection?
+  int applyT2K = 1;
+  if (ntupleType.CompareTo("Cosmic")==0) getCompFlg = 0;
+  if (ntupleType.CompareTo("Hybrid")==0) getCompFlg = 0;
 
   // loop over events in tree
   nbin = 0;
@@ -736,8 +719,8 @@ int preProcess::preProcessIt(){
     if (getBinFlg) nbin=getBin();;
     if (nbin<0.) continue;
 
-
     naccepted++;
+
     // hybrid pi0s don't have the right banks for VR counting
     if (fillVisibleFlg) vis->fillVisVar(); // get visible ring information
 
@@ -748,7 +731,10 @@ int preProcess::preProcessIt(){
     if (calcNuEnergyFlg) calcNeutrinoEnergy();
 
     // get the MC component based on visible information
-    if (getCompFlg) ncomponent=getComponent();
+    if (getCompFlg) ncomponent = getComponent();
+
+    if (applyT2K) applyT2KSelection();
+
 
     // add fake shift if needed
 //    if (fakeShiftFlg){
@@ -768,6 +754,32 @@ int preProcess::preProcessIt(){
   }
 
   return naccepted;
+}
+
+//////////////////////////////////////////////
+// see if event passes t2k selection criteria
+void preProcess::applyT2KSelection(){
+
+  // 1R electron cuts 
+  passecut = selectNuE(fq->nhitac,
+                       fq->fqnse,
+                       fq->fq1renu[0],
+                       fq->fq1rmom[0][1],
+                       fq->fq1rnll[0][2]-fq->fq1rnll[0][1],
+                       fq->fqmrnring[0],
+                       fqpi0par);
+ 
+  // 1R muon cuts
+  passmucut = selectNuMu(fq->nhitac,
+                       fq->fqnse,
+                       fq->fq1renu[1],
+                       fq->fq1rmom[0][1],
+                       fq->fq1rmom[0][2],
+                       fq->fq1rnll[0][2]-fq->fq1rnll[0][1],
+                       fq->fqmrnring[0]);
+
+  return;
+
 }
 
 ///////////////////////////////////////
@@ -964,6 +976,8 @@ void preProcess::setupNewTree(){
   trout->Branch("ncomponent",&ncomponent,"ncomponent/I");
   trout->Branch("nsample",&nsample,"nsample/I");
   trout->Branch("nbin",&nbin,"nbin/I");
+  trout->Branch("passecut",&passecut,"passecut/I");
+  trout->Branch("passmucut",&passmucut,"passmucut/I");
 
   // visible ring counting
   trout->Branch("nvis",&vis->nvis,"nvis/I");

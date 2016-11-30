@@ -38,6 +38,9 @@ void mcLargeArray::fillThinArray(TChain* ch, int thinning){
   vfqnring[i] = (int)mcevent->fqmrnring[0];
   vfqpid[i] = (float)mcevent->fq1rnll[0][2]-(float)mcevent->fq1rnll[0][1];
   vweight[i] = (float)mcevent->evtweight;
+  vfqenue[i] = (float)mcevent->fq1renu[0];
+  vfqenumu[i] = (float)mcevent->fq1renu[1];
+  vfqnsubev[i] = (int)mcevent->fqnse;
  }
 
  nsize = nfilled;
@@ -60,16 +63,16 @@ void mcLargeArray::fillArray(TChain* ch){
  }
 
 //  fill array with random events
- const int NN = nsize;
- int Events[NN];
- for (int i=0; i<nsize; i++){
-   Events[i] = randy->Integer(nmax);
- }
- sort(Events,Events+NN);
+// const int NN = nsize;
+// int Events[NN];
+// for (int i=0; i<nsize; i++){
+//   Events[i] = randy->Integer(nmax);
+// }
+// sort(Events,Events+NN);
 
  for (int i=0; i<nsize; i++){
   int ievent = i;
-  if (flgUseRandom) ievent = Events[i]; 
+//  if (flgUseRandom) ievent = Events[i]; 
   if ((i%100)==0) cout<<ievent<<endl;
   ch->GetEntry(ievent);
   vnutype[i] = (Short_t)mcevent->ipnu[0];

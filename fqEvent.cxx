@@ -7,29 +7,6 @@ using namespace std;
 
 float fqEvent::calcEnu(){
 
-   /*
-    int ipid = 1;
-
-    float V = 27.;
-    TVector3 vt2kbeam;
-    vt2kbeam.SetXYZ(0.669764,-0.742171,0.024228); //need to put in actual value
-    TVector3 vldir;
-    vldir.SetXYZ(fq1rdir[0][ipid][0],fq1rdir[0][ipid][1],fq1rdir[0][ipid][2]);
-    float mp = 938.3;
-    float mn = 939.5;
-    float ml;
-    if (ipid ==1 ) ml = 0.511;
-    if (ipid ==2 ) ml = 105.65;
-    float El = fq1rmom[0][ipid];
-    float pl = sqrt(El*El - ml*ml);
-    float costh = vt2kbeam.Unit().Dot(vldir.Unit());
-    float enu = ( (2.*(mn-V)*El) - (ml*ml) + (2.*mn*V) - (V*V) + (mp*mp) - (mn*mn) )
-           / (2.*(mn - V - El + pl*costh ) );
-    cout<<"enu"<<enu<<endl;
-    if (enu<0) cout<<"fuck!"<<endl;
-    return enu;
-  */
-
   // T2K beam
   TVector3 t2kbeam;
   t2kbeam.SetXYZ(0.669764,-0.742179,0.024228);
@@ -61,7 +38,6 @@ float fqEvent::calcEnu(){
     float El = TMath::Sqrt( (Pl*Pl) + (Ml*Ml) );
 
     // cosine to beam
-//    float costh = t2kbeam.Unit().Dot(rcdir.Unit());
     float costh = 0.669764*fq1rdir[0][ipid][0] + -0.742179*fq1rdir[0][ipid][1] + 0.024228*fq1rdir[0][ipid][2];
 
     // RC neutrino energy
@@ -78,17 +54,9 @@ float fqEvent::calcEnu(){
     fq1renu[ipid-1] = Enu; 
 
 
-//    if (Enu<0.){
-//      cout<<"-----"<<endl;
-//      cout<<"Pl "<<Pl<<endl;
-//      cout<<"ipid: "<<ipid<<endl;
-//      cout<<"Enu: "<<Enu<<endl;
-//      cout<<"cosbm: "<<costh<<endl;
-//    }
   }
 
-//  cout<<"Enu"<<Enu<<endl;
-
+  //
   return Enu;
 }
 

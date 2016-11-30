@@ -83,7 +83,15 @@ float moreUncertainties::getTotalUncertainty(float wallv, float wallrc){
   float wallnormunc = getEnteringWallNormUnc(wallv);
   totalunc += (wallnormunc*wallnormunc);
 
-  return TMath::Sqrt(totalunc);
+  float syst = TMath::Sqrt(totalunc);
+
+  if (syst>0.){
+  cout<<"true wall: "<<wallv<<endl;
+  cout<<"rcwall: "<<wallrc<<endl;
+  cout<<"syst: "<<syst<<endl;
+  }
+
+  return syst;
 
 }
 

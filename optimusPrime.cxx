@@ -146,11 +146,13 @@ float optimusPrime::calcNuMuFOM(float towallmin, float wallmin, int oscpar){
   // use short event list
 //  if (flgUseEventList){
     for (int i=0; i<nevents; i++){
-//      if ((i%50000)==0) cout<<i<<endl;
-      int ipass = selectNuMu(fastevents->vnhitac[i],
-                             fastevents->vfqmumom[i],
-                             fastevents->vfqpid[i],
-                             fastevents->vfqnring[i]);
+       int ipass = selectNuMu( fastevents->vnhitac[i],
+                               fastevents->vfqnsubev[i],
+                               fastevents->vfqenumu[i],
+                               fastevents->vfqemom[i],
+                               fastevents->vfqmumom[i],
+                               fastevents->vfqpid[i],
+                               fastevents->vfqnring[i] );
        if (ipass){
         if ((fastevents->vfqwall[i] > wallmin)&&(fastevents->vfqtowall[i]>towallmin)){
           Power += getOscPowerFast(14,i,oscpar);

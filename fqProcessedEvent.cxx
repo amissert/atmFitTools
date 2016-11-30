@@ -168,6 +168,9 @@ void fqProcessedEvent::Init(TTree *tree)
    fChain->SetBranchAddress("fq1rtotmu", fq1rtotmu, &b_fq1rtotmu);
    fChain->SetBranchAddress("fq1rnll", fq1rnll, &b_fq1rnll);
    fChain->SetBranchAddress("fq1rpos", fq1rpos, &b_fq1rpos);
+   fChain->SetBranchAddress("fq1renu", fq1renu);
+   fChain->SetBranchAddress("passecut", &passecut);
+   fChain->SetBranchAddress("passmucut", &passmucut);
    fChain->SetBranchAddress("fq1rdir", fq1rdir, &b_fq1rdir);
    fChain->SetBranchAddress("fq1rdconv", fq1rdconv, &b_fq1rdconv);
    fChain->SetBranchAddress("fq1reloss", fq1reloss, &b_fq1reloss);
