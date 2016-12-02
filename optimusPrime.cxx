@@ -37,14 +37,16 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts){
 
  uncertaintyCalculator = new moreUncertainties("/nfs/data41/t2k/amissert/atmos/head/atmFitTools/data/");
 
+ Scale = 1.;
+
  fillArray();
 
 }
 
 /////////////////////////////////////////
 // get any additional uncertainty
-float optimusPrime::getMoreUncertainty(float wallv, float wallrc){
-  return uncertaintyCalculator->getTotalUncertainty(wallv,wallrc);
+float optimusPrime::getMoreUncertainty(float wallv, float wallrc, float towallrc){
+  return uncertaintyCalculator->getTotalUncertainty(wallv,wallrc,towallrc);
 }
 
 /////////////////////////////////////////
@@ -107,15 +109,32 @@ void optimusPrime::fillFVHistoFast(){
 }
 
 void optimusPrime::calcFOMMap(float towallmax, float wallmax,int oscpar){
- 
+
+ float fmax=0.;
+ float fmin=1e8;
+
  hFV = new TH2FV("h",-1,30,0,towallmax,30,0,wallmax);
- hFV->SetContour(100);
+ hFV->SetContour(50);
  for (int ibin = 0; ibin<hFV->GetNumberOfBins(); ibin++){
    float wallcut = (float)hFV->GetBinCenterY(ibin);
    float towallcut = (float)hFV->GetBinCenterX(ibin);
+   if (towallcut<=wallcut) continue;
    float value = calcNuMuFOM(towallcut,wallcut,oscpar);
+   if (value>fmax){
+     fmax = value;
+   }
+   if ((value<fmin)&&(value>0.)){
+     fmin = value;
+   }
    hFV->SetBinContent(ibin,value);
  }
+
+ float frange = 0.1*(fmax-fmin);
+ hFV->GetZaxis()->SetRangeUser(fmin-frange,fmax+frange);
+ hFV->GetZaxis()->SetRange(fmin-frange,fmax+frange);
+ hFV->SetAxisRange(fmin-frange,fmax+frange,"Z");
+ hFV->SetMaximum(fmax+frange);
+ hFV->SetMinimum(fmax+frange);
  hFV->Draw("colz");
   return;
 }
@@ -157,8 +176,9 @@ float optimusPrime::calcNuMuFOM(float towallmin, float wallmin, int oscpar){
         if ((fastevents->vfqwall[i] > wallmin)&&(fastevents->vfqtowall[i]>towallmin)){
           Power += getOscPowerFast(14,i,oscpar);
           Nevents += fastevents->vweight[i];
-//          Syst += getMoreUncertainty(fastevents->vwallv[i],fastevents->vfqwall[i])*fastevents->vweight[i];
-          Syst += uncertaintyCalculator->getTotalUncertainty(fastevents->vwallv[i],fastevents->vfqwall[i])*fastevents->vweight[i];
+          Syst += uncertaintyCalculator->getTotalUncertainty(fastevents->vwallv[i],
+                                                             fastevents->vfqwall[i],
+                                                             fastevents->vfqtowall[i])*fastevents->vweight[i];
           if ((fastevents->vmode[i]!=1 || fastevents->vnutype[i]!=14)){
             NB+=fastevents->vweight[i];
           }
@@ -184,8 +204,14 @@ float optimusPrime::calcNuMuFOM(float towallmin, float wallmin, int oscpar){
 //      }
 //    }
 //  }
- 
-  float fom = (Power*Power)/(Nevents+(Syst*Syst));
+
+  Power*=Scale;
+  Nevents*=Scale;
+  NS*=Scale;
+  NB*=Scale;
+  Syst*=Scale;
+
+  float fom = (Power*Power)/((Nevents+(Syst*Syst)));
   if (FOMType==1) fom = Nevents;
   if (FOMType==2) fom = Syst*Syst;
   if (FOMType==3) fom = Power*Power/(Nevents*Nevents);
@@ -194,12 +220,14 @@ float optimusPrime::calcNuMuFOM(float towallmin, float wallmin, int oscpar){
   if (FOMType==6) fom = NB;
   if (FOMType==7) fom = NS/NB;
   if (FOMType==8) fom = NS/TMath::Sqrt(NB+NS);
-  if (FOMType==9) fom = NS/TMath::Sqrt(Nevents);
+  if (FOMType==9) fom = (NS*NS)/Nevents;
+  if (FOMType==10) fom = (Syst)/Nevents;
 
 
 
-  float scale = (float)nevents/(float)chmc->GetEntries();
-  fom*=1./scale;
+//  float scale = (float)nevents/(float)chmc->GetEntries();
+//  fom*=1./scale;
+  
   cout<<"FOM: "<<fom<<endl;
   cout<<"N: "<<Nevents<<endl;
   cout<<"S: "<<Syst<<endl;

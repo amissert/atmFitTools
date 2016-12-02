@@ -20,6 +20,18 @@ void moreUncertainties::setEventPointer(fqProcessedEvent* fqevent){
 
 }
 
+//////////////////////////////////////////////////////
+// Get fiducial volume uncertainty
+float moreUncertainties::getFVUncertainty(float towallrc, float wallrc){
+  int ibin = hfvmap->FindBin(towallrc,wallrc);
+  if (ibin<=0) return 0;
+  else{
+    float syst = hfvmap->GetBinContent(ibin)/100.;
+    return syst;
+  }
+}
+
+
 void moreUncertainties::init(){
 
   // read in graphs
@@ -28,6 +40,13 @@ void moreUncertainties::init(){
   TFile* fileEnteringWallUnc = new TFile(fname.Data());
   gEnteringWallUnc = (TGraph*)fileEnteringWallUnc->Get("entering_bg_uncertainty");
 
+  // read in FV uncertainty map
+  TString fmapname = dataDirectory.Data();
+  fmapname.Append("FVUncMap.root");
+  TFile *filefvmap = new TFile(fmapname.Data());
+  hfvmap = (TH2FV*)filefvmap->Get("FVUncMap");
+
+  //
   return;
 
 }
@@ -42,7 +61,7 @@ void moreUncertainties::fillFVHisto(TChain* ch){
    ch->GetEntry(iev);
    double wall = mcevent->fqwall;
    double towall = mcevent->fqtowall;
-   float totalunc = getTotalUncertainty(mcevent->wallv,wall);
+   float totalunc = getTotalUncertainty(mcevent->wallv,wall,towall);
    hwallunc->Fill(wall,mcevent->evtweight*totalunc);
    if (mcevent->wallv<0.) hwall->Fill(wall,mcevent->evtweight);
  }
@@ -70,8 +89,9 @@ float moreUncertainties::getEnteringNormUnc(float wallv){
   return 0.;
 }
 
-float moreUncertainties::getTotalUncertainty(float wallv, float wallrc){
+float moreUncertainties::getTotalUncertainty(float wallv, float wallrc, float towallrc){
 
+  
   float totalunc = .0;
 
   float enteringWallUnc = getEnteringWallUnc(wallv,wallrc);
@@ -83,16 +103,33 @@ float moreUncertainties::getTotalUncertainty(float wallv, float wallrc){
   float wallnormunc = getEnteringWallNormUnc(wallv);
   totalunc += (wallnormunc*wallnormunc);
 
+  // for FV
+  float fvunc = getFVUncertainty(towallrc,wallrc);
+  totalunc += (fvunc*fvunc);
+
   float syst = TMath::Sqrt(totalunc);
+  
 
-  if (syst>0.){
-  cout<<"true wall: "<<wallv<<endl;
-  cout<<"rcwall: "<<wallrc<<endl;
-  cout<<"syst: "<<syst<<endl;
-  }
+/*
+  float totalunc = .0;
 
+  float enteringWallUnc = getEnteringWallUnc(wallv,wallrc);
+  totalunc += (enteringWallUnc);
+
+  float normunc = getEnteringNormUnc(wallv);
+  totalunc += (normunc);
+
+  float wallnormunc = getEnteringWallNormUnc(wallv);
+  totalunc += (wallnormunc);
+
+  // for FV
+  float fvunc = getFVUncertainty(towallrc,wallrc);
+  totalunc += (fvunc);
+*/
+ 
+//  cout<<"totalunc: "<<syst<<endl;
   return syst;
-
+//  return 0.1;
 }
 
 ///////////////////////////////////////////////////
