@@ -15,7 +15,7 @@ float fqEvent::calcEnu(){
   float Mp = 938.3;
   float Mn = 939.5;
   float Me = 0.511;
-  float Mmu = 106.65;
+  float Mmu = 105.65;
   float Ml = 0.;
 
   // binding

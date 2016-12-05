@@ -15,7 +15,8 @@ void modHistoArrayFV::save(){
 
 
 
-
+///////////////////////////////////////
+// save histograms and quit
 void modHistoArrayFV::saveClose(){
   fout->Write();
   fout->Close();
@@ -45,7 +46,8 @@ void modHistoArrayFV::calcSummary(){
 
   // add bin contents
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
-    for (int ithrow=0; ithrow<nPoints; ithrow++){
+    // skip first throw (shold be default)
+    for (int ithrow=1; ithrow<nPoints; ithrow++){
       for (int ibin=1; ibin<=nhistobins; ibin++){
         binmean[fvbin][ibin] += getHistogram(ithrow,fvbin)->GetBinContent(ibin);
       }
@@ -53,12 +55,13 @@ void modHistoArrayFV::calcSummary(){
   }
 
   // normalize
-  float N=(float)nPoints;
+  float N=(float)(nPoints-1);
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     for (int ibin=0; ibin<=nhistobins; ibin++){
       binmean[fvbin][ibin] /= N;
     }
   }
+
   // fill summary histogram
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     TString hname = "bin_uncertainty";
@@ -75,7 +78,7 @@ void modHistoArrayFV::calcSummary(){
   ////////////////////////////////////////////////////////
   // find variance in each bin
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
-    for (int ithrow=0; ithrow<nPoints; ithrow++){
+    for (int ithrow=1; ithrow<nPoints; ithrow++){
       for (int ibin=1; ibin<=nhistobins; ibin++){
         binvar[fvbin][ibin] += ((getHistogram(ithrow,fvbin)->GetBinContent(ibin)-binmean[fvbin][ibin])*
                                (getHistogram(ithrow,fvbin)->GetBinContent(ibin)-binmean[fvbin][ibin]));
@@ -92,21 +95,23 @@ void modHistoArrayFV::calcSummary(){
   //////////////////////////////////////////////////////
   // total uncertainty map 
   FVUncMap = (TH2FV*)hFV[0]->Clone("FVUncMap");
+  FVShiftMap = (TH2FV*)hFV[0]->Clone("FVShiftMap");
   float Nmax = hFV[0]->GetBinContent(nfvbins)*1.3;
+  int nbins = 1600;
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     TString hname = "hNevents_";
     hname.Append(Form("%d",fvbin));
-    hNevents[fvbin] = new TH1D(hname.Data(),hname.Data(),800,0,Nmax);
+    hNevents[fvbin] = new TH1D(hname.Data(),hname.Data(),nbins,0,Nmax);
   }
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
-    for (int ithrow=0; ithrow<nPoints; ithrow++){
+    for (int ithrow=1; ithrow<nPoints; ithrow++){
       float nevts = hFV[ithrow]->GetBinContent(fvbin+1);
       hNevents[fvbin]->Fill(nevts);
     }
   }
 
   //////////////////////////////////////////////////////////
-  // fit to gaussians
+  // fit to gaussians and calculate shifts
   fitGaussians();
 
   return;
@@ -129,10 +134,20 @@ void modHistoArrayFV::fitGaussians(){
     gaussians[fvbin]->SetParameter(2,hNevents[fvbin]->GetRMS());
     gaussians[fvbin]->SetLineColor(kRed);
     hNevents[fvbin]->Fit(fname.Data());
-    float fractional_uncertainty = 100.*(gaussians[fvbin]->GetParameter(2)/gaussians[fvbin]->GetParameter(1));
+    float fractional_uncertainty = (gaussians[fvbin]->GetParameter(2)/gaussians[fvbin]->GetParameter(1));
+    float fractional_shift = TMath::Abs(gaussians[fvbin]->GetParameter(1)- hNevents[fvbin]->GetMean());
+    fractional_shift /= gaussians[fvbin]->GetParameter(1);
     FVUncMap->SetBinContent(fvbin+1,fractional_uncertainty);
+    FVShiftMap->SetBinContent(fvbin+1,fractional_shift);
   }
 
+  // fill nominal lines too
+  nominalLine[0] = new TLine(hNevents[0]->GetMean(),0,hNevents[0]->GetMean(),10000);
+  nominalLine[1] = new TLine(hNevents[1]->GetMean(),0,hNevents[1]->GetMean(),10000);
+  nominalLine[2] = new TLine(hNevents[2]->GetMean(),0,hNevents[2]->GetMean(),10000);
+  nominalLine[3] = new TLine(hNevents[3]->GetMean(),0,hNevents[3]->GetMean(),10000);
+  nominalLine[4] = new TLine(hNevents[4]->GetMean(),0,hNevents[4]->GetMean(),10000);
+  nominalLine[5] = new TLine(hNevents[5]->GetMean(),0,hNevents[5]->GetMean(),10000);
   return; 
 }
 
@@ -184,7 +199,7 @@ void modHistoArrayFV::printUncMap(const char* plotdir){
 
 
 ///////////////////////////////////////////////////////////
-// constructor
+// constructor from seed histogram, 
 modHistoArrayFV::modHistoArrayFV(TH1D* hseed, TH2FV* hfv, int ninit){
 
   // get base name tag
@@ -192,10 +207,10 @@ modHistoArrayFV::modHistoArrayFV(TH1D* hseed, TH2FV* hfv, int ninit){
  
   // output file
   TString fname = nameTag.Data();
-  fname.Append("_histos.root");
+  fname.Append("_histogram_array.root");
   fout = new TFile(fname.Data(),"RECREATE");
 
-  // setup histogram seed
+  // setup histogram seeds
   TString hname = nameTag.Data();
   hname.Append("_seed");
   hSeed = (TH1D*)hseed->Clone(hname.Data());
@@ -296,10 +311,21 @@ TH1D* modHistoArrayFV::getHistogram(int ithrow, int fvbin){
   return histos[ithrow][fvbin];
 }
 
+//////////////////////////////////////
+// draw the distribution of Nev for a given bin
+void modHistoArrayFV::drawNev(int fvbin){
+  hNevents[fvbin]->Draw();
+  nominalLine[fvbin]->SetLineColor(kBlue);
+  nominalLine[fvbin]->Draw("same");
+
+  
+}
+
 ///////////////////////////////////
 //draw all histos
 void modHistoArrayFV::drawArray(int fvbin){
   
+  histos[0][fvbin]->SetLineColor(kBlue);
   histos[0][fvbin]->Draw();
   for (int i=0; i<nPoints; i++){
     histos[i][fvbin]->Draw("same");

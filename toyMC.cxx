@@ -13,13 +13,14 @@ toyMC::toyMC(){
 
 /////////////////////////////////////////////////////////////////
 // set the pointers to the mc events and the post-mcmc parameters
-void toyMC::setChains(TChain* chmc, TChain* chpars){
+void toyMC::setChains(TChain* chmc, TChain* chpars, int nmcevents){
 
   chMC = chmc;
   chPars = chpars;
 
   mcEvent = new fqProcessedEvent(chMC);
-  mcEvent->useImportantOnly();
+  fastevents = new mcLargeArray(chMC,nmcevents);
+  nMCevents = nmcevents;
 
   mcmcPars = new mcmcReader(chPars);
 
@@ -37,95 +38,149 @@ int toyMC::getRandomMCMCPoint(){
 }
 
 
+
+/*
 ////////////////////////////////////////////////////////////////
 // make map of uncertainties for nu mu events
 void toyMC::makeFVMapNuMu(int nmcmcpts, int mcevents){
 
-   // make array of histos
-   cout<<"Initializing array of histograms..."<<endl;
-   TH1D* hE = new TH1D("hE","hE",20,0,2000);
-   TH2FV* hfv = new TH2FV("hfv",1);
-   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
+  // make array of histos
+  cout<<"Initializing array of histograms..."<<endl;
+  TH1D* hE = new TH1D("hE","hE",20,0,2000);
+  TH2FV* hfv = new TH2FV("hfv",1);
+  // array of nu energy histograms
+  hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
 
-   // get list of mc events
-   int nevmax = chMC->GetEntries();
-   if (mcevents<nevmax) nevmax = mcevents;
+  // get list of mc events
+  int nevmax = chMC->GetEntries();
+  if (mcevents<nevmax) nevmax = mcevents;
 
-   // for selecting signal
-   eventSelector* evsel = new eventSelector();
-  
-   // get list of mcmc points
-   cout<<"Making list of MCMC points"<<endl;
-   randomList* mcmclist = new randomList(nmcmcpts,chPars->GetEntries(),nmcmcpts);
+  // get list of points in mcmc parameter space
+  cout<<"Making list of MCMC points"<<endl;
+  randomList* mcmclist = new randomList(nmcmcpts,chPars->GetEntries(),nmcmcpts);
 
-   /*
-   // loops!
-   for (int iev=0; iev<nevmax; iev++){
+  // fill array of T2K MC
+//  mcLargeArray* fastevents = new mcLargeArray(chmc,nevmax);
 
-   // read in event
-   if ((iev%100)==0) cout<<"toyMC: getting event: "<<iev<<endl;
-   chMC->GetEntry(iev);
-   if (mcEvent->ncomponent==5) continue;
-   
-   hfv->Reset();
-
-   for (int i=0; i<nmcmcpts; i++){
-     
-     // read mcmc pars and apply them
-     chPars->GetEntry(mcmclist->getAt(i));
-     modifier->applyPars();
-
-     // see if event passes cuts
-     double lmom = mcEvent->attribute[3];
-     double lpid = mcEvent->attribute[0];
-     int ipass = evsel->selectNuMu(mcEvent->nhitac,
-                                     lmom,
-                                     lpid,
-                                     0,0,0);
-     // if it passes fill histos
-     if (ipass!=1) continue;
-     TVector3 rcdir;
-     rcdir.SetXYZ(mcEvent->fq1rdir[0][2][0],mcEvent->fq1rdir[0][2][1],mcEvent->fq1rdir[0][2][2]);
-     float enu_rc = calcEnu(lmom,rcdir,1);
-     int fvbin = hfv->Fill(mcEvent->fq1rtowall[0][2],mcEvent->fq1rwall[0][2]) - 1;
-     if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu_rc, mcEvent->evtweight);
-
-    } //< end MCMC pars loop
-
-  } //< end MC events loop
-  */
-
+  // loop over mcmc points
   for (int i=0; i<nmcmcpts; i++){
+
+    // read in parameters
     chPars->GetEntry(mcmclist->getAt(i));
+
+    // modify attributes using thes parameters
     modifier->setFromMCMC();
+
+    // loop over T2K MC events
     for (int iev=0; iev<nevmax; iev++){
+
       // read in event
       if ((iev%5000)==0) cout<<"toyMC: getting event: "<<iev<<endl;
       chMC->GetEntry(iev);
-      if (mcEvent->ncomponent==5) continue;
+      
+      // apply the mcmc parameters
       modifier->applyPars();
+
       // see if event passes cuts
-      double lmom = mcEvent->attribute[3];
-      double lpid = mcEvent->attribute[0];
-      int ipass = evsel->selectNuMu(mcEvent->nhitac,
-                                     lmom,
-                                     lpid,
-                                     0,0,0);
+      float lmom = (float)mcEvent->attribute[3]; // best momentum
+      float emom = (float)mcEvent->fq1rmom[0][1];
+      float lpid = (float)mcEvent->attribute[0]; // PID likelihood ratio
+      float enu  = (float)calcENu(2,lmom,mcEvent->fq1rdir[0][2][0],mcEvent->fq1rdir[0][2][1],mcEvent->fq1rdir[0][2][2]);
+      int ipass = selectNuMu(mcEvent->nhitac,
+                             mcEvent->fqnse,
+                             enu,
+                             lmom,
+                             emom,
+                             lpid,
+                             mcEvent->fqmrnring[0]);
+
       // if it passes fill histos
       if (ipass!=1) continue;
-      TVector3 rcdir;
-      rcdir.SetXYZ(mcEvent->fq1rdir[0][2][0],mcEvent->fq1rdir[0][2][1],mcEvent->fq1rdir[0][2][2]);
-      float enu_rc = calcEnu(lmom,rcdir,1);
       int fvbin = hArrFV->hFV[i]->Fill(mcEvent->fq1rtowall[0][2],mcEvent->fq1rwall[0][2],mcEvent->evtweight) - 1;
-      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu_rc, mcEvent->evtweight);
+      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, mcEvent->evtweight);
     }
   }
+  return;
+
+}
+*/
+
+////////////////////////////////////////////////////////////////
+// make map of uncertainties for nu mu events
+void toyMC::makeFVMapNuMu(int nmcmcpts){
+
+  // make array of histos
+  cout<<"Initializing array of histograms..."<<endl;
+  TH1D* hE = new TH1D("hE","hE",20,0,1500);
+  TH2FV* hfv = new TH2FV("hfv",1);
+  // array of nu energy histograms
+  hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
+
+  // get list of mc events
+  int nevmax = chMC->GetEntries();
+  if (nMCevents>nevmax) nMCevents = nevmax;
+
+  // get list of points in mcmc parameter space
+  cout<<"Making list of MCMC points"<<endl;
+  randomList* mcmclist = new randomList(nmcmcpts,chPars->GetEntries(),nmcmcpts);
+
+  // fill array of T2K MC
+//  mcLargeArray* fastevents = new mcLargeArray(chMC,mcevents);
+
+  // loop over mcmc points
+  for (int i=0; i<nmcmcpts; i++){
+
+    // read in parameters
+    cout<<"getting event"<<mcmclist->getAt(i)<<endl;
+    chPars->GetEntry(mcmclist->getAt(i));
+
+    // modify attributes using thes parameters
+    modifier->setFromMCMC();
+
+    // loop over T2K MC events
+    for (int iev=0; iev<nMCevents; iev++){
+      
+      float lmom=fastevents->vattribute[iev][modifier->attIndexMom];
+      float lpid=fastevents->vattribute[iev][modifier->attIndexPID];
+      float lpi0like=fastevents->vattribute[iev][modifier->attIndexPi0Like];
+      float lpi0mass=fastevents->vattribute[iev][modifier->attIndexPi0Mass];
+
+      // apply the mcmc parameters
+      if (i>0) modifier->applyPars(fastevents->vbin[iev],
+                          fastevents->vcomponent[iev],
+                          lpid,
+                          lmom,
+                          lpi0like,
+                          lpi0mass);
+
+      // see if event passes cuts
+      float enu  = (float)calcENu(2,lmom,
+                                    fastevents->vfqdir[iev][1][0],
+                                    fastevents->vfqdir[iev][1][1],
+                                    fastevents->vfqdir[iev][1][2]);
+      int ipass = selectNuMu(fastevents->vnhitac[iev],
+                             fastevents->vfqnsubev[iev],
+                             enu,
+                             lmom,
+                             fastevents->vfqemom[iev],
+                             lpid,
+                             fastevents->vfqnring[iev]);
+
+      // if it passes fill histos
+      if (ipass!=1) continue;
+//      cout<<"passed"<<endl;
+      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
+    }
+  }
+
   return;
 
 }
 
 
 
+/*
 /////////////////////////////////////////////////////////////////
 // see uncertainty in reconstructed enu spectrum
 void toyMC::runToyNuMuEnu(int nmcmcpts, int nmcevents){
@@ -186,7 +241,9 @@ void toyMC::runToyNuMuEnu(int nmcmcpts, int nmcevents){
 
    return;
 }
+*/
 
+/*
 ////////////////////////////////////////////////////////////////
 // 
 void toyMC::testToy(int nmcmcpts){
@@ -239,6 +296,8 @@ void toyMC::testToy(int nmcmcpts){
 
    return;
 }
+*/
+
 
 void toyMC::setAtmFitPars(const char* parfile){
   

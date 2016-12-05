@@ -8,9 +8,9 @@ mcLargeArray::mcLargeArray(TChain* ch, int nevents){
  
   nsize = nevents;
   fillArray(ch);
-//  fillThinArray(ch,2);
 }
 
+/*
 void mcLargeArray::fillThinArray(TChain* ch, int thinning){
 
 
@@ -41,13 +41,25 @@ void mcLargeArray::fillThinArray(TChain* ch, int thinning){
   vfqenue[i] = (float)mcevent->fq1renu[0];
   vfqenumu[i] = (float)mcevent->fq1renu[1];
   vfqnsubev[i] = (int)mcevent->fqnse;
+  vbin[i] = (Short_t)mcevent->nbin;
+  vcomponent[i] = (Short_t)mcevent->ncomponent;
+  vattribute[i][0] = (float)mcevent->attribute[0];
+  vattribute[i][1] = (float)mcevent->attribute[1];
+  vattribute[i][2] = (float)mcevent->attribute[2];
+  vattribute[i][3] = (float)mcevent->attribute[3];
+  vfqdir[i][0][0] = (float)mcevent->fq1rdir[0][1][0];
+  vfqdir[i][0][1] = (float)mcevent->fq1rdir[0][1][1];
+  vfqdir[i][0][2] = (float)mcevent->fq1rdir[0][1][2];
+  vfqdir[i][1][0] = (float)mcevent->fq1rdir[0][2][0];
+  vfqdir[i][1][1] = (float)mcevent->fq1rdir[0][2][1];
+  vfqdir[i][1][2] = (float)mcevent->fq1rdir[0][2][2];
  }
 
  nsize = nfilled;
 
  return;
 }
-
+*/
 
 void mcLargeArray::fillArray(TChain* ch){
 
@@ -62,18 +74,10 @@ void mcLargeArray::fillArray(TChain* ch){
    nsize=nmax;
  }
 
-//  fill array with random events
-// const int NN = nsize;
-// int Events[NN];
-// for (int i=0; i<nsize; i++){
-//   Events[i] = randy->Integer(nmax);
-// }
-// sort(Events,Events+NN);
-
  for (int i=0; i<nsize; i++){
   int ievent = i;
 //  if (flgUseRandom) ievent = Events[i]; 
-  if ((i%100)==0) cout<<ievent<<endl;
+  if ((i%10000)==0) cout<<"filling large array...on event: "<<ievent<<endl;
   ch->GetEntry(ievent);
   vnutype[i] = (Short_t)mcevent->ipnu[0];
   vfqmumom[i] = (float)mcevent->fq1rmom[0][2];
@@ -90,7 +94,20 @@ void mcLargeArray::fillArray(TChain* ch){
   voscpower[i][3] = (float)mcevent->oscpower[3];
   vfqnring[i] = (int)mcevent->fqmrnring[0];
   vfqpid[i] = (float)mcevent->fq1rnll[0][2]-(float)mcevent->fq1rnll[0][1];
-  vweight[i] = (float)mcevent->evtweight;
+  vweight[i] = (float)mcevent->evtweight; 
+  vbin[i] = (Short_t)mcevent->nbin;
+  vcomponent[i] = (Short_t)mcevent->ncomponent;
+  vattribute[i][0] = (float)mcevent->attribute[0];
+  vattribute[i][1] = (float)mcevent->attribute[1];
+  vattribute[i][2] = (float)mcevent->attribute[2];
+  vattribute[i][3] = (float)mcevent->attribute[3];
+  vfqdir[i][0][0] = (float)mcevent->fq1rdir[0][1][0];
+  vfqdir[i][0][1] = (float)mcevent->fq1rdir[0][1][1];
+  vfqdir[i][0][2] = (float)mcevent->fq1rdir[0][1][2];
+  vfqdir[i][1][0] = (float)mcevent->fq1rdir[0][2][0];
+  vfqdir[i][1][1] = (float)mcevent->fq1rdir[0][2][1];
+  vfqdir[i][1][2] = (float)mcevent->fq1rdir[0][2][2];
+
  }
 
  return;
