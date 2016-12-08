@@ -87,7 +87,8 @@ void mcLargeArray::fillArray(TChain* ch){
   vfqwall[i] = (float)mcevent->fqwall;
   vfqtowall[i] = (float)mcevent->fqtowall;
   vwallv[i] = (float)mcevent->wallv;
-  vmode[i] = (Short_t)mcevent->mode;
+  vtowallv[i] = (float)mcevent->towallv[2];
+  vmode[i] = (Short_t)TMath::Abs(mcevent->mode);
   voscpower[i][0] = (float)mcevent->oscpower[0];
   voscpower[i][1] = (float)mcevent->oscpower[1];
   voscpower[i][2] = (float)mcevent->oscpower[2];
@@ -107,7 +108,9 @@ void mcLargeArray::fillArray(TChain* ch){
   vfqdir[i][1][0] = (float)mcevent->fq1rdir[0][2][0];
   vfqdir[i][1][1] = (float)mcevent->fq1rdir[0][2][1];
   vfqdir[i][1][2] = (float)mcevent->fq1rdir[0][2][2];
-
+  vfqenue[i] = (float)mcevent->fq1renu[0];
+  vfqenumu[i] = (float)mcevent->fq1renu[1];
+  vpmomv[i] = (float)mcevent->pmomv[0];
  }
 
  return;

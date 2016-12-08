@@ -111,7 +111,8 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
 
   // make array of histos
   cout<<"Initializing array of histograms..."<<endl;
-  TH1D* hE = new TH1D("hE","hE",20,0,1500);
+  TH1D* hE = new TH1D("hE","hE",7,EnuBinning);
+
   TH2FV* hfv = new TH2FV("hfv",1);
   // array of nu energy histograms
   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);

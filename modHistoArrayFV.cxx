@@ -7,9 +7,38 @@
 
 using namespace std;
 
+////////////////////////////////////////////////////////////////////////
+// Save the overall uncertainties to be used in moreUncertainties.cxx
+void modHistoArrayFV::saveSummary(const char* dir){
 
-void modHistoArrayFV::save(){
-  fout->Write();
+  // set up file
+  TString outfilename = dir;
+  outfilename.Append("FVUncMap.root");
+  TFile* outfile = new TFile(outfilename.Data(),"RECREATE");
+  outfile->cd();
+
+  // write histograms
+  FVUncMap->Write();
+  FVShiftMap->Write();
+
+  for (int ibin=0; ibin<hFV[0]->GetNumberOfBins(); ibin++){
+    for (int ebin=0; ebin<binUnc[ibin]->GetNbinsX(); ebin++){
+      float binc =  binUnc[ibin]->GetBinContent(ebin);
+      if (binc>0.){
+        // get "shift" error
+        float shift = TMath::Abs(binc - histos[0][ibin]->GetBinContent(ebin));
+        // total fractional error is shift + uncertainty /nev
+        binUnc[ibin]->SetBinContent(ebin,(binUnc[ibin]->GetBinError(ebin)+shift)/binc);
+        binUnc[ibin]->SetBinError(ebin,0.);
+      }
+    }
+    binUnc[ibin]->Write();
+//    histos[0][ibin]->Write();
+  }
+
+  outfile->Close();
+  
+  //
   return;
 }
 
@@ -62,10 +91,11 @@ void modHistoArrayFV::calcSummary(){
     }
   }
 
-  // fill summary histogram
+  // fill histogram of systematic uncertainty in each bin of the
+  // the 1D seed histograms
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
-    TString hname = "bin_uncertainty";
-    hname.Append(Form("_fvbin%d",fvbin));
+    TString hname = "Bin_Uncertainty";
+    hname.Append(Form("_FVBin%d",fvbin));
     binUnc[fvbin]=(TH1D*)hSeed->Clone(hname.Data());
     binUnc[fvbin]->Reset();
   }
@@ -88,7 +118,8 @@ void modHistoArrayFV::calcSummary(){
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     for (int ibin=1; ibin<=nhistobins; ibin++){
       cout<<"var: "<<binvar[fvbin][ibin]<<endl;
-      binUnc[fvbin]->SetBinError(ibin,TMath::Sqrt(binvar[fvbin][ibin]/N));
+      double error = TMath::Sqrt(binvar[fvbin][ibin]/N);
+      binUnc[fvbin]->SetBinError(ibin,error);
     }
   }
 
@@ -97,10 +128,13 @@ void modHistoArrayFV::calcSummary(){
   FVUncMap = (TH2FV*)hFV[0]->Clone("FVUncMap");
   FVShiftMap = (TH2FV*)hFV[0]->Clone("FVShiftMap");
   float Nmax = hFV[0]->GetBinContent(nfvbins)*1.3;
-  int nbins = 1600;
+//  float Nmin = hFV[0]->GetBinContent(nfvbins)*1.3;
+  int nbins = 1900;
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     TString hname = "hNevents_";
     hname.Append(Form("%d",fvbin));
+//    float Nmax = hFV[0]->GetBinContent(fvbin+1)*(1.5);
+//    float Nmin = hFV[0]->GetBinContent(fvbin+1)*(0.5);
     hNevents[fvbin] = new TH1D(hname.Data(),hname.Data(),nbins,0,Nmax);
   }
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
@@ -113,6 +147,22 @@ void modHistoArrayFV::calcSummary(){
   //////////////////////////////////////////////////////////
   // fit to gaussians and calculate shifts
   fitGaussians();
+
+  // fill lines at the values of the nominal contents
+  nominalLine[0] = new TLine(hFV[0]->GetBinContent(1),0,hFV[0]->GetBinContent(1),10000);
+  nominalLine[1] = new TLine(hFV[0]->GetBinContent(2),0,hFV[0]->GetBinContent(2),10000);
+  nominalLine[2] = new TLine(hFV[0]->GetBinContent(3),0,hFV[0]->GetBinContent(3),1000);
+  nominalLine[3] = new TLine(hFV[0]->GetBinContent(4),0,hFV[0]->GetBinContent(4),10000);
+  nominalLine[4] = new TLine(hFV[0]->GetBinContent(5),0,hFV[0]->GetBinContent(5),10000);
+  nominalLine[5] = new TLine(hFV[0]->GetBinContent(6),0,hFV[0]->GetBinContent(6),10000);
+
+  // find the total uncertainty
+  for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
+    float binc1 = FVUncMap->GetBinContent(fvbin+1);
+    float binc2 = FVShiftMap->GetBinContent(fvbin+1);
+    FVUncMap->SetBinContent(fvbin+1,binc1+binc2);
+  }
+
 
   return;
  
@@ -135,19 +185,12 @@ void modHistoArrayFV::fitGaussians(){
     gaussians[fvbin]->SetLineColor(kRed);
     hNevents[fvbin]->Fit(fname.Data());
     float fractional_uncertainty = (gaussians[fvbin]->GetParameter(2)/gaussians[fvbin]->GetParameter(1));
-    float fractional_shift = TMath::Abs(gaussians[fvbin]->GetParameter(1)- hNevents[fvbin]->GetMean());
+    float fractional_shift = TMath::Abs(gaussians[fvbin]->GetParameter(1)- hFV[0]->GetBinContent(fvbin+1));
     fractional_shift /= gaussians[fvbin]->GetParameter(1);
     FVUncMap->SetBinContent(fvbin+1,fractional_uncertainty);
     FVShiftMap->SetBinContent(fvbin+1,fractional_shift);
   }
 
-  // fill nominal lines too
-  nominalLine[0] = new TLine(hNevents[0]->GetMean(),0,hNevents[0]->GetMean(),10000);
-  nominalLine[1] = new TLine(hNevents[1]->GetMean(),0,hNevents[1]->GetMean(),10000);
-  nominalLine[2] = new TLine(hNevents[2]->GetMean(),0,hNevents[2]->GetMean(),10000);
-  nominalLine[3] = new TLine(hNevents[3]->GetMean(),0,hNevents[3]->GetMean(),10000);
-  nominalLine[4] = new TLine(hNevents[4]->GetMean(),0,hNevents[4]->GetMean(),10000);
-  nominalLine[5] = new TLine(hNevents[5]->GetMean(),0,hNevents[5]->GetMean(),10000);
   return; 
 }
 
@@ -189,6 +232,8 @@ void modHistoArrayFV::printUncMap(const char* plotdir){
     binUnc[fvbin]->SetFillColor(kOrange);
     binUnc[fvbin]->GetXaxis()->SetTitle("Erec [MeV]");
     binUnc[fvbin]->Draw("e2");
+    histos[0][fvbin]->SetLineColor(kBlue);
+    histos[0][fvbin]->Draw("same");
   }
   plotname = plotdir;
   plotname.Append("Enu_Distributions.png");

@@ -11,6 +11,18 @@ double TH2FV::GetMaxWall(){
   return fMaxWall;
 }
 
+void TH2FV::SetMinNonZero(){
+  double min=1e8;
+  for (int ibin=1; ibin<=GetNumberOfBins(); ibin++){
+    double binc = GetBinContent(ibin);
+    if ((binc<min) && (binc>0.)){
+      min = binc;
+    }
+  }
+  fMinimum = 1.0;
+  return;
+}
+
 void TH2FV::InitStdBins(double wall1, double wall2, double towall1,
                    double towall2, double towall3, double towall4){
 
