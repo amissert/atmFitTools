@@ -124,23 +124,140 @@ void modHistoArrayFV::calcSummary(){
   }
 
   //////////////////////////////////////////////////////
-  // total uncertainty map 
+  // total uncertainty maps 
   FVUncMap = (TH2FV*)hFV[0]->Clone("FVUncMap");
+  FVUncMapCCQE = (TH2FV*)hFV[0]->Clone("FVUncMapCCQE");
+  FVUncMapCCnQE = (TH2FV*)hFV[0]->Clone("FVUncMapCCnQE");
+  FVUncMapNC = (TH2FV*)hFV[0]->Clone("FVUncMapNC");
+  FVUncMapCCWrong = (TH2FV*)hFV[0]->Clone("FVUncMapCCWrong");
   FVShiftMap = (TH2FV*)hFV[0]->Clone("FVShiftMap");
-  float Nmax = hFV[0]->GetBinContent(nfvbins)*1.3;
-//  float Nmin = hFV[0]->GetBinContent(nfvbins)*1.3;
-  int nbins = 1900;
+  FVShiftMapCCQE = (TH2FV*)hFV[0]->Clone("FVShiftMapCCQE");
+  FVShiftMapCCnQE = (TH2FV*)hFV[0]->Clone("FVShiftMapCCnQE");
+  FVShiftMapCCWrong = (TH2FV*)hFV[0]->Clone("FVShiftMapCCWrong");
+  FVShiftMapNC = (TH2FV*)hFV[0]->Clone("FVShiftMapNC");
+  
+
+
+  // calc RMS and mean
+  float RMS[nfvbins][5];
+  float NMean[nfvbins][5];
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
-    TString hname = "hNevents_";
-    hname.Append(Form("%d",fvbin));
-//    float Nmax = hFV[0]->GetBinContent(fvbin+1)*(1.5);
-//    float Nmin = hFV[0]->GetBinContent(fvbin+1)*(0.5);
-    hNevents[fvbin] = new TH1D(hname.Data(),hname.Data(),nbins,0,Nmax);
+    for (int ih=0; ih<5; ih++){
+       RMS[fvbin][ih]=0.;
+       NMean[fvbin][ih]=0.;
+    }
+  }
+  float norm = (float)(nPoints-1);
+  for (int fvbin=0; fvbin<nfvbins; fvbin++){
+    for (int ithrow=1; ithrow<nPoints; ithrow++){
+      //
+      float nevts = hFV[ithrow]->GetBinContent(fvbin+1);
+      NMean[fvbin][0] += (nevts)/norm;
+      //
+      nevts = hFVCCQE[ithrow]->GetBinContent(fvbin+1);
+      NMean[fvbin][1] += (nevts)/norm;
+      //
+      nevts = hFVCCnQE[ithrow]->GetBinContent(fvbin+1);
+      NMean[fvbin][2] += (nevts)/norm;
+      //
+      nevts = hFVCCWrong[ithrow]->GetBinContent(fvbin+1);
+      NMean[fvbin][3] += (nevts)/norm;
+      //
+      nevts = hFVNC[ithrow]->GetBinContent(fvbin+1);
+      NMean[fvbin][4] += (nevts)/norm;
+      //
+    }
   }
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     for (int ithrow=1; ithrow<nPoints; ithrow++){
+      //
+      float nevts = hFV[ithrow]->GetBinContent(fvbin+1);
+      float n0 = NMean[fvbin][0];
+      RMS[fvbin][0] += (nevts-n0)*(nevts-n0)/norm;
+      //
+      nevts = hFVCCQE[ithrow]->GetBinContent(fvbin+1);
+      n0 = NMean[fvbin][1];
+      RMS[fvbin][1] += (nevts-n0)*(nevts-n0)/norm;
+      //
+      nevts = hFVCCnQE[ithrow]->GetBinContent(fvbin+1);
+      n0 = NMean[fvbin][2];
+      RMS[fvbin][2] += (nevts-n0)*(nevts-n0)/norm;
+      //
+      nevts = hFVCCWrong[ithrow]->GetBinContent(fvbin+1);
+      n0 = NMean[fvbin][3];
+      RMS[fvbin][3] += (nevts-n0)*(nevts-n0)/norm;
+      //
+      nevts = hFVNC[ithrow]->GetBinContent(fvbin+1);
+      n0 = NMean[fvbin][4];
+      RMS[fvbin][4] += (nevts-n0)*(nevts-n0)/norm;
+      //
+    }
+  }
+  for (int fvbin=0; fvbin<nfvbins; fvbin++){
+    for (int ih=0; ih<5; ih++){
+       RMS[fvbin][ih]=TMath::Sqrt(RMS[fvbin][ih]);
+    }
+  }
+ 
+  // make and fill histos
+  // get max # of events from largest bin
+  float Nmax = 0;;
+  float width=0;
+  float Nmin =0.;
+  float factor = 5.4;
+  int nbins = 20;
+  // initial binning
+  for (int fvbin=0; fvbin<nfvbins; fvbin++){
+    //
+    Nmax = NMean[fvbin][0]+(RMS[fvbin][0]*factor);
+    Nmin = NMean[fvbin][0]-(RMS[fvbin][0]*factor);
+    TString hname = "hNevents_";
+    hname.Append(Form("%d",fvbin));
+    hNevents[fvbin] = new TH1D(hname.Data(),hname.Data(),nbins,Nmin,Nmax);
+    //
+    Nmax = NMean[fvbin][1]+(RMS[fvbin][1]*factor);
+    Nmin = NMean[fvbin][1]-(RMS[fvbin][1]*factor);
+    hname = "hNeventsCCQE_";
+    hname.Append(Form("%d",fvbin));
+    hNeventsCCQE[fvbin] = new TH1D(hname.Data(),hname.Data(),nbins,Nmin,Nmax);
+    //
+    Nmax = NMean[fvbin][2]+(RMS[fvbin][2]*factor);
+    Nmin = NMean[fvbin][2]-(RMS[fvbin][2]*factor);
+    hname = "hNeventsCCnQE_";
+    hname.Append(Form("%d",fvbin));
+    hNeventsCCnQE[fvbin] = new TH1D(hname.Data(),hname.Data(),nbins,Nmin,Nmax);
+    //
+    Nmax = NMean[fvbin][3]+(RMS[fvbin][3]*factor);
+    Nmin = NMean[fvbin][3]-(RMS[fvbin][3]*factor);
+    hname = "hNeventsCCWrong_";
+    hname.Append(Form("%d",fvbin));
+    hNeventsCCWrong[fvbin] = new TH1D(hname.Data(),hname.Data(),nbins,Nmin,Nmax);
+    //
+    Nmax = NMean[fvbin][4]+(RMS[fvbin][4]*factor);
+    Nmin = NMean[fvbin][4]-(RMS[fvbin][4]*factor);
+    hname = "hNeventsNC";
+    hname.Append(Form("%d",fvbin));
+    hNeventsNC[fvbin] = new TH1D(hname.Data(),hname.Data(),nbins,Nmin,Nmax);
+    //
+  }
+  for (int fvbin=0; fvbin<nfvbins; fvbin++){
+    for (int ithrow=1; ithrow<nPoints; ithrow++){
+      //
       float nevts = hFV[ithrow]->GetBinContent(fvbin+1);
       hNevents[fvbin]->Fill(nevts);
+      //
+      nevts = hFVCCQE[ithrow]->GetBinContent(fvbin+1);
+      hNeventsCCQE[fvbin]->Fill(nevts);
+      //
+      nevts = hFVCCnQE[ithrow]->GetBinContent(fvbin+1);
+      hNeventsCCnQE[fvbin]->Fill(nevts);
+      //
+      nevts = hFVCCWrong[ithrow]->GetBinContent(fvbin+1);
+      hNeventsCCWrong[fvbin]->Fill(nevts);
+      //
+      nevts = hFVNC[ithrow]->GetBinContent(fvbin+1);
+      hNeventsNC[fvbin]->Fill(nevts);
+      //
     }
   }
 
@@ -158,11 +275,27 @@ void modHistoArrayFV::calcSummary(){
 
   // find the total uncertainty
   for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
+    //
     float binc1 = FVUncMap->GetBinContent(fvbin+1);
     float binc2 = FVShiftMap->GetBinContent(fvbin+1);
     FVUncMap->SetBinContent(fvbin+1,binc1+binc2);
+    //
+    binc1 = FVUncMapCCQE->GetBinContent(fvbin+1);
+    binc2 = FVShiftMapCCQE->GetBinContent(fvbin+1);
+    FVUncMapCCQE->SetBinContent(fvbin+1,binc1+binc2);
+    //
+    binc1 = FVUncMapCCnQE->GetBinContent(fvbin+1);
+    binc2 = FVShiftMapCCnQE->GetBinContent(fvbin+1);
+    FVUncMapCCnQE->SetBinContent(fvbin+1,binc1+binc2);
+    //
+    binc1 = FVUncMapCCWrong->GetBinContent(fvbin+1);
+    binc2 = FVShiftMapCCWrong->GetBinContent(fvbin+1);
+    FVUncMapCCWrong->SetBinContent(fvbin+1,binc1+binc2);
+    //
+    binc1 = FVUncMapNC->GetBinContent(fvbin+1);
+    binc2 = FVShiftMapNC->GetBinContent(fvbin+1);
+    FVUncMapNC->SetBinContent(fvbin+1,binc1+binc2);
   }
-
 
   return;
  
@@ -175,6 +308,12 @@ void modHistoArrayFV::fitGaussians(){
   // make array of gaussians
   const int nfvbins = hFV[0]->GetNumberOfBins();
   TF1* gaussians[nfvbins];
+  TF1* gaussiansCCQE[nfvbins];
+  TF1* gaussiansCCnQE[nfvbins];
+  TF1* gaussiansCCWrong[nfvbins];
+  TF1* gaussiansNC[nfvbins];
+
+  // for total # of events
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     TString fname = Form("fgauss_%d",fvbin);
     gaussians[fvbin] = new TF1(fname.Data(),"gaus",0,
@@ -191,6 +330,96 @@ void modHistoArrayFV::fitGaussians(){
     FVShiftMap->SetBinContent(fvbin+1,fractional_shift);
   }
 
+  // for CCQE
+  for (int fvbin=0; fvbin<nfvbins; fvbin++){
+//    TString fname = Form("fgauss_CCQE_%d",fvbin);
+//    gaussiansCCQE[fvbin] = new TF1(fname.Data(),"gaus",0,
+//                               hNeventsCCQE[0]->GetBinLowEdge(hNeventsCCQE[0]->GetNbinsX())*1.5);
+//    gaussiansCCQE[fvbin]->SetParameter(0,hNeventsCCQE[fvbin]->GetMaximum());
+//    gaussiansCCQE[fvbin]->SetParameter(1,hNeventsCCQE[fvbin]->GetMean());
+//    gaussiansCCQE[fvbin]->SetParameter(2,hNeventsCCQE[fvbin]->GetRMS());
+//    gaussiansCCQE[fvbin]->SetLineColor(kRed);
+//    hNeventsCCQE[fvbin]->Fit(fname.Data());
+//    float fractional_uncertainty = (gaussiansCCQE[fvbin]->GetParameter(2)/gaussiansCCQE[fvbin]->GetParameter(1));
+//    float fractional_shift = TMath::Abs(gaussiansCCQE[fvbin]->GetParameter(1)- hFVCCQE[0]->GetBinContent(fvbin+1));
+    float fractional_uncertainty = hNeventsCCQE[fvbin]->GetRMS()/hFVCCQE[0]->GetBinContent(fvbin+1);
+    float fractional_shift = TMath::Abs(hNeventsCCQE[fvbin]->GetMean() - hFVCCQE[0]->GetBinContent(fvbin+1));
+    fractional_shift /= hFVCCQE[0]->GetBinContent(fvbin+1);
+    FVUncMapCCQE->SetBinContent(fvbin+1,fractional_uncertainty);
+    FVShiftMapCCQE->SetBinContent(fvbin+1,fractional_shift);
+  }
+ 
+  // for CCnQE
+  for (int fvbin=0; fvbin<nfvbins; fvbin++){
+/*    TString fname = Form("fgauss_CCnQE_%d",fvbin);
+    gaussiansCCnQE[fvbin] = new TF1(fname.Data(),"gaus",0,
+                               hNeventsCCnQE[0]->GetBinLowEdge(hNeventsCCnQE[0]->GetNbinsX())*1.5);
+    gaussiansCCnQE[fvbin]->SetParameter(0,hNeventsCCnQE[fvbin]->GetMaximum());
+    gaussiansCCnQE[fvbin]->SetParameter(1,hNeventsCCnQE[fvbin]->GetMean());
+    gaussiansCCnQE[fvbin]->SetParameter(2,hNeventsCCnQE[fvbin]->GetRMS());
+    gaussiansCCnQE[fvbin]->SetLineColor(kRed);
+//    hNeventsCCnQE[fvbin]->Fit(fname.Data());
+    float fractional_uncertainty = (gaussiansCCnQE[fvbin]->GetParameter(2)/gaussiansCCnQE[fvbin]->GetParameter(1));
+    float fractional_shift = TMath::Abs(gaussiansCCnQE[fvbin]->GetParameter(1)- hFVCCnQE[0]->GetBinContent(fvbin+1));
+    fractional_shift /= gaussiansCCnQE[fvbin]->GetParameter(1);
+    FVUncMapCCnQE->SetBinContent(fvbin+1,fractional_uncertainty);
+    FVShiftMapCCnQE->SetBinContent(fvbin+1,fractional_shift);
+    */
+    float fractional_uncertainty = hNeventsCCnQE[fvbin]->GetRMS()/hFVCCnQE[0]->GetBinContent(fvbin+1);
+    float fractional_shift = TMath::Abs(hNeventsCCnQE[fvbin]->GetMean() - hFVCCnQE[0]->GetBinContent(fvbin+1));
+    fractional_shift /= hFVCCnQE[0]->GetBinContent(fvbin+1);
+    FVUncMapCCnQE->SetBinContent(fvbin+1,fractional_uncertainty);
+    FVShiftMapCCnQE->SetBinContent(fvbin+1,fractional_shift);
+  }
+
+  // for CCWrong
+  for (int fvbin=0; fvbin<nfvbins; fvbin++){
+/*    TString fname = Form("fgauss_CCWrong_%d",fvbin);
+    gaussiansCCWrong[fvbin] = new TF1(fname.Data(),"gaus",0,
+                               hNeventsCCWrong[0]->GetBinLowEdge(hNeventsCCWrong[0]->GetNbinsX())*1.5);
+    gaussiansCCWrong[fvbin]->SetParameter(0,hNeventsCCWrong[fvbin]->GetMaximum());
+    gaussiansCCWrong[fvbin]->SetParameter(1,hNeventsCCWrong[fvbin]->GetMean());
+    gaussiansCCWrong[fvbin]->SetParameter(2,hNeventsCCWrong[fvbin]->GetRMS());
+    gaussiansCCWrong[fvbin]->SetLineColor(kRed);
+//    hNeventsCCWrong[fvbin]->Fit(fname.Data());
+    float fractional_uncertainty = (gaussiansCCWrong[fvbin]->GetParameter(2)/gaussiansCCWrong[fvbin]->GetParameter(1));
+    float fractional_shift = TMath::Abs(gaussiansCCWrong[fvbin]->GetParameter(1)- hFVCCWrong[0]->GetBinContent(fvbin+1));
+    fractional_shift /= gaussiansCCWrong[fvbin]->GetParameter(1);
+    FVUncMapCCWrong->SetBinContent(fvbin+1,fractional_uncertainty);
+    FVShiftMapCCWrong->SetBinContent(fvbin+1,fractional_shift);
+*/
+    float fractional_uncertainty = hNeventsCCWrong[fvbin]->GetRMS()/hFVCCWrong[0]->GetBinContent(fvbin+1);
+    float fractional_shift = TMath::Abs(hNeventsCCWrong[fvbin]->GetMean() - hFVCCWrong[0]->GetBinContent(fvbin+1));
+    fractional_shift /= hFVCCWrong[0]->GetBinContent(fvbin+1);
+    FVUncMapCCWrong->SetBinContent(fvbin+1,fractional_uncertainty);
+    FVShiftMapCCWrong->SetBinContent(fvbin+1,fractional_shift);
+  }
+
+  // for NC
+  for (int fvbin=0; fvbin<nfvbins; fvbin++){
+/*
+    TString fname = Form("fgauss_NC_%d",fvbin);
+    gaussiansNC[fvbin] = new TF1(fname.Data(),"gaus",0,
+                               hNeventsNC[0]->GetBinLowEdge(hNeventsNC[0]->GetNbinsX())*1.5);
+    gaussiansNC[fvbin]->SetParameter(0,hNeventsNC[fvbin]->GetMaximum());
+    gaussiansNC[fvbin]->SetParameter(1,hNeventsNC[fvbin]->GetMean());
+    gaussiansNC[fvbin]->SetParameter(2,hNeventsNC[fvbin]->GetRMS());
+    gaussiansNC[fvbin]->SetLineColor(kRed);
+//    hNeventsNC[fvbin]->Fit(fname.Data());
+    float fractional_uncertainty = (gaussiansNC[fvbin]->GetParameter(2)/gaussiansNC[fvbin]->GetParameter(1));
+    float fractional_shift = TMath::Abs(gaussiansNC[fvbin]->GetParameter(1)- hFVNC[0]->GetBinContent(fvbin+1));
+    fractional_shift /= gaussiansNC[fvbin]->GetParameter(1);
+    FVUncMapNC->SetBinContent(fvbin+1,fractional_uncertainty);
+    FVShiftMapNC->SetBinContent(fvbin+1,fractional_shift);
+    */
+    float fractional_uncertainty = hNeventsNC[fvbin]->GetRMS()/hFVNC[0]->GetBinContent(fvbin+1);
+    float fractional_shift = TMath::Abs(hNeventsNC[fvbin]->GetMean() - hFVNC[0]->GetBinContent(fvbin+1));
+    fractional_shift /= hFVNC[0]->GetBinContent(fvbin+1);
+    FVUncMapNC->SetBinContent(fvbin+1,fractional_uncertainty);
+    FVShiftMapNC->SetBinContent(fvbin+1,fractional_shift);
+  }
+
+  
   return; 
 }
 
@@ -318,15 +547,36 @@ void modHistoArrayFV::readFromFile(int nfvbins, int nthrows){
     }
   }  
 
-  for (int ithrow=1; ithrow<nthrows; ithrow++){
+  for (int ithrow=0; ithrow<nthrows; ithrow++){
     wantkey = Form("FV_throw%d",ithrow);
     for (int ikey=0; ikey<keylist->GetSize(); ikey++){
-      cout<<"Looking for key with: "<<wantkey.Data()<<endl;
       TString keycheck = keylist->At(ikey)->GetName();
       if (keycheck.Contains(wantkey.Data())){
-        cout<<"Found "<<keycheck.Data()<<"!"<<endl;
-        hFV[ithrow] = (TH2FV*)fout->Get(keycheck.Data());
-        break;
+        if (keycheck.Contains("CCQE")){
+          cout<<"Found "<<keycheck.Data()<<"!"<<endl;
+          hFVCCQE[ithrow] = (TH2FV*)fout->Get(keycheck.Data());
+//          break;
+        }
+        else if (keycheck.Contains("CCnQE")){
+          cout<<"Found "<<keycheck.Data()<<"!"<<endl;
+          hFVCCnQE[ithrow] = (TH2FV*)fout->Get(keycheck.Data());
+//          break;
+        }
+        else if (keycheck.Contains("CCWrong")){
+          cout<<"Found "<<keycheck.Data()<<"!"<<endl;
+          hFVCCWrong[ithrow] = (TH2FV*)fout->Get(keycheck.Data());
+//          break;
+        }
+        else if (keycheck.Contains("NC")){
+          cout<<"Found "<<keycheck.Data()<<"!"<<endl;
+          hFVNC[ithrow] = (TH2FV*)fout->Get(keycheck.Data());
+//          break;
+        }
+        else{
+          cout<<"Found "<<keycheck.Data()<<"!"<<endl;
+          hFV[ithrow] = (TH2FV*)fout->Get(keycheck.Data());
+        }
+//        break;
       }
     }
   }
@@ -387,12 +637,39 @@ void modHistoArrayFV::init(int ninit){
   nPoints = ninit;
 
   // initialize all histos
+  // (clone them from hFV[0])
   for (int i=0; i<ninit; i++){
-    if (i>0){
-       TString hname = nameTag.Data();
-       hname.Append(Form("_FV_throw%d",i)); 
-       hFV[i] = (TH2FV*)hFV[0]->Clone(hname.Data());
-    }
+
+       // all histos
+       TString hnamebase = nameTag.Data();
+       hnamebase.Append(Form("_FV_throw%d",i)); 
+       if (i>0) hFV[i] = (TH2FV*)hFV[0]->Clone(hnamebase.Data());
+
+       // ccqe
+       hnamebase = nameTag.Data();
+       hnamebase.Append("_CCQE");
+       hnamebase.Append(Form("_FV_throw%d",i)); 
+       hFVCCQE[i] = (TH2FV*)hFV[0]->Clone(hnamebase.Data());
+
+       // ccnqe
+       hnamebase = nameTag.Data();
+       hnamebase.Append("_CCnQE");
+       hnamebase.Append(Form("_FV_throw%d",i)); 
+       hFVCCnQE[i] = (TH2FV*)hFV[0]->Clone(hnamebase.Data());
+
+       // ccwrong flavor
+       hnamebase = nameTag.Data();
+       hnamebase.Append("_CCWrong");
+       hnamebase.Append(Form("_FV_throw%d",i)); 
+       hFVCCWrong[i] = (TH2FV*)hFV[0]->Clone(hnamebase.Data());
+
+       // nc
+       hnamebase = nameTag.Data();
+       hnamebase.Append("_NC");
+       hnamebase.Append(Form("_FV_throw%d",i)); 
+       hFVNC[i] = (TH2FV*)hFV[0]->Clone(hnamebase.Data());
+
+    // initialize all 1D histos
     for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
       TString hname = nameTag.Data();
       hname.Append(Form("_throw%d",i));

@@ -114,6 +114,7 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
   TH1D* hE = new TH1D("hE","hE",7,EnuBinning);
 
   TH2FV* hfv = new TH2FV("hfv",1);
+
   // array of nu energy histograms
   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
 
@@ -169,8 +170,15 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
 
       // if it passes fill histos
       if (ipass!=1) continue;
-//      cout<<"passed"<<endl;
+
+      // fill total nev
       int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+      if (fastevents->vnutype[iev]!=14) {hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      else if (fastevents->vmode[iev]==1){
+        hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
+      }
+      else if (fastevents->vmode[iev]<30) {hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      else { hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]); }
       if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
     }
   }
@@ -319,6 +327,7 @@ void toyMC::setCompare(histoCompare* hc){
 }
 
 ////////////////////////////////////////////////////////////////
+/*
 void toyMC::fillArrayDirect(int isamp, int ibin, int iatt, int npts){
 
   // get seed
@@ -351,10 +360,7 @@ void toyMC::fillArrayDirect(int isamp, int ibin, int iatt, int npts){
   return;
 }
 
-
-
-
-
+*/
 
 
 

@@ -79,7 +79,7 @@ void mcLargeArray::fillArray(TChain* ch){
 //  if (flgUseRandom) ievent = Events[i]; 
   if ((i%10000)==0) cout<<"filling large array...on event: "<<ievent<<endl;
   ch->GetEntry(ievent);
-  vnutype[i] = (Short_t)mcevent->ipnu[0];
+  vnutype[i] = TMath::Abs((Short_t)mcevent->ipnu[0]);
   vfqmumom[i] = (float)mcevent->fq1rmom[0][2];
   vfqemom[i] = (float)mcevent->fq1rmom[0][1];
   vnhitac[i] = mcevent->nhitac;
