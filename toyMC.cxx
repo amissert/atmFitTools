@@ -111,7 +111,8 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
 
   // make array of histos
   cout<<"Initializing array of histograms..."<<endl;
-  TH1D* hE = new TH1D("hE","hE",7,EnuBinning);
+  TH1D* hE = new TH1D("hE","hE",EnuNBins,EnuBinning);
+//  TH1D* hE = new TH1D("hE","hE",50,0,5000);
 
   TH2FV* hfv = new TH2FV("hfv",1);
 
@@ -146,6 +147,7 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
       float lpid=fastevents->vattribute[iev][modifier->attIndexPID];
       float lpi0like=fastevents->vattribute[iev][modifier->attIndexPi0Like];
       float lpi0mass=fastevents->vattribute[iev][modifier->attIndexPi0Mass];
+      float lenu = fastevents->vfqenumu[iev];
 
       // apply the mcmc parameters
       if (i>0) modifier->applyPars(fastevents->vbin[iev],
@@ -163,8 +165,8 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
       int ipass = selectNuMu(fastevents->vnhitac[iev],
                              fastevents->vfqnsubev[iev],
                              enu,
-                             lmom,
                              fastevents->vfqemom[iev],
+                             lmom,
                              lpid,
                              fastevents->vfqnring[iev]);
 

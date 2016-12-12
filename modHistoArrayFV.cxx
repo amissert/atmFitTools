@@ -20,7 +20,10 @@ void modHistoArrayFV::saveSummary(const char* dir){
   // write histograms
   FVUncMap->Write();
   FVShiftMap->Write();
-
+  FVUncMapCCQE->Write();
+  FVUncMapCCnQE->Write();
+  FVUncMapCCWrong->Write();
+  FVUncMapNC->Write();
   for (int ibin=0; ibin<hFV[0]->GetNumberOfBins(); ibin++){
     for (int ebin=0; ebin<binUnc[ibin]->GetNbinsX(); ebin++){
       float binc =  binUnc[ibin]->GetBinContent(ebin);

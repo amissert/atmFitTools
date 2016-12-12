@@ -97,8 +97,8 @@ float optimusPrime::getOscPower(int nutype, int oscpar){
 float optimusPrime::getOscPowerFast(int nutype, int ientry, int oscpar){
 
  // NC events do not contribute 
-// if (TMath::Abs(fastevents->vmode[ientry])>=30) return 0.;
- if (TMath::Abs(fastevents->vmode[ientry])!=1) return 0.;
+ if (TMath::Abs(fastevents->vmode[ientry])>=30) return 0.;
+// if (TMath::Abs(fastevents->vmode[ientry])!=1) return 0.;
  
  // other nu do not contribute
  if (TMath::Abs(fastevents->vnutype[ientry] != nutype)) return 0.;
@@ -260,8 +260,8 @@ float optimusPrime::calcNuMuFOMSpectrum(float towallmin, float wallmin, int oscp
   }
 
   // add up figure of merit in each bin
-//  return calcFOMSpectrum(Pow,Nev,Sys,nn);
-  return TMath::Sqrt(calcFOMSpectrum(Pow,Nev,Sys,nn));
+  return calcFOMSpectrum(Pow,Nev,Sys,nn);
+//  return TMath::Sqrt(calcFOMSpectrum(Pow,Nev,Sys,nn));
 //  cout<<"sumsyst: "<<Syst<<endl;
 //  return calcFOMSpectrum();
 }
@@ -281,6 +281,7 @@ void optimusPrime::compareNuMuCuts(float tw1, float w1, float tw2, float w2, int
     hSummary[ih] = (TH1D*)hErec[ih]->Clone(hname.Data());  
     hSummary[ih]->SetLineColor(kRed);  
     hSummary[ih]->SetLineWidth(3);  
+    hSummary[ih]->GetYaxis()->SetRangeUser(0,hSummary[ih]->GetMaximum());
     hSummary[ih]->Draw("h");
   }
 
@@ -380,17 +381,17 @@ void optimusPrime:: calcFVSummary(int oscpar, int nutype){
    float enurc = fastevents->vfqenumu[iev];
    float enuv = fastevents->vpmomv[iev];
    // use RC
-//   hFVSummary[0]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww);
-//   hFVSummary[1]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],pow);
-//   hFVSummary[2]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],sys);
-//   hFVSummary[4]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],enuv*ww);
-//   hFVSummary[5]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],enurc*ww);
+   hFVSummary[0]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww);
+   hFVSummary[1]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],pow);
+   hFVSummary[2]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],sys);
+   hFVSummary[4]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],enuv*ww);
+   hFVSummary[5]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],enurc*ww);
    // use true
-   hFVSummary[0]->Fill(fastevents->vtowallv[iev],fastevents->vwallv[iev],ww);
-   hFVSummary[1]->Fill(fastevents->vtowallv[iev],fastevents->vwallv[iev],pow);
-   hFVSummary[2]->Fill(fastevents->vtowallv[iev],fastevents->vwallv[iev],sys);
-   hFVSummary[4]->Fill(fastevents->vtowallv[iev],fastevents->vwallv[iev],enuv*ww);
-   hFVSummary[5]->Fill(fastevents->vtowallv[iev],fastevents->vwallv[iev],enurc*ww);
+//   hFVSummary[0]->Fill(fastevents->vtowallv[iev],fastevents->vwallv[iev],ww);
+//   hFVSummary[1]->Fill(fastevents->vtowallv[iev],fastevents->vwallv[iev],pow);
+//   hFVSummary[2]->Fill(fastevents->vtowallv[iev],fastevents->vwallv[iev],sys);
+//   hFVSummary[4]->Fill(fastevents->vtowallv[iev],fastevents->vwallv[iev],enuv*ww);
+//   hFVSummary[5]->Fill(fastevents->vtowallv[iev],fastevents->vwallv[iev],enurc*ww);
 
    if (TMath::Abs(fastevents->vmode[iev])==1) hFVSummary[6]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww);
    else {hFVSummary[7]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww);}
@@ -426,12 +427,21 @@ void optimusPrime:: calcFVSummary(int oscpar, int nutype){
 ////////////////////////////////////////////////////////////
 // calculate the fractional weighted systematic uncertainty
 // for an event
-float optimusPrime::getSystUncertainty(int i){
+float optimusPrime::getSystUncertainty(int i, int nutype){
+   int wronglepton = 0;
+   if (fastevents->vnutype[i]!=nutype) wronglepton = 1;
    float sys = uncertaintyCalculator->getTotalUncertainty(fastevents->vwallv[i],
                                                           fastevents->vfqwall[i],
                                                           fastevents->vfqtowall[i],
                                                           fastevents->vfqenumu[i],
-                                                          fastevents->vmode[i])*fastevents->vweight[i];
+                                                          fastevents->vmode[i],
+                                                          wronglepton)*fastevents->vweight[i];
+//   if (fastevents->vwallv[i]<0.){
+     
+//      cout<<"sys: "<<sys<<endl;
+//      cout<<"rcwall: "<<fastevents->vfqwall[i]<<endl;
+//      cout<<"rctow: "<<fastevents->vfqtowall[i]<<endl;
+//   }
    return sys;                                                       
 }
 

@@ -63,14 +63,29 @@ void mcLargeArray::fillThinArray(TChain* ch, int thinning){
 
 void mcLargeArray::fillArray(TChain* ch){
 
+ ch->SetBranchStatus("*",0);
+ ch->SetBranchStatus("fq*",1);
+ ch->SetBranchStatus("*v",1);
+ ch->SetBranchStatus("nhitac",1);
+ ch->SetBranchStatus("evtweight",1);
+ ch->SetBranchStatus("oscpower",1);
+ ch->SetBranchStatus("mode",1);
+ ch->SetBranchStatus("ipnu",1);
+ ch->SetBranchStatus("pass*",1);
+ ch->SetBranchStatus("nbin",1);
+ ch->SetBranchStatus("ncomponent",1);
+ ch->SetBranchStatus("attribute",1);
+
+ 
 
  fqProcessedEvent* mcevent = new fqProcessedEvent(ch);
 
- TRandom2* randy = new TRandom2(nsize);
+
+ // select random events if not using everything
+// TRandom2* randy = new TRandom2(nsize);
  int nmax = ch->GetEntries();
- int flgUseRandom=1;
  if (nsize>=nmax){ 
-   flgUseRandom=0;
+//   flgUseRandom=0;
    nsize=nmax;
  }
 
@@ -111,7 +126,10 @@ void mcLargeArray::fillArray(TChain* ch){
   vfqenue[i] = (float)mcevent->fq1renu[0];
   vfqenumu[i] = (float)mcevent->fq1renu[1];
   vpmomv[i] = (float)mcevent->pmomv[0];
+  vpassnumu[i] = (Short_t)mcevent->passmucut;
  }
+ 
+ ch->SetBranchStatus("*",1);
 
  return;
 }
