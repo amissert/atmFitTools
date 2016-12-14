@@ -74,7 +74,7 @@ void mcLargeArray::fillArray(TChain* ch){
  ch->SetBranchStatus("pass*",1);
  ch->SetBranchStatus("nbin",1);
  ch->SetBranchStatus("ncomponent",1);
- ch->SetBranchStatus("attribute",1);
+ ch->SetBranchStatus("att*",1);
 
  
 

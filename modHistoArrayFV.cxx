@@ -24,6 +24,10 @@ void modHistoArrayFV::saveSummary(const char* dir){
   FVUncMapCCnQE->Write();
   FVUncMapCCWrong->Write();
   FVUncMapNC->Write();
+  FVShiftMapCCQE->Write();
+  FVShiftMapCCnQE->Write();
+  FVShiftMapCCWrong->Write();
+  FVShiftMapNC->Write();
   for (int ibin=0; ibin<hFV[0]->GetNumberOfBins(); ibin++){
     for (int ebin=0; ebin<binUnc[ibin]->GetNbinsX(); ebin++){
       float binc =  binUnc[ibin]->GetBinContent(ebin);
@@ -127,7 +131,7 @@ void modHistoArrayFV::calcSummary(){
   }
 
   //////////////////////////////////////////////////////
-  // total uncertainty maps 
+  // total uncertainty maps in FV space 
   FVUncMap = (TH2FV*)hFV[0]->Clone("FVUncMap");
   FVUncMapCCQE = (TH2FV*)hFV[0]->Clone("FVUncMapCCQE");
   FVUncMapCCnQE = (TH2FV*)hFV[0]->Clone("FVUncMapCCnQE");
@@ -208,7 +212,7 @@ void modHistoArrayFV::calcSummary(){
   float width=0;
   float Nmin =0.;
   float factor = 5.4;
-  int nbins = 20;
+  int nbins = 80;
   // initial binning
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     //
@@ -319,33 +323,23 @@ void modHistoArrayFV::fitGaussians(){
   // for total # of events
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     TString fname = Form("fgauss_%d",fvbin);
-    gaussians[fvbin] = new TF1(fname.Data(),"gaus",0,
-                               hNevents[0]->GetBinLowEdge(hNevents[0]->GetNbinsX())*1.5);
-    gaussians[fvbin]->SetParameter(0,hNevents[fvbin]->GetMaximum());
-    gaussians[fvbin]->SetParameter(1,hNevents[fvbin]->GetMean());
-    gaussians[fvbin]->SetParameter(2,hNevents[fvbin]->GetRMS());
-    gaussians[fvbin]->SetLineColor(kRed);
-    hNevents[fvbin]->Fit(fname.Data());
-    float fractional_uncertainty = (gaussians[fvbin]->GetParameter(2)/gaussians[fvbin]->GetParameter(1));
-    float fractional_shift = TMath::Abs(gaussians[fvbin]->GetParameter(1)- hFV[0]->GetBinContent(fvbin+1));
-    fractional_shift /= gaussians[fvbin]->GetParameter(1);
+//    gaussians[fvbin] = new TF1(fname.Data(),"gaus",0,
+//                               hNevents[0]->GetBinLowEdge(hNevents[0]->GetNbinsX())*1.5);
+//    gaussians[fvbin]->SetParameter(0,hNevents[fvbin]->GetMaximum());
+//    gaussians[fvbin]->SetParameter(1,hNevents[fvbin]->GetMean());
+//    gaussians[fvbin]->SetParameter(2,hNevents[fvbin]->GetRMS());
+//    gaussians[fvbin]->SetLineColor(kRed);
+//    hNevents[fvbin]->Fit(fname.Data());
+    float fractional_uncertainty = (hNevents[fvbin]->GetRMS()/hNevents[fvbin]->GetMean());
+    float fractional_shift = TMath::Abs( hNevents[fvbin]->GetMean()- hFV[0]->GetBinContent(fvbin+1));
+    fractional_shift /= hFV[0]->GetBinContent(fvbin+1);
     FVUncMap->SetBinContent(fvbin+1,fractional_uncertainty);
     FVShiftMap->SetBinContent(fvbin+1,fractional_shift);
   }
 
   // for CCQE
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
-//    TString fname = Form("fgauss_CCQE_%d",fvbin);
-//    gaussiansCCQE[fvbin] = new TF1(fname.Data(),"gaus",0,
-//                               hNeventsCCQE[0]->GetBinLowEdge(hNeventsCCQE[0]->GetNbinsX())*1.5);
-//    gaussiansCCQE[fvbin]->SetParameter(0,hNeventsCCQE[fvbin]->GetMaximum());
-//    gaussiansCCQE[fvbin]->SetParameter(1,hNeventsCCQE[fvbin]->GetMean());
-//    gaussiansCCQE[fvbin]->SetParameter(2,hNeventsCCQE[fvbin]->GetRMS());
-//    gaussiansCCQE[fvbin]->SetLineColor(kRed);
-//    hNeventsCCQE[fvbin]->Fit(fname.Data());
-//    float fractional_uncertainty = (gaussiansCCQE[fvbin]->GetParameter(2)/gaussiansCCQE[fvbin]->GetParameter(1));
-//    float fractional_shift = TMath::Abs(gaussiansCCQE[fvbin]->GetParameter(1)- hFVCCQE[0]->GetBinContent(fvbin+1));
-    float fractional_uncertainty = hNeventsCCQE[fvbin]->GetRMS()/hFVCCQE[0]->GetBinContent(fvbin+1);
+    float fractional_uncertainty = hNeventsCCQE[fvbin]->GetRMS()/hNeventsCCQE[fvbin]->GetMean();
     float fractional_shift = TMath::Abs(hNeventsCCQE[fvbin]->GetMean() - hFVCCQE[0]->GetBinContent(fvbin+1));
     fractional_shift /= hFVCCQE[0]->GetBinContent(fvbin+1);
     FVUncMapCCQE->SetBinContent(fvbin+1,fractional_uncertainty);
@@ -354,21 +348,7 @@ void modHistoArrayFV::fitGaussians(){
  
   // for CCnQE
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
-/*    TString fname = Form("fgauss_CCnQE_%d",fvbin);
-    gaussiansCCnQE[fvbin] = new TF1(fname.Data(),"gaus",0,
-                               hNeventsCCnQE[0]->GetBinLowEdge(hNeventsCCnQE[0]->GetNbinsX())*1.5);
-    gaussiansCCnQE[fvbin]->SetParameter(0,hNeventsCCnQE[fvbin]->GetMaximum());
-    gaussiansCCnQE[fvbin]->SetParameter(1,hNeventsCCnQE[fvbin]->GetMean());
-    gaussiansCCnQE[fvbin]->SetParameter(2,hNeventsCCnQE[fvbin]->GetRMS());
-    gaussiansCCnQE[fvbin]->SetLineColor(kRed);
-//    hNeventsCCnQE[fvbin]->Fit(fname.Data());
-    float fractional_uncertainty = (gaussiansCCnQE[fvbin]->GetParameter(2)/gaussiansCCnQE[fvbin]->GetParameter(1));
-    float fractional_shift = TMath::Abs(gaussiansCCnQE[fvbin]->GetParameter(1)- hFVCCnQE[0]->GetBinContent(fvbin+1));
-    fractional_shift /= gaussiansCCnQE[fvbin]->GetParameter(1);
-    FVUncMapCCnQE->SetBinContent(fvbin+1,fractional_uncertainty);
-    FVShiftMapCCnQE->SetBinContent(fvbin+1,fractional_shift);
-    */
-    float fractional_uncertainty = hNeventsCCnQE[fvbin]->GetRMS()/hFVCCnQE[0]->GetBinContent(fvbin+1);
+    float fractional_uncertainty = hNeventsCCnQE[fvbin]->GetRMS()/hNeventsCCnQE[fvbin]->GetMean();
     float fractional_shift = TMath::Abs(hNeventsCCnQE[fvbin]->GetMean() - hFVCCnQE[0]->GetBinContent(fvbin+1));
     fractional_shift /= hFVCCnQE[0]->GetBinContent(fvbin+1);
     FVUncMapCCnQE->SetBinContent(fvbin+1,fractional_uncertainty);
@@ -377,21 +357,7 @@ void modHistoArrayFV::fitGaussians(){
 
   // for CCWrong
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
-/*    TString fname = Form("fgauss_CCWrong_%d",fvbin);
-    gaussiansCCWrong[fvbin] = new TF1(fname.Data(),"gaus",0,
-                               hNeventsCCWrong[0]->GetBinLowEdge(hNeventsCCWrong[0]->GetNbinsX())*1.5);
-    gaussiansCCWrong[fvbin]->SetParameter(0,hNeventsCCWrong[fvbin]->GetMaximum());
-    gaussiansCCWrong[fvbin]->SetParameter(1,hNeventsCCWrong[fvbin]->GetMean());
-    gaussiansCCWrong[fvbin]->SetParameter(2,hNeventsCCWrong[fvbin]->GetRMS());
-    gaussiansCCWrong[fvbin]->SetLineColor(kRed);
-//    hNeventsCCWrong[fvbin]->Fit(fname.Data());
-    float fractional_uncertainty = (gaussiansCCWrong[fvbin]->GetParameter(2)/gaussiansCCWrong[fvbin]->GetParameter(1));
-    float fractional_shift = TMath::Abs(gaussiansCCWrong[fvbin]->GetParameter(1)- hFVCCWrong[0]->GetBinContent(fvbin+1));
-    fractional_shift /= gaussiansCCWrong[fvbin]->GetParameter(1);
-    FVUncMapCCWrong->SetBinContent(fvbin+1,fractional_uncertainty);
-    FVShiftMapCCWrong->SetBinContent(fvbin+1,fractional_shift);
-*/
-    float fractional_uncertainty = hNeventsCCWrong[fvbin]->GetRMS()/hFVCCWrong[0]->GetBinContent(fvbin+1);
+    float fractional_uncertainty = hNeventsCCWrong[fvbin]->GetRMS()/hNeventsCCWrong[fvbin]->GetMean();
     float fractional_shift = TMath::Abs(hNeventsCCWrong[fvbin]->GetMean() - hFVCCWrong[0]->GetBinContent(fvbin+1));
     fractional_shift /= hFVCCWrong[0]->GetBinContent(fvbin+1);
     FVUncMapCCWrong->SetBinContent(fvbin+1,fractional_uncertainty);
@@ -400,22 +366,7 @@ void modHistoArrayFV::fitGaussians(){
 
   // for NC
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
-/*
-    TString fname = Form("fgauss_NC_%d",fvbin);
-    gaussiansNC[fvbin] = new TF1(fname.Data(),"gaus",0,
-                               hNeventsNC[0]->GetBinLowEdge(hNeventsNC[0]->GetNbinsX())*1.5);
-    gaussiansNC[fvbin]->SetParameter(0,hNeventsNC[fvbin]->GetMaximum());
-    gaussiansNC[fvbin]->SetParameter(1,hNeventsNC[fvbin]->GetMean());
-    gaussiansNC[fvbin]->SetParameter(2,hNeventsNC[fvbin]->GetRMS());
-    gaussiansNC[fvbin]->SetLineColor(kRed);
-//    hNeventsNC[fvbin]->Fit(fname.Data());
-    float fractional_uncertainty = (gaussiansNC[fvbin]->GetParameter(2)/gaussiansNC[fvbin]->GetParameter(1));
-    float fractional_shift = TMath::Abs(gaussiansNC[fvbin]->GetParameter(1)- hFVNC[0]->GetBinContent(fvbin+1));
-    fractional_shift /= gaussiansNC[fvbin]->GetParameter(1);
-    FVUncMapNC->SetBinContent(fvbin+1,fractional_uncertainty);
-    FVShiftMapNC->SetBinContent(fvbin+1,fractional_shift);
-    */
-    float fractional_uncertainty = hNeventsNC[fvbin]->GetRMS()/hFVNC[0]->GetBinContent(fvbin+1);
+    float fractional_uncertainty = hNeventsNC[fvbin]->GetRMS()/hNeventsNC[fvbin]->GetMean();
     float fractional_shift = TMath::Abs(hNeventsNC[fvbin]->GetMean() - hFVNC[0]->GetBinContent(fvbin+1));
     fractional_shift /= hFVNC[0]->GetBinContent(fvbin+1);
     FVUncMapNC->SetBinContent(fvbin+1,fractional_uncertainty);
@@ -426,6 +377,14 @@ void modHistoArrayFV::fitGaussians(){
   return; 
 }
 
+
+////////////////////////////////////////////////////////////
+// print some useful summaryplots
+//void modHistoArrayFV::printUncSummary(const char* plotdir, int evttype){
+
+
+
+//}
 
 ////////////////////////////////////////////////////////////
 // print to directory
@@ -441,6 +400,8 @@ void modHistoArrayFV::printUncMap(const char* plotdir){
     double std_dev = hNevents[fvbin]->GetRMS();
     double xmin = mean-(6*std_dev);
     double xmax = mean+(6*std_dev);
+    double nominal = hFV[0]->GetBinContent(fvbin+1);
+    nominalLine[fvbin] = new TLine(nominal,0,nominal,1000);
     hNevents[fvbin]->GetXaxis()->SetRangeUser(xmin,xmax);
     hNevents[fvbin]->SetBit(TH1::kNoTitle);
     hNevents[fvbin]->GetXaxis()->SetTitle("# of events");
@@ -448,12 +409,104 @@ void modHistoArrayFV::printUncMap(const char* plotdir){
     hNevents[fvbin]->GetYaxis()->SetTitle("# of throws");
     hNevents[fvbin]->GetYaxis()->SetTitleSize(0.05);
     hNevents[fvbin]->Draw();
-    TString plotname = plotdir;
-    plotname.Append("NumOfEvents_Unc.png");
-    cc->Print(plotname.Data());
   }
   TString plotname = plotdir;
   plotname.Append("NumOfEvents_Unc.png");
+  cc->Print(plotname.Data());
+
+  // number of events ccqe
+  for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
+    cc->cd(fvbin+1);
+    double mean = hNeventsCCQE[fvbin]->GetMean();
+    double std_dev = hNeventsCCQE[fvbin]->GetRMS();
+    double xmin = mean-(7*std_dev);
+    double xmax = mean+(7*std_dev);
+    double nominal = hFVCCQE[0]->GetBinContent(fvbin+1);
+    nominalLine[fvbin] = new TLine(nominal,0,nominal,1000);
+    hNeventsCCQE[fvbin]->GetXaxis()->SetRangeUser(xmin,xmax);
+    hNeventsCCQE[fvbin]->SetBit(TH1::kNoTitle);
+    hNeventsCCQE[fvbin]->GetXaxis()->SetTitle("# of events");
+    hNeventsCCQE[fvbin]->GetXaxis()->SetTitleSize(0.05);
+    hNeventsCCQE[fvbin]->GetYaxis()->SetTitle("# of throws");
+    hNeventsCCQE[fvbin]->GetYaxis()->SetTitleSize(0.05);
+    hNeventsCCQE[fvbin]->Draw();
+    nominalLine[fvbin]->SetLineColor(kBlue);
+    nominalLine[fvbin]->Draw("same");
+  }
+  plotname = plotdir;
+  plotname.Append("NumOfEventsCCQE_Unc.png");
+  cc->Print(plotname.Data());
+
+  // number of events ccnqe
+  for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
+    cc->cd(fvbin+1);
+    double mean = hNeventsCCnQE[fvbin]->GetMean();
+    double std_dev = hNeventsCCnQE[fvbin]->GetRMS();
+    double xmin = mean-(7*std_dev);
+    double xmax = mean+(7*std_dev);
+    double nominal = hFVCCnQE[0]->GetBinContent(fvbin+1);
+    nominalLine[fvbin] = new TLine(nominal,0,nominal,1000);
+    hNeventsCCnQE[fvbin]->GetXaxis()->SetRangeUser(xmin,xmax);
+    hNeventsCCnQE[fvbin]->SetBit(TH1::kNoTitle);
+    hNeventsCCnQE[fvbin]->GetXaxis()->SetTitle("# of events");
+    hNeventsCCnQE[fvbin]->GetXaxis()->SetTitleSize(0.05);
+    hNeventsCCnQE[fvbin]->GetYaxis()->SetTitle("# of throws");
+    hNeventsCCnQE[fvbin]->GetYaxis()->SetTitleSize(0.05);
+    hNeventsCCnQE[fvbin]->Draw();
+    nominalLine[fvbin]->SetLineColor(kBlue);
+    nominalLine[fvbin]->Draw("same");
+  }
+  plotname = plotdir;
+  plotname.Append("NumOfEventsCCnQE_Unc.png");
+  cc->Print(plotname.Data());
+
+
+  // number of events ccwrong 
+  for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
+    cc->cd(fvbin+1);
+    double mean = hNeventsCCWrong[fvbin]->GetMean();
+    double std_dev = hNeventsCCWrong[fvbin]->GetRMS();
+    double xmin = mean-(7*std_dev);
+    double xmax = mean+(7*std_dev);
+    double nominal = hFVCCWrong[0]->GetBinContent(fvbin+1);
+    nominalLine[fvbin] = new TLine(nominal,0,nominal,1000);
+    hNeventsCCWrong[fvbin]->GetXaxis()->SetRangeUser(xmin,xmax);
+    hNeventsCCWrong[fvbin]->SetBit(TH1::kNoTitle);
+    hNeventsCCWrong[fvbin]->GetXaxis()->SetTitle("# of events");
+    hNeventsCCWrong[fvbin]->GetXaxis()->SetTitleSize(0.05);
+    hNeventsCCWrong[fvbin]->GetYaxis()->SetTitle("# of throws");
+    hNeventsCCWrong[fvbin]->GetYaxis()->SetTitleSize(0.05);
+    hNeventsCCWrong[fvbin]->Draw();
+    nominalLine[fvbin]->SetLineColor(kBlue);
+    nominalLine[fvbin]->Draw("same");
+  }
+  plotname = plotdir;
+  plotname.Append("NumOfEventsCCWrong_Unc.png");
+  cc->Print(plotname.Data());
+
+
+
+  // number of events nc 
+  for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
+    cc->cd(fvbin+1);
+    double mean = hNeventsNC[fvbin]->GetMean();
+    double std_dev = hNeventsNC[fvbin]->GetRMS();
+    double xmin = mean-(7*std_dev);
+    double xmax = mean+(7*std_dev);
+    double nominal = hFVNC[0]->GetBinContent(fvbin+1);
+    nominalLine[fvbin] = new TLine(nominal,0,nominal,1000);
+    hNeventsNC[fvbin]->GetXaxis()->SetRangeUser(xmin,xmax);
+    hNeventsNC[fvbin]->SetBit(TH1::kNoTitle);
+    hNeventsNC[fvbin]->GetXaxis()->SetTitle("# of events");
+    hNeventsNC[fvbin]->GetXaxis()->SetTitleSize(0.05);
+    hNeventsNC[fvbin]->GetYaxis()->SetTitle("# of throws");
+    hNeventsNC[fvbin]->GetYaxis()->SetTitleSize(0.05);
+    hNeventsNC[fvbin]->Draw();
+    nominalLine[fvbin]->SetLineColor(kBlue);
+    nominalLine[fvbin]->Draw("same");
+  }
+  plotname = plotdir;
+  plotname.Append("NumOfEventsNC_Unc.png");
   cc->Print(plotname.Data());
 
   // distribution uncertainty
@@ -463,9 +516,13 @@ void modHistoArrayFV::printUncMap(const char* plotdir){
     hNevents[fvbin]->SetStats(0);
     binUnc[fvbin]->SetFillColor(kOrange);
     binUnc[fvbin]->GetXaxis()->SetTitle("Erec [MeV]");
+    binUnc[fvbin]->GetYaxis()->SetRangeUser(0.,binUnc[fvbin]->GetMaximum()*2);
     binUnc[fvbin]->Draw("e2");
     histos[0][fvbin]->SetLineColor(kBlue);
+    histos[0][fvbin]->SetLineWidth(3);
     histos[0][fvbin]->Draw("same");
+    nominalLine[fvbin]->SetLineColor(kBlue);
+    nominalLine[fvbin]->Draw("same");
   }
   plotname = plotdir;
   plotname.Append("Enu_Distributions.png");

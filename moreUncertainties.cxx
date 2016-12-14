@@ -28,29 +28,33 @@ void moreUncertainties::setEventPointer(fqProcessedEvent* fqevent){
 // Get fiducial volume uncertainty
 float moreUncertainties::getFVUncertainty(float towallrc, float wallrc, int mode, int wronglepton){
 
+  // find which FV bin we are in
   int ibin = hfvmap->FindBin(towallrc,wallrc);
   if (ibin<=0) return 0;
   float sys=0.;
-  if (wronglepton){
+
+  // is event from NC?
+  if (TMath::Abs(mode)>=30){
+    sys = hfvmapnc->GetBinContent(ibin);
+    return sys;
+  }
+  else if (wronglepton){
     sys = hfvmapccwrong->GetBinContent(ibin);
+    return sys;
   }
-  else if (mode*mode==1){
+  // now for ccqe
+  else if (TMath::Abs(mode)==1){
     sys = hfvmapccqe->GetBinContent(ibin); 
+    return sys;
   }
+  // for cc nqe
   else if (TMath::Abs(mode)<30){
     sys = hfvmapccnqe->GetBinContent(ibin);
-  }
-  else{
-    sys = hfvmapnc->GetBinContent(ibin);
-  }
-  
-
-//  if (ibin<=0) return 0;
-//  else{
-//    float syst = hfvmap->GetBinContent(ibin);
-//
     return sys;
-//  }
+  }
+
+  //
+  return sys;
 }
 
 
@@ -191,8 +195,8 @@ float moreUncertainties::getTotalUncertainty(float wallv, float wallrc, float to
 //  totalunc += (fvuncebin*fvuncebin);
  
   // for x section
-  float xunc = getXsecUnc(mode);
-  totalunc += xunc;
+//  float xunc = getXsecUnc(mode);
+//  totalunc += xunc;
 
 //     for FV
   float fvunc = getFVUncertainty(towallrc,wallrc,mode,wronglepton);

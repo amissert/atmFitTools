@@ -105,17 +105,16 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, int mcevents){
 }
 */
 
+
+
 ////////////////////////////////////////////////////////////////
 // make map of uncertainties for nu mu events
-void toyMC::makeFVMapNuMu(int nmcmcpts){
+void toyMC::makeFVMapNuE(int nmcmcpts){
 
   // make array of histos
   cout<<"Initializing array of histograms..."<<endl;
-  TH1D* hE = new TH1D("hE","hE",EnuNBins,EnuBinning);
-//  TH1D* hE = new TH1D("hE","hE",50,0,5000);
-
+  TH1D* hE = new TH1D("hE","hE",EnuNBinsElectron,EnuBinningElectron);
   TH2FV* hfv = new TH2FV("hfv",1);
-
   // array of nu energy histograms
   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
 
@@ -127,8 +126,90 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
   cout<<"Making list of MCMC points"<<endl;
   randomList* mcmclist = new randomList(nmcmcpts,chPars->GetEntries(),nmcmcpts);
 
-  // fill array of T2K MC
-//  mcLargeArray* fastevents = new mcLargeArray(chMC,mcevents);
+  // loop over mcmc points
+  for (int i=0; i<nmcmcpts; i++){
+
+    // read in parameters
+    cout<<"getting event"<<mcmclist->getAt(i)<<endl;
+    chPars->GetEntry(mcmclist->getAt(i));
+
+    // modify attributes using thes parameters
+    modifier->setFromMCMC();
+
+    // loop over T2K MC events
+    for (int iev=0; iev<nMCevents; iev++){
+      
+      float lmom=fastevents->vattribute[iev][modifier->attIndexMom];
+      float lpid=fastevents->vattribute[iev][modifier->attIndexPID];
+      float lpi0like=fastevents->vattribute[iev][modifier->attIndexPi0Like];
+      float lpi0mass=fastevents->vattribute[iev][modifier->attIndexPi0Mass];
+      float lenu = fastevents->vfqenue[iev];
+
+      // apply the mcmc parameters
+      if (i>0) modifier->applyPars(fastevents->vbin[iev],
+                          fastevents->vcomponent[iev],
+                          lpid,
+                          lmom,
+                          lpi0like,
+                          lpi0mass);
+
+      // see if event passes cuts
+      // re-calculate neutrino energy
+      float enu  = (float)calcENu(2,lmom,
+                                    fastevents->vfqdir[iev][0][0],
+                                    fastevents->vfqdir[iev][0][1],
+                                    fastevents->vfqdir[iev][0][2]);
+      float lpi0par = calcpi0par(lpi0like,lpi0mass);
+      int ipass = selectNuE(fastevents->vnhitac[iev],
+                            fastevents->vfqnsubev[iev],
+                            enu,
+                            lmom,
+                            lpid,
+                            fastevents->vfqnring[iev],
+                            lpi0par);
+
+      // if it passes fill histos
+      if (ipass!=1) continue;
+
+      // fill total nev
+      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+      // is NC?
+      if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      //  CC?
+      if (fastevents->vnutype[iev]!=12){hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      else if (fastevents->vmode[iev]==1) {
+        hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
+      }
+      else {
+        hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
+      }
+      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
+
+    }
+  }
+
+  return;
+
+}
+
+////////////////////////////////////////////////////////////////
+// make map of uncertainties for nu mu events
+void toyMC::makeFVMapNuMu(int nmcmcpts){
+
+  // make array of histos
+  cout<<"Initializing array of histograms..."<<endl;
+  TH1D* hE = new TH1D("hE","hE",EnuNBins,EnuBinning);
+  TH2FV* hfv = new TH2FV("hfv",1);
+  // array of nu energy histograms
+  hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
+
+  // get list of mc events
+  int nevmax = chMC->GetEntries();
+  if (nMCevents>nevmax) nMCevents = nevmax;
+
+  // get list of points in mcmc parameter space
+  cout<<"Making list of MCMC points"<<endl;
+  randomList* mcmclist = new randomList(nmcmcpts,chPars->GetEntries(),nmcmcpts);
 
   // loop over mcmc points
   for (int i=0; i<nmcmcpts; i++){
@@ -162,6 +243,7 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
                                     fastevents->vfqdir[iev][1][0],
                                     fastevents->vfqdir[iev][1][1],
                                     fastevents->vfqdir[iev][1][2]);
+
       int ipass = selectNuMu(fastevents->vnhitac[iev],
                              fastevents->vfqnsubev[iev],
                              enu,
@@ -175,13 +257,27 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
 
       // fill total nev
       int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
-      if (fastevents->vnutype[iev]!=14) {hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-      else if (fastevents->vmode[iev]==1){
+      // is NC?
+      if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      //  CC?
+      if (fastevents->vnutype[iev]!=14){hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      else if (fastevents->vmode[iev]==1) {
         hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
       }
-      else if (fastevents->vmode[iev]<30) {hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-      else { hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]); }
+      else {
+        hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
+      }
       if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
+
+      // fill total nev
+//      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+//      if (fastevents->vnutype[iev]!=14) {hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+//      else if (fastevents->vmode[iev]==1){
+//        hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
+//      }
+//      else if (fastevents->vmode[iev]<30) {hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+//      else { hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]); }
+//      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
     }
   }
 

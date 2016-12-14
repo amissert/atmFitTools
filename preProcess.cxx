@@ -853,8 +853,8 @@ float preProcess::getRCParameter(fqEvent* fqevent){
 // get the pi0 parameter
 float preProcess::getPi0Parameter(fqEvent* fqevent){
    float Lpi0 = fqevent->fq1rnll[0][1] - fqevent->fqpi0nll[0]; 
-   float pi0mom = fqevent->fqpi0mass[0];
-   float pi0par = Lpi0 - 70. - ((140.-70.)/(40.- 120.))*(pi0mom - 120.);
+   float pi0mass = fqevent->fqpi0mass[0];
+   float pi0par = Lpi0 - 70. - ((140.-70.)/(40.- 120.))*(pi0mass - 120.);
    return pi0par;
 }
 
