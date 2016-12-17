@@ -1406,6 +1406,11 @@ double histoCompare::getTotLnL(){
        	TH1D* hPrediction = (TH1D*)hManager->getSumHistogramMod(isamp,ibin,iatt,1); //< get normalized histogram.
       	TH1D* hDataTmp = (TH1D*)hManager->getHistogramData(isamp,ibin,iatt);
         double partialLnL = hManager->histoLogL;
+#ifdef VERBOSE
+        cout<<"partial LnL for sample: "<<isamp<<" bin: "<< ibin << " att: "<<iatt<<endl;
+        cout<<"partial LnL: "<<partialLnL<<endl;
+        cout<<"total LnL: "<<totL<<endl;
+#endif
 	      totL+=partialLnL;
         nDOF+=hManager->nDOF;
       }
@@ -1417,6 +1422,9 @@ double histoCompare::getTotLnL(){
   double pull;
 #ifndef T2K
   double priorlnl = getPriorLnL();
+#ifdef VERBOSE
+  cout<<"prior LnL: "<<priorlnl<<endl;
+#endif
   totL+=priorlnl;
   //cout<<"prior: "<<priorlnl<<endl;
 //  for (int isys=0;isys<thePars->nSysPars;isys++){
@@ -1439,7 +1447,14 @@ double histoCompare::getTotLnL(){
   // If using gaussion priors on bias and smear parameters, evelauate the likelihood here.
   // This is done by calling an atmfit pars method that will sum the contributions 
   if (flgUsePriorsInFit){
-    totL += thePars->calcLogPriors();
+    double parpriorlnl = thePars->calcLogPriors();
+    totL += parpriorlnl; 
+//    totL += thePars->calcLogPriors();
+#ifdef VERBOSE
+    cout<<"prior LnL: "<<parpriorlnl<<endl;
+    cout<<"Total LnL: "<<totL<<endl;
+#endif
+
   }
 
 
@@ -1874,6 +1889,7 @@ histoCompare::histoCompare(const char* parfile, bool sep)
     for (int iatt=0; iatt<nattributes; iatt++){
       double smearwidth =  runPars->kr->getKeyD(Form("smearPriorWidthAtt%d",iatt));
       double biaswidth =  runPars->kr->getKeyD(Form("biasPriorWidthAtt%d",iatt));
+      cout<<"setting prior for attribute "<<iatt<<"to: "<<smearwidth<<" "<<biaswidth<<endl;
       thePars->setHistoParPrior(iatt,0,smearwidth);
       thePars->setHistoParPrior(iatt,1,biaswidth);
     }

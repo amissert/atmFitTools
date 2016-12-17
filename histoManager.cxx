@@ -799,7 +799,7 @@ void histoManager::showMCBreakdown(int isample,int ibin,int iatt){
   Leg->AddEntry(hMC[isample][ibin][2][iatt],"e + Other","F");
   Leg->AddEntry(hMC[isample][ibin][3][iatt],"#mu + Other","F");
   Leg->AddEntry(hMC[isample][ibin][4][iatt],"Single #pi^{0}","F");
-//  Leg->AddEntry(hMC[isample][ibin][5][iatt],"Other","F");
+  Leg->AddEntry(hMC[isample][ibin][5][iatt],"Single Hadron","F");
  // Leg->AddEntry(hMC[isample][ibin][6][iatt],"Other","F");
   Leg->Draw("same");
   return;

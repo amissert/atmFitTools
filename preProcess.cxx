@@ -8,9 +8,7 @@
 // the arrays
 void preProcess::calcNeutrinoEnergy(){
 
-  // fill fq1renu[2]
-  //  -fq1renu[0] -> e-like energy
-  //  -fq1renu[1] -> mu-like energy
+  
   fq->calcEnu();
 
   //
@@ -261,7 +259,7 @@ void preProcess::setParFileName(const char* fname){
   runpars->readParsFromFile();
   nameTag = runpars->globalRootName;
   FVBinning = runpars->preProcessFVBinning; //< flag for FV binning type in getBin()
-  if (FVBinning==4) setFVBinHisto();
+  if (FVBinning==0) setFVBinHisto();
   MCComponents = runpars->preProcessMCComponents; //< flag for MC component definitions in getComponent()
   MCSamples = runpars->preProcessMCSamples; //< flag for MC sample definitions in getSample()
   NHITACMax = runpars->preProcFCCut;
@@ -373,6 +371,7 @@ int preProcess::getBin(){
   towall = calcToWall(&vpos,&vdir);
 
   // calculate additional fv variables as well
+  /* not really necessary
   for (int isubev=0; isubev<fq->fqnse; isubev++){
     vpos.SetXYZ(fq->fq1rpos[isubev][2][0],fq->fq1rpos[isubev][2][1],fq->fq1rpos[isubev][2][2]);
     vdir.SetXYZ(fq->fq1rdir[isubev][2][0],fq->fq1rdir[isubev][2][1],fq->fq1rdir[isubev][2][2]);
@@ -383,6 +382,7 @@ int preProcess::getBin(){
     fq1rwall[isubev][1] = calcWall2(&vpos);
     fq1rtowall[isubev][1] = calcToWall(&vpos,&vdir);
   }
+  */
 
   //true towall
   for (int ipart=0; ipart<fq->npar; ipart++){
@@ -419,13 +419,20 @@ int preProcess::getBin(){
   ////////////////////////////////
   // separate into bins by FVBinning parameter
 
+  //////////////////////////////////////
+  // binning using wall/towallhistogram
+  if (FVBinning==0){
+      int fvbin = hFVBins->FindBin(towall,wall)-1;
+      return fvbin;
+   }
+
   //////////////////////////////////////////
   //"simple" FV Binning for atm
-  if (FVBinning==0){
-    if ((wall<200.)&&(wall>80.)) return 1;
-    if (wall<80.) return 0;
-    return 2;
-  }
+//  if (FVBinning==4){
+//    if ((wall<200.)&&(wall>80.)) return 1;
+//    if (wall<80.) return 0;
+//    return 2;
+//  }
 
   ////////////////////////////////////////
   // cosmic binning by entering surface
@@ -445,21 +452,20 @@ int preProcess::getBin(){
   
   //////////////////////////////////
   // towall binning for cosmics
-  if (FVBinning==3){
-    if (towall<500.) return 0;
-    if ((towall>-500)&&(towall<1000)) return 1;
-    if (towall>=1000) return 2;
-  }
+//  if (FVBinning==3){
+//    if (towall<500.) return 0;
+//    if ((towall>-500)&&(towall<1000)) return 1;
+//    if (towall>=1000) return 2;
+//  }
 
   //////////////////////////////////////
   // binning using wall/towallhistogram
-  if (FVBinning==4){
-      int fvbin = hFVBins->FindBin(towall,wall)-1;
-      return fvbin;
-   }
+//  if (FVBinning==0){
+//      int fvbin = hFVBins->FindBin(towall,wall)-1;
+//      return fvbin;
+//   }
 
   
-
   return -1;
 }
 
@@ -468,9 +474,6 @@ int preProcess::getBin(){
 //Simple initial cuts
 int preProcess::passCuts(){
 
-  /////////////////////
-  //tmp cuts
- // if (towallv[0]<80.) return 0;
 
   /////////////////////
   //Fully Contained Cut
@@ -482,8 +485,8 @@ int preProcess::passCuts(){
 
   ////////////////
   //FV Basic Cuts
-//  if (WallMin>0) if (wall<WallMin) return 0; 
-//  if (ToWallMin>0) if (towall<ToWallMin) return 0;  
+  if (WallMin>0) if (wall<WallMin) return 0; 
+  if (ToWallMin>0) if (towall<ToWallMin) return 0;  
 
   /////////////////////////
   //Number of subevent cuts
@@ -598,7 +601,8 @@ int preProcess::getComponent(){
     // 2 -> Shower + other (not single pi0)
     // 3 -> MIP + other
     // 4 -> Single Pi0
-    // 5 -> Other (should be zero events)
+    // 5 -> Single hadron (pip or p)
+    // 6 -> Other (should be zero events)
     //////////////////////////////////////////
 
     double showerthresh = 15.;
@@ -617,6 +621,9 @@ int preProcess::getComponent(){
        // all visible rings are gammas and there is single pi0
        if ((vis->nvis-vis->nvgam==0) && (vis->nvpi0==1)) return 4;
     }
+
+    // single hadron
+    if ((vis->nvis==1)&&( (vis->nvp==1) || (vis->nvpip==1))) return 5;
 
     // select single ring events 
     if (vis->nvis==1){
@@ -646,7 +653,7 @@ int preProcess::getComponent(){
 
     // should be nothing?
     else{
-      return 5;
+      return 6;
     }
     
 
@@ -712,7 +719,7 @@ int preProcess::preProcessIt(){
   for (int i=0;i<nev;i++){
 
     //get info for event
-    if ((i%10)==0) cout<<"event:  "<<i<<endl;
+    if ((i%1000)==0) cout<<"event:  "<<i<<endl;
     tr->GetEntry(i);
 
     //calc FV bin and fill FV variables
@@ -721,7 +728,7 @@ int preProcess::preProcessIt(){
 
     naccepted++;
 
-    // hybrid pi0s don't have the right banks for VR counting
+//    // hybrid pi0s don't have the right banks for VR counting
     if (fillVisibleFlg) vis->fillVisVar(); // get visible ring information
 
     // calculate attributes from fiTQun variables
@@ -809,7 +816,7 @@ int preProcess::getBest2RFitID(fqEvent* fqevent){
 ////////////////////////////////////////
 //fills fiTQun attribute array
 void preProcess::fillAttributes(fqEvent* fqevent){
-;
+
   // Fill the cmap that matches attribute names to values
   fillAttributeMap(fqevent);
 
@@ -830,16 +837,27 @@ float preProcess::getRCParameter(fqEvent* fqevent){
   int ibest = getBest2RFitID(fqevent);
 
   // get best 1R Likelihood 
-  float best1Rnglnl = fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
+  float best1Rnglnl = (float)fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
  
-  // get min 2R mom
-  fqrcpmin = (float)TMath::Min(fqevent->fqmrmom[best2RID][0],fqevent->fqmrmom[best2RID][1]);
-  fqrclike = (float)fqevent->fq1rnll[0][2]-fqevent->fqmrnll[best2RID];
+  // get mom of 2nd ring
+  float ringmom = (float)fqevent->fqmrmom[best2RID][1];
+  float deltaLnL = best1Rnglnl - fqevent->fqmrnll[best2RID];
+
+  // cut from fiTQun.cc
+  float a0 = 150.;
+  float a1 = -0.6;
+
+  // ring-counting parameter
+
+  float rcpar = deltaLnL - (a0 + a1*ringmom); 
+
+//  fqrcpmin = (float)TMath::Min(fqevent->fqmrmom[best2RID][0],fqevent->fqmrmom[best2RID][1]);
+//  fqrclike = (float)fqevent->fq1rnll[0][2]-fqevent->fqmrnll[best2RID];
 
   // get bins
-  int binx = hRCPar->GetXaxis()->FindBin(fqrcpmin);
-  int biny = hRCPar->GetYaxis()->FindBin(fqrclike);
-  float rcpar = hRCPar->GetBinContent(binx,biny);
+//  int binx = hRCPar->GetXaxis()->FindBin(fqrcpmin);
+//  int biny = hRCPar->GetYaxis()->FindBin(fqrclike);
+//  float rcpar = hRCPar->GetBinContent(binx,biny);
 
   //
 //  cout<<"pmin: "<<pmin<<endl;
@@ -849,14 +867,26 @@ float preProcess::getRCParameter(fqEvent* fqevent){
   return rcpar;
 }
 
+
 ///////////////////////////////////////
 // get the pi0 parameter
+float preProcess::getPiPParameter(fqEvent* fqevent){
+   float Lpip = fqevent->fq1rnll[0][2] - fqevent->fq1rnll[0][3]; 
+   float mumom = fqevent->fq1rnll[0][2];
+   float pippar = Lpip - (0.15*mumom);
+   return pippar;
+}
+
+
+///////////////////////////////////////
+// get the pip parameter
 float preProcess::getPi0Parameter(fqEvent* fqevent){
    float Lpi0 = fqevent->fq1rnll[0][1] - fqevent->fqpi0nll[0]; 
    float pi0mass = fqevent->fqpi0mass[0];
    float pi0par = Lpi0 - 70. - ((140.-70.)/(40.- 120.))*(pi0mass - 120.);
    return pi0par;
 }
+
 
 ////////////////////////////////////////
 //fills cmap of possible fitqun attributes
@@ -866,24 +896,25 @@ void preProcess::fillAttributeMap(fqEvent* fqevent){
   attributeMap["fqelike"] = fqevent->fq1rnll[0][2]-fqevent->fq1rnll[0][1];
 
   // Ring Counting (RC) parameter
-//  int ibest = getBest2RFitID();
-//  double best1Rnglnl = fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
-//  fqrcpar = best1Rnglnl-fqevent->fqmrnll[ibest];
   fqrcpar = getRCParameter(fqevent);
-  attributeMap["fqrcpar"] = getRCParameter(fqevent);
+  attributeMap["fqrcpar"] = fqrcpar;
 
   // pi0 parameter
   fqpi0par = getPi0Parameter(fqevent);
   attributeMap["fqpi0par"] = fqpi0par;
 
+  // pip parameter
+  fqpippar = getPiPParameter(fqevent);
+  attributeMap["fqpippar"] = fqpippar;
+
   // Reconstructed distance from wall
   attributeMap["fqwall"] = wall;
 
   // Reconstructed momentum (muon)
-  attributeMap["fq1rmumom"] = fqevent->fq1rmom[0][2];
+//  attributeMap["fq1rmumom"] = fqevent->fq1rmom[0][2];
 
   // Reconstructed momentum (electron)
-  attributeMap["fq1remom"] = fqevent->fq1rmom[0][1];
+//  attributeMap["fq1remom"] = fqevent->fq1rmom[0][1];
 
   // Reconstructed momentum (best 1R)
   if ((fqevent->fq1rnll[0][2]-fqevent->fq1rnll[0][1])>0.){
@@ -894,31 +925,31 @@ void preProcess::fillAttributeMap(fqEvent* fqevent){
   }
 
   // pi0 likelihood
-  attributeMap["fqpi0like"] = fqevent->fq1rnll[0][1] - fqevent->fqpi0nll[0];
+//  attributeMap["fqpi0like"] = fqevent->fq1rnll[0][1] - fqevent->fqpi0nll[0];
 
   // pi0 mass
-  attributeMap["fqpi0mass"] = fqevent->fqpi0mass[0];
+//  attributeMap["fqpi0mass"] = fqevent->fqpi0mass[0];
 
   // pi0 photon angle
-  attributeMap["fqpi0photangle"] = fqevent->fqpi0photangle[0];
+//  attributeMap["fqpi0photangle"] = fqevent->fqpi0photangle[0];
 
   // pi0 wall min
-  TVector3 vpos;
-  vpos.SetXYZ(fqevent->fqpi0pos[0][0],fqevent->fqpi0pos[0][1],fqevent->fqpi0pos[0][2]);
-  TVector3 vdir1;
-  vdir1.SetXYZ(fqevent->fqpi0dir1[0][0],fqevent->fqpi0dir1[0][1],fqevent->fqpi0dir1[0][2]);
-  TVector3 vdir2;
-  vdir2.SetXYZ(fqevent->fqpi0dir2[0][0],fqevent->fqpi0dir2[0][1],fqevent->fqpi0dir2[0][2]);
-  double pi0wall= calcWall2(&vpos);
-  double pi0towall1 = calcToWall(&vpos,&vdir1);
-  double pi0towall2 = calcToWall(&vpos,&vdir2);
-  attributeMap["fqpi0wall"] = pi0wall;
+//  TVector3 vpos;
+//  vpos.SetXYZ(fqevent->fqpi0pos[0][0],fqevent->fqpi0pos[0][1],fqevent->fqpi0pos[0][2]);
+//  TVector3 vdir1;
+//  vdir1.SetXYZ(fqevent->fqpi0dir1[0][0],fqevent->fqpi0dir1[0][1],fqevent->fqpi0dir1[0][2]);
+//  TVector3 vdir2;
+//  vdir2.SetXYZ(fqevent->fqpi0dir2[0][0],fqevent->fqpi0dir2[0][1],fqevent->fqpi0dir2[0][2]);
+//  double pi0wall= calcWall2(&vpos);
+//  double pi0towall1 = calcToWall(&vpos,&vdir1);
+//  double pi0towall2 = calcToWall(&vpos,&vdir2);
+//  attributeMap["fqpi0wall"] = pi0wall;
 
   // pi0 towall min
-  attributeMap["fqpi0towallmin"] = fmin(pi0towall1,pi0towall2);
+//  attributeMap["fqpi0towallmin"] = fmin(pi0towall1,pi0towall2);
 
   // pi0 total momentum
-  attributeMap["fqpi0momtot"] = fqevent->fqpi0momtot[0];
+//  attributeMap["fqpi0momtot"] = fqevent->fqpi0momtot[0];
 
   return;
 }
@@ -973,6 +1004,7 @@ void preProcess::setupNewTree(){
   trout->Branch("fqrcpmin",&fqrcpmin,"fqrcpmin/F");
   trout->Branch("fqrclike",&fqrclike,"fqrcliker/F");
   trout->Branch("fqpi0par",&fqpi0par,"fqpi0par/F");
+  trout->Branch("fqpippar",&fqpippar,"fqpippar/F");
   trout->Branch("ncomponent",&ncomponent,"ncomponent/I");
   trout->Branch("nsample",&nsample,"nsample/I");
   trout->Branch("nbin",&nbin,"nbin/I");
@@ -1038,7 +1070,7 @@ preProcess::preProcess(){
   
   // get ring-counting parameter
   TFile* frcpar = new TFile("./data/SingleRingness.root");
-  hRCPar =  (TH2D*)frcpar->Get("hnum_interpolatedzeros");
+//  hRCPar =  (TH2D*)frcpar->Get("hnum_interpolatedzeros");
 }
 
 //////////////////////////////////////////
