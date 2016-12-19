@@ -170,7 +170,7 @@ void splineFactory::buildSplineForPar(int isyspar){
     //loop over the MC events and re-fill all histograms
     int Nevts = mcTree->GetEntries();
     cout<<"splineFactory: Number of MC events: "<<Nevts<<endl;
-    Nevts = 50000;
+//    Nevts = 50000;
     double scalefactor = (double) mcTree->GetEntries()/(double)Nevts;
     cout<<"splineFactory: scalefactor: "<<scalefactor<<endl;
 

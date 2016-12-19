@@ -63,10 +63,13 @@ void modHistoArrayFV::saveClose(){
 
 ///////////////////////////////////////////////////////////
 // Calculate summary statistics
+// This includes the covariance and correlations between the bins
+// as well as the overall uncertainty, which is taken as the RMS
+// of the number of events in each bin
 void modHistoArrayFV::calcSummary(){
 
   /////////////////////////////////////////////////////
-  // find mean for each bin
+  // find mean for each erec bin
   const int nfvbins = hFV[0]->GetNumberOfBins();
   const int nhistobins = hSeed->GetNbinsX();
   float binmean[nfvbins][nhistobins+2];
