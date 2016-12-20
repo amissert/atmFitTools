@@ -12,11 +12,12 @@ mcmcApply::mcmcApply(atmFitPars* fitpars, mcmcReader* mcmcpars, fqProcessedEvent
   mcmcPars = mcmcpars;
   mcEvent = mcevent;
 
-  attIndexMom = 3;
-  attIndexRCPar = -1;
-  attIndexPID = 0;
-  attIndexPi0Mass = 2;
-  attIndexPi0Like = 1;
+  // set index of parameters
+//  attIndexMom = 4;
+//  attIndexRCPar = 3;
+//  attIndexPID = 0;
+//  attIndexPi0Par = 1;
+//  attIndexPiPPar = 2;
 
 }
 
@@ -36,9 +37,31 @@ void mcmcApply::setFromMCMC(){
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//
-void mcmcApply::applyPars(int nbin, int ncomponent, float &fqpidpar, float &fqmom, float &fqpi0like, float &fqpi0mass){
+// apply parameters to temporary array
+void mcmcApply::applyPars(int nbin, int ncomponent, float attributeTmp[], int natt){
 
+  float smear;
+  float bias;
+
+  for (int iatt=0; iatt<natt; iatt++){
+   
+    // get parameters
+    smear = (float)fitPars->getAttModParameter(nbin, ncomponent, iatt, 0);
+    bias = (float)fitPars->getAttModParameter(nbin, ncomponent, iatt, 1);
+
+    // apply parameters
+    attributeTmp[iatt] = smear*attributeTmp[iatt] + bias;
+  }
+
+  //
+  return;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//
+//void mcmcApply::applyPars(int nbin, int component, float &fqpidpar, float &fqmom, float &fqpi0par, float &fqpippar, float &fqrcpar);
+/*
   double smear;
   double bias;
 
@@ -51,6 +74,29 @@ void mcmcApply::applyPars(int nbin, int ncomponent, float &fqpidpar, float &fqmo
   fqmom = smear*fqmom + bias;
 
   // PID 
+  // get smear parameter
+  smear = fitPars->getAttModParameter(nbin, ncomponent, attIndexPID, 0);
+  // get bias parameter
+  bias = fitPars->getAttModParameter(nbin, ncomponent, attIndexPID, 1);
+  fqpidpar = smear*fqpidpar + bias;
+
+
+  // pip0ar 
+  // get smear parameter
+  smear = fitPars->getAttModParameter(nbin, ncomponent, attIndexPi0Par, 0);
+  // get bias parameter
+  bias = fitPars->getAttModParameter(nbin, ncomponent, attIndexPi0Par, 1);
+  fqpi0par = smear*fqpi0par + bias;
+
+  
+  // pi0par
+  // get smear parameter
+  smear = fitPars->getAttModParameter(nbin, ncomponent, attIndexPID, 0);
+  // get bias parameter
+  bias = fitPars->getAttModParameter(nbin, ncomponent, attIndexPID, 1);
+  fqpidpar = smear*fqpidpar + bias;
+
+  // RCpar
   // get smear parameter
   smear = fitPars->getAttModParameter(nbin, ncomponent, attIndexPID, 0);
   // get bias parameter
@@ -76,7 +122,6 @@ void mcmcApply::applyPars(int nbin, int ncomponent, float &fqpidpar, float &fqmo
   //   
   return;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // apply parameters to attribute iatt of the MC event
@@ -116,7 +161,7 @@ void mcmcApply::applyPars(int iatt){
 
   return;
 }
-
+*/
 
 
 #endif

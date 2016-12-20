@@ -767,23 +767,39 @@ int preProcess::preProcessIt(){
 // see if event passes t2k selection criteria
 void preProcess::applyT2KSelection(){
 
+  // fill cut structure for nue
+  fqcutparams fqpars;
+  fqpars.nhitac = fq->nhitac;
+  fqpars.fqpid = fq->fq1rnll[0][2]-fq->fq1rnll[0][1];  
+  fqpars.fqpi0par = fqpi0par;
+  fqpars.fqpippar = fqpippar;
+  fqpars.fqrcpar = fqrcpar;
+  fqpars.fqmommu =fq->fq1rmom[0][2];
+  fqpars.fqmome = fq->fq1rmom[0][1];
+  fqpars.fqenu = fq->fq1renu[0];
+  fqpars.fqnsubev = fq->fqnse;
+
+  // 1R selections
+  passecut = selectNuE(fqpars);
+  passmucut = selectNuMu(fqpars);
+
   // 1R electron cuts 
-  passecut = selectNuE(fq->nhitac,
-                       fq->fqnse,
-                       fq->fq1renu[0],
-                       fq->fq1rmom[0][1],
-                       fq->fq1rnll[0][2]-fq->fq1rnll[0][1],
-                       fq->fqmrnring[0],
-                       fqpi0par);
+//  passecut = selectNuE(fq->nhitac,
+//                       fq->fqnse,
+//                       fq->fq1renu[0],
+//                       fq->fq1rmom[0][1],
+//                       fq->fq1rnll[0][2]-fq->fq1rnll[0][1],
+//                       fq->fqmrnring[0],
+//                       fqpi0par);
  
   // 1R muon cuts
-  passmucut = selectNuMu(fq->nhitac,
-                       fq->fqnse,
-                       fq->fq1renu[1],
-                       fq->fq1rmom[0][1],
-                       fq->fq1rmom[0][2],
-                       fq->fq1rnll[0][2]-fq->fq1rnll[0][1],
-                       fq->fqmrnring[0]);
+//  passmucut = selectNuMu(fq->nhitac,
+//                       fq->fqnse,
+//                       fq->fq1renu[1],
+//                       fq->fq1rmom[0][1],
+//                       fq->fq1rmom[0][2],
+//                       fq->fq1rnll[0][2]-fq->fq1rnll[0][1],
+//                       fq->fqmrnring[0]);
 
   return;
 
@@ -848,22 +864,9 @@ float preProcess::getRCParameter(fqEvent* fqevent){
   float a1 = -0.6;
 
   // ring-counting parameter
-
   float rcpar = deltaLnL - (a0 + a1*ringmom); 
 
-//  fqrcpmin = (float)TMath::Min(fqevent->fqmrmom[best2RID][0],fqevent->fqmrmom[best2RID][1]);
-//  fqrclike = (float)fqevent->fq1rnll[0][2]-fqevent->fqmrnll[best2RID];
-
-  // get bins
-//  int binx = hRCPar->GetXaxis()->FindBin(fqrcpmin);
-//  int biny = hRCPar->GetYaxis()->FindBin(fqrclike);
-//  float rcpar = hRCPar->GetBinContent(binx,biny);
-
   //
-//  cout<<"pmin: "<<pmin<<endl;
-//  cout<<"Ldiff: "<<Ldiff<<endl;
-//  cout<<"RCpar: "<<rcpar<<endl;
-  
   return rcpar;
 }
 

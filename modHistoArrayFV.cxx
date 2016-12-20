@@ -317,11 +317,11 @@ void modHistoArrayFV::fitGaussians(){
 
   // make array of gaussians
   const int nfvbins = hFV[0]->GetNumberOfBins();
-  TF1* gaussians[nfvbins];
-  TF1* gaussiansCCQE[nfvbins];
-  TF1* gaussiansCCnQE[nfvbins];
-  TF1* gaussiansCCWrong[nfvbins];
-  TF1* gaussiansNC[nfvbins];
+//  TF1* gaussians[nfvbins];
+//  TF1* gaussiansCCQE[nfvbins];
+//  TF1* gaussiansCCnQE[nfvbins];
+//  TF1* gaussiansCCWrong[nfvbins];
+//  TF1* gaussiansNC[nfvbins];
 
   // for total # of events
   for (int fvbin=0; fvbin<nfvbins; fvbin++){

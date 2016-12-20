@@ -10,44 +10,39 @@ using namespace std;
 // apply the cuts to a modified event and see if it passes?
 int toyMC::applyCutsToModifiedEvent(int iev){
 
+  // fill tmp array 
+  const int natt = 5;
+  float attributesTmp[natt];
+  for (int iatt=0; iatt<natt; iatt++){
+    attributesTmp[iatt] = fastevents->vattribute[iev][iatt];   
+  }
  
-  // get fast values
-  float lmom=fastevents->vattribute[iev][modifier->attIndexMom];
-  float lpid=fastevents->vattribute[iev][modifier->attIndexPID];
-  float lpi0like=fastevents->vattribute[iev][modifier->attIndexPi0Like];
-  float lpi0mass=fastevents->vattribute[iev][modifier->attIndexPi0Mass];
-  float lenu = fastevents->vfqenue[iev];
+  // modify tmp array
+  modifier->applyPars(fastevents->vbin[iev],
+                      fastevents->vcomponent[iev],
+                      attributesTmp,
+                      natt);
 
-  // apply the mcmc parameters
-  if (i>0) modifier->applyPars( fastevents->vbin[iev],
-                                fastevents->vcomponent[iev],
-                                lpid,
-                                lmom,
-                                lpi0like,
-                                lpi0mass);
+  // fill cut parameter structure
+  cutPars.fqpid = attributesTmp[indexPIDPar];
+  cutPars.fqpi0par = attributesTmp[indexPi0Par];
+  cutPars.fqpippar = attributesTmp[indexPiPPar];
+  cutPars.fqrcpar = attributesTmp[indexRCPar];
+  cutPars.fqmome = fastevents->vfqmumom[iev];
+  cutPars.fqmommu = fastevents->vfqemom[iev];
+  float lmom = attributesTmp[indexMom];
+  cutPars.nhitac = fastevents->vnhitac[iev];
+  cutPars.fqnsubev = fastevents->vfqnsubev[iev];
+  cutPars.fqenu = (float)calcEnu(2,lmom,
+                                 fastevents->vfqdir[iev][0][0],
+                                 fastevents->vfqdir[iev][0][1],
+                                 fastevents->vfqdir[iev][0][2]);
 
-  // re-calculate neutrino energy
-  float enu  = (float)calcENu(2,lmom,
-                                fastevents->vfqdir[iev][0][0],
-                                fastevents->vfqdir[iev][0][1],
-                                fastevents->vfqdir[iev][0][2]);
+  // see if it passes cuts
+  int passnue = selectNuE(cutPars);
+  int passnumu = selectNuMu(cutPars);
 
-  float lpi0par = calcpi0par(lpi0like,lpi0mass);
-
-  int ipassnue = selectNuE(fastevents->vnhitac[iev],
-                           fastevents->vfqnsubev[iev],
-                           enu,
-                           lmom,
-                           lpid,
-                           fastevents->vfqnring[iev],
-                           lpi0par);
-  int ipassnumu = selectNuMu(fastevents->vnhitac[iev],
-                             fastevents->vfqnsubev[iev],
-                             enu,
-                             fastevents->vfqemom[iev],
-                             lmom,
-                             lpid,
-                             fastevents->vfqnring[iev]);
+  //
   if (passnue) return 1;
   if (passnumu) return 2;
   return 0;
@@ -58,6 +53,11 @@ int toyMC::applyCutsToModifiedEvent(int iev){
 /////////////////////////////////////////////////////////////////
 toyMC::toyMC(){
 
+  indexPIDPar = 0;
+  indexPi0Par = 1;
+  indexPiPPar = 2;
+  indexRCPar  = 3;
+  indexMom    = 4;
 
 }
 
@@ -160,7 +160,7 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, int mcevents){
 void toyMC::makeCombinedUncertainty(int nmcmcpts){
 
   // setup containter for t2k sample
-  t2kToySamples = new t2kSample("_toymc",1,1);
+  t2kToys = new t2kSample("_toymc",1,1);
 
   // get list of mc events
   int nevmax = chMC->GetEntries();
@@ -188,19 +188,20 @@ void toyMC::makeCombinedUncertainty(int nmcmcpts){
       if (ipass==0) continue;
 
       // fill histos
-      if (ipass==1) t2kToySamples->hEnuElectron->Fill(enu, fastevents->vweight[iev]);
-      if (ipass==2) t2kToySamples->hEnuMuon->Fill(enu, fastevents->vweight[iev]);
+      if (ipass==1) t2kToys->hEnuElectron->Fill(cutPars.fqenu, fastevents->vweight[iev]);
+      if (ipass==2) t2kToys->hEnuMuon->Fill(cutPars.fqenu, fastevents->vweight[iev]);
     }
-    t2kToySamples->finishToyRun();
+    t2kToys->finishToyRun();
   }
   
-  t2kToySamples->calcUncertainties();
+  t2kToys->calcUncertainties();
 
   return;
 
 }
 
 
+/*
 ////////////////////////////////////////////////////////////////
 // make map of uncertainties for nu mu events
 void toyMC::makeFVMapNuE(int nmcmcpts){
@@ -232,7 +233,8 @@ void toyMC::makeFVMapNuE(int nmcmcpts){
 
     // loop over T2K MC events
     for (int iev=0; iev<nMCevents; iev++){
-      
+     
+
       float lmom=fastevents->vattribute[iev][modifier->attIndexMom];
       float lpid=fastevents->vattribute[iev][modifier->attIndexPID];
       float lpi0like=fastevents->vattribute[iev][modifier->attIndexPi0Like];
@@ -381,7 +383,7 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
   return;
 
 }
-
+*/
 
 
 /*
