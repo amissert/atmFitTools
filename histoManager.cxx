@@ -157,7 +157,8 @@ TH1D* histoManager::getSumHistogramNominal(int isamp, int ibin, int iatt, int no
 
 //////////////////////////////////////////////////////////////////////////
 //calculate sum of all modified components to compare to data
-//NOTE: this also now calculates the log-likelihood
+//NOTE: this also now calculates the log-likelihood as well, this saves time by
+//      not having to loop over the histogram bins again
 TH1D* histoManager::getSumHistogramMod(int isamp, int ibin, int iatt, int normFlg){
  
   /////////////////////////////////////////
@@ -176,30 +177,34 @@ TH1D* histoManager::getSumHistogramMod(int isamp, int ibin, int iatt, int normFl
   ///////////////////////////////////////////
   //add bin contents from all histograms
   if (!separateNeutMode) {
+
     // loop over MC components
     for (int icomp=0;icomp<nComponents;icomp++){
+
       // pointer to temporary modified histogram
       TH1D* tmppointer=getModHistogram(isamp,ibin,icomp,iatt);
+
       // loop over bins in this histogram
       for (int jbin=1;jbin<=tmppointer->GetNbinsX();jbin++){
+
         // get current summed content
       	double content =  hSumHistoMod[isamp][ibin][iatt]->GetBinContent(jbin);
+
         // add temp histo content to sum
        	content+=tmppointer->GetBinContent(jbin);
+
         // properly normalize
         double normpar = 1.;
         if (useNormFlg) normpar = fitPars->getNormParameter(isamp,ibin);
+
         // set as new content
       	hSumHistoMod[isamp][ibin][iatt]->SetBinContent(jbin,normpar*content);
+
         // if on last component, compare to data and calc log L
         if (icomp==(nComponents-1)){
           if ((jbin>nBinBuffer) && jbin<(tmppointer->GetNbinsX()-nBinBuffer)){
             histoLogL+=evalLnL(hData[isamp][ibin][iatt]->GetBinContent(jbin),
                                normFactor*hSumHistoMod[isamp][ibin][iatt]->GetBinContent(jbin));
-//            cout<<"histoLogL: "<<histoLogL<<endl;
-//            cout<<"samp: "<<isamp<<endl;
-//            cout<<"bin: "<<ibin<<endl;
-//            cout<<"att: "<<iatt<<endl;
             nDOF++;
           }
         }

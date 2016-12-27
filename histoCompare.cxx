@@ -346,8 +346,6 @@ void histoCompare::runDEMCMC(int nsteps){
 }
 
 
-
-
 ///////////////////////////////////////////////
 //Run a MCMC of length nsteps
 void histoCompare::runMCMC(int nsteps){

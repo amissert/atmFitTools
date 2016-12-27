@@ -41,6 +41,9 @@ int main(int argc, char* argv[]){
  hc->diffChainFileName = diffnames.Data();
  hc->tunePar = 0.02;
 
+ // fix these pars
+ hc->thePars->fixAllAttPars(3);
+
  // run the mcmc
  hc->runDEMCMC(-1); 
 

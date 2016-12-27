@@ -7,7 +7,6 @@
 // Calculate the neutrino energy for each 1R hypothesis and fill
 // the arrays
 void preProcess::calcNeutrinoEnergy(){
-
   
   fq->calcEnu();
 
@@ -227,6 +226,7 @@ float preProcess::getWeight(){
     evtweight *= fq->wgtosc1[3]; // for Xiaoyue MC
     evtweight *= fq->wgtflx[3]; // for Xiaoyue MC
     #endif
+
     #ifdef USE_ST_WEIGHTS
     //////////////////////////////////////////////
     // For Shimpei MC
@@ -776,30 +776,13 @@ void preProcess::applyT2KSelection(){
   fqpars.fqrcpar = fqrcpar;
   fqpars.fqmommu =fq->fq1rmom[0][2];
   fqpars.fqmome = fq->fq1rmom[0][1];
-  fqpars.fqenu = fq->fq1renu[0];
+  fqpars.fqenue = fq->fq1renu[0];
+  fqpars.fqenumu = fq->fq1renu[1];
   fqpars.fqnsubev = fq->fqnse;
 
   // 1R selections
   passecut = selectNuE(fqpars);
   passmucut = selectNuMu(fqpars);
-
-  // 1R electron cuts 
-//  passecut = selectNuE(fq->nhitac,
-//                       fq->fqnse,
-//                       fq->fq1renu[0],
-//                       fq->fq1rmom[0][1],
-//                       fq->fq1rnll[0][2]-fq->fq1rnll[0][1],
-//                       fq->fqmrnring[0],
-//                       fqpi0par);
- 
-  // 1R muon cuts
-//  passmucut = selectNuMu(fq->nhitac,
-//                       fq->fqnse,
-//                       fq->fq1renu[1],
-//                       fq->fq1rmom[0][1],
-//                       fq->fq1rmom[0][2],
-//                       fq->fq1rnll[0][2]-fq->fq1rnll[0][1],
-//                       fq->fqmrnring[0]);
 
   return;
 

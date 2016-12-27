@@ -7,7 +7,7 @@ using namespace std;
 
 
 /////////////////////////////////////////////////////////////////
-// apply the cuts to a modified event and see if it passes?
+// apply the cuts to a modified event and see if it passes
 int toyMC::applyCutsToModifiedEvent(int iev){
 
   // fill tmp array 
@@ -27,16 +27,15 @@ int toyMC::applyCutsToModifiedEvent(int iev){
   cutPars.fqpid = attributesTmp[indexPIDPar];
   cutPars.fqpi0par = attributesTmp[indexPi0Par];
   cutPars.fqpippar = attributesTmp[indexPiPPar];
+  float lmom = attributesTmp[indexMom];
   cutPars.fqrcpar = attributesTmp[indexRCPar];
+  // other cut pars
   cutPars.fqmome = fastevents->vfqmumom[iev];
   cutPars.fqmommu = fastevents->vfqemom[iev];
-  float lmom = attributesTmp[indexMom];
   cutPars.nhitac = fastevents->vnhitac[iev];
   cutPars.fqnsubev = fastevents->vfqnsubev[iev];
-  cutPars.fqenu = (float)calcEnu(2,lmom,
-                                 fastevents->vfqdir[iev][0][0],
-                                 fastevents->vfqdir[iev][0][1],
-                                 fastevents->vfqdir[iev][0][2]);
+  cutPars.fqenue = fastevents->vfqenue[iev];
+  cutPars.fqenumu = fastevents->vfqenumu[iev];
 
   // see if it passes cuts
   int passnue = selectNuE(cutPars);
@@ -188,8 +187,8 @@ void toyMC::makeCombinedUncertainty(int nmcmcpts){
       if (ipass==0) continue;
 
       // fill histos
-      if (ipass==1) t2kToys->hEnuElectron->Fill(cutPars.fqenu, fastevents->vweight[iev]);
-      if (ipass==2) t2kToys->hEnuMuon->Fill(cutPars.fqenu, fastevents->vweight[iev]);
+      if (ipass==1) t2kToys->hEnuElectron->Fill(cutPars.fqenue, fastevents->vweight[iev]);
+      if (ipass==2) t2kToys->hEnuMuon->Fill(cutPars.fqenumu, fastevents->vweight[iev]);
     }
     t2kToys->finishToyRun();
   }
@@ -201,7 +200,7 @@ void toyMC::makeCombinedUncertainty(int nmcmcpts){
 }
 
 
-/*
+
 ////////////////////////////////////////////////////////////////
 // make map of uncertainties for nu mu events
 void toyMC::makeFVMapNuE(int nmcmcpts){
@@ -229,48 +228,26 @@ void toyMC::makeFVMapNuE(int nmcmcpts){
     chPars->GetEntry(mcmclist->getAt(i));
 
     // modify attributes using thes parameters
-    modifier->setFromMCMC();
+    if (i>0) modifier->setFromMCMC();
 
     // loop over T2K MC events
     for (int iev=0; iev<nMCevents; iev++){
      
-
-      float lmom=fastevents->vattribute[iev][modifier->attIndexMom];
-      float lpid=fastevents->vattribute[iev][modifier->attIndexPID];
-      float lpi0like=fastevents->vattribute[iev][modifier->attIndexPi0Like];
-      float lpi0mass=fastevents->vattribute[iev][modifier->attIndexPi0Mass];
-      float lenu = fastevents->vfqenue[iev];
-
-      // apply the mcmc parameters
-      if (i>0) modifier->applyPars(fastevents->vbin[iev],
-                          fastevents->vcomponent[iev],
-                          lpid,
-                          lmom,
-                          lpi0like,
-                          lpi0mass);
-
-      // see if event passes cuts
-      // re-calculate neutrino energy
-      float enu  = (float)calcENu(2,lmom,
-                                    fastevents->vfqdir[iev][0][0],
-                                    fastevents->vfqdir[iev][0][1],
-                                    fastevents->vfqdir[iev][0][2]);
-      float lpi0par = calcpi0par(lpi0like,lpi0mass);
-      int ipass = selectNuE(fastevents->vnhitac[iev],
-                            fastevents->vfqnsubev[iev],
-                            enu,
-                            lmom,
-                            lpid,
-                            fastevents->vfqnring[iev],
-                            lpi0par);
+      // apply parameters and see if it passes cuts
+      int ipass = applyCutsToModifiedEvent(iev);
 
       // if it passes fill histos
       if (ipass!=1) continue;
+ 
+      // modified neutrino energy
+      float enu = cutPars.fqenue;
 
       // fill total nev
       int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+
       // is NC?
       if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+
       //  CC?
       if (fastevents->vnutype[iev]!=12){hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
       else if (fastevents->vmode[iev]==1) {
@@ -279,6 +256,7 @@ void toyMC::makeFVMapNuE(int nmcmcpts){
       else {
         hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
       }
+
       if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
 
     }
@@ -318,46 +296,26 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
     chPars->GetEntry(mcmclist->getAt(i));
 
     // modify attributes using thes parameters
-    modifier->setFromMCMC();
+    if (i>0) modifier->setFromMCMC();
 
     // loop over T2K MC events
     for (int iev=0; iev<nMCevents; iev++){
-      
-      float lmom=fastevents->vattribute[iev][modifier->attIndexMom];
-      float lpid=fastevents->vattribute[iev][modifier->attIndexPID];
-      float lpi0like=fastevents->vattribute[iev][modifier->attIndexPi0Like];
-      float lpi0mass=fastevents->vattribute[iev][modifier->attIndexPi0Mass];
-      float lenu = fastevents->vfqenumu[iev];
 
-      // apply the mcmc parameters
-      if (i>0) modifier->applyPars(fastevents->vbin[iev],
-                          fastevents->vcomponent[iev],
-                          lpid,
-                          lmom,
-                          lpi0like,
-                          lpi0mass);
-
-      // see if event passes cuts
-      float enu  = (float)calcENu(2,lmom,
-                                    fastevents->vfqdir[iev][1][0],
-                                    fastevents->vfqdir[iev][1][1],
-                                    fastevents->vfqdir[iev][1][2]);
-
-      int ipass = selectNuMu(fastevents->vnhitac[iev],
-                             fastevents->vfqnsubev[iev],
-                             enu,
-                             fastevents->vfqemom[iev],
-                             lmom,
-                             lpid,
-                             fastevents->vfqnring[iev]);
-
+      // apply parameters and see if it passes cuts
+      int ipass = applyCutsToModifiedEvent(iev);
+         
       // if it passes fill histos
-      if (ipass!=1) continue;
+      if (ipass!=2) continue;
+
+      // modified nu energy
+      float enu = cutPars.fqenumu;
 
       // fill total nev
       int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+
       // is NC?
       if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+
       //  CC?
       if (fastevents->vnutype[iev]!=14){hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
       else if (fastevents->vmode[iev]==1) {
@@ -366,24 +324,14 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
       else {
         hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
       }
-      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
 
-      // fill total nev
-//      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
-//      if (fastevents->vnutype[iev]!=14) {hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-//      else if (fastevents->vmode[iev]==1){
-//        hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
-//      }
-//      else if (fastevents->vmode[iev]<30) {hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-//      else { hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]); }
-//      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
+      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
     }
   }
 
   return;
 
 }
-*/
 
 
 /*
