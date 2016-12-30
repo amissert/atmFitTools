@@ -112,6 +112,7 @@ void mcLargeArray::fillArray(TChain* ch){
   vfqpid[i] = (float)mcevent->fq1rnll[0][2]-(float)mcevent->fq1rnll[0][1];
   vweight[i] = (float)mcevent->evtweight; 
   vbin[i] = (Short_t)mcevent->nbin;
+  vfqnsubev[i] = (int)mcevent->fqnse;
   vcomponent[i] = (Short_t)mcevent->ncomponent;
   vattribute[i][0] = (float)mcevent->attribute[0];
   vattribute[i][1] = (float)mcevent->attribute[1];

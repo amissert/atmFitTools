@@ -31,7 +31,7 @@ int main(int argc, char* argv[]){
 // hc->hManager->setLoBound(3,0);
 // hc->hManager->setLoBound(2,0);
 // hc->thePars->readPars("/nfs/data41/t2k/amissert/atmos/head/atmFitTools/pars/lnlfit_priors.root");
- hc->thePars->fixAllAttPars(3);
+// hc->thePars->fixAllAttPars(3);
  // run the mcmc
  hc->runMCMC(-1); 
 

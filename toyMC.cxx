@@ -10,26 +10,26 @@ using namespace std;
 // apply the cuts to a modified event and see if it passes
 int toyMC::applyCutsToModifiedEvent(int iev){
 
-  // fill tmp array 
-  const int natt = 5;
+  // fill tmp array with "nominal" MC values
+  const int natt = 4;
   float attributesTmp[natt];
   for (int iatt=0; iatt<natt; iatt++){
     attributesTmp[iatt] = fastevents->vattribute[iev][iatt];   
   }
  
-  // modify tmp array
+  // modify tmp array by applying the histogram shape parameters
   modifier->applyPars(fastevents->vbin[iev],
                       fastevents->vcomponent[iev],
                       attributesTmp,
                       natt);
 
-  // fill cut parameter structure
-  cutPars.fqpid = attributesTmp[indexPIDPar];
-  cutPars.fqpi0par = attributesTmp[indexPi0Par];
-  cutPars.fqpippar = attributesTmp[indexPiPPar];
-  float lmom = attributesTmp[indexMom];
-  cutPars.fqrcpar = attributesTmp[indexRCPar];
-  // other cut pars
+  // fill cut parameter structure using modified attributes
+  if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
+  if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
+  if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
+  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
+
+  // other cut pars that are not modified
   cutPars.fqmome = fastevents->vfqmumom[iev];
   cutPars.fqmommu = fastevents->vfqemom[iev];
   cutPars.nhitac = fastevents->vnhitac[iev];
@@ -40,10 +40,10 @@ int toyMC::applyCutsToModifiedEvent(int iev){
   // see if it passes cuts
   int passnue = selectNuE(cutPars);
   int passnumu = selectNuMu(cutPars);
-
+  
   //
-  if (passnue) return 1;
-  if (passnumu) return 2;
+  if (passnue>0) return 1;
+  if (passnumu>0) return 2;
   return 0;
   
 }
@@ -52,11 +52,11 @@ int toyMC::applyCutsToModifiedEvent(int iev){
 /////////////////////////////////////////////////////////////////
 toyMC::toyMC(){
 
-  indexPIDPar = 0;
-  indexPi0Par = 1;
-  indexPiPPar = 2;
-  indexRCPar  = 3;
-  indexMom    = 4;
+//  indexPIDPar = 0;
+//  indexPi0Par = 1;
+//  indexPiPPar = 2;
+//  indexRCPar  = 3;
+//  indexMom    = 4;
 
 }
 
@@ -203,11 +203,11 @@ void toyMC::makeCombinedUncertainty(int nmcmcpts){
 
 ////////////////////////////////////////////////////////////////
 // make map of uncertainties for nu mu events
-void toyMC::makeFVMapNuE(int nmcmcpts){
+void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
 
   // make array of histos
   cout<<"Initializing array of histograms..."<<endl;
-  TH1D* hE = new TH1D("hE","hE",EnuNBinsElectron,EnuBinningElectron);
+  TH1D* hE = new TH1D("hE_nuE","hE_nuE",EnuNBinsElectron,EnuBinningElectron);
   TH2FV* hfv = new TH2FV("hfv",1);
   // array of nu energy histograms
   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
@@ -262,6 +262,11 @@ void toyMC::makeFVMapNuE(int nmcmcpts){
     }
   }
 
+  // calculate summary and save output
+  hArrFV->calcSummary();
+  hArrFV->saveSummary(outfile);
+  hArrFV->saveClose();
+
   return;
 
 }
@@ -271,11 +276,11 @@ void toyMC::makeFVMapNuE(int nmcmcpts){
 
 ////////////////////////////////////////////////////////////////
 // make map of uncertainties for nu mu events
-void toyMC::makeFVMapNuMu(int nmcmcpts){
+void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
 
   // make array of histos
   cout<<"Initializing array of histograms..."<<endl;
-  TH1D* hE = new TH1D("hE","hE",EnuNBins,EnuBinning);
+  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",EnuNBins,EnuBinning);
   TH2FV* hfv = new TH2FV("hfv",1);
   // array of nu energy histograms
   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
@@ -328,6 +333,11 @@ void toyMC::makeFVMapNuMu(int nmcmcpts){
       if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
     }
   }
+
+  // calculate summary and save output
+  hArrFV->calcSummary();
+  hArrFV->saveSummary(outfile);
+  hArrFV->saveClose();
 
   return;
 

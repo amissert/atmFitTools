@@ -9,13 +9,13 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////
 // Save the overall uncertainties to be used in moreUncertainties.cxx
-void modHistoArrayFV::saveSummary(const char* dir){
+void modHistoArrayFV::saveSummary(const char* fname){
 
   // set up file
-  TString outfilename = dir;
-  outfilename.Append("FVUncMap.root");
+  TString outfilename = fname;
   TFile* outfile = new TFile(outfilename.Data(),"RECREATE");
   outfile->cd();
+  cout<<"Writing summary file: "<<outfile->GetName()<<endl;
 
   // write histograms
   FVUncMap->Write();
@@ -43,6 +43,8 @@ void modHistoArrayFV::saveSummary(const char* dir){
 //    histos[0][ibin]->Write();
   }
 
+ 
+  cout<<"Closing summary file: "<<outfile->GetName()<<endl;
   outfile->Close();
   
   //
@@ -54,8 +56,12 @@ void modHistoArrayFV::saveSummary(const char* dir){
 ///////////////////////////////////////
 // save histograms and quit
 void modHistoArrayFV::saveClose(){
+
+  cout<<"Opening array file: "<<fout->GetName()<<endl;
   fout->Write();
+  cout<<"Closing array file: "<<fout->GetName()<<endl;
   fout->Close();
+
   return;
 }
 
@@ -654,11 +660,11 @@ void modHistoArrayFV::readFromFile(int nfvbins, int nthrows){
 modHistoArrayFV::modHistoArrayFV(const char* filename, int nfvbins, int nthrows){
   
   fout = new TFile(filename);
-
   nPoints = nthrows;
   nHistos = 0;
-  readFromFile(nfvbins,nthrows);
 
+  // read in histograms frm file
+  readFromFile(nfvbins,nthrows);
 
 }
 
