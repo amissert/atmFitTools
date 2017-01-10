@@ -64,7 +64,7 @@ void mcmcApply::applyPars(int nbin, int ncomponent, float attributeTmp[], int na
 
 /////////////////////////////////////////////////////////////////
 // apply the cuts to a modified event and see if it passes
-int mcmcApply::applyCutsToModifiedEvent(int iev, mcLargeArray* fastevents){
+int mcmcApply::applyCutsToModifiedEvent(int iev, mcLargeArray* fastevents, bool modflg){
 
   // fill tmp array with "nominal" MC values
   const int natt = 4;
@@ -74,10 +74,10 @@ int mcmcApply::applyCutsToModifiedEvent(int iev, mcLargeArray* fastevents){
   }
  
   // modify tmp array by applying the histogram shape parameters
-  applyPars(fastevents->vbin[iev],
-            fastevents->vcomponent[iev],
-            attributesTmp,
-            natt);
+  if (modflg){ applyPars(fastevents->vbin[iev],
+               fastevents->vcomponent[iev],
+               attributesTmp,
+               natt);}
 
   // structure for T2K cuts
   fqcutparams cutPars;
@@ -102,6 +102,7 @@ int mcmcApply::applyCutsToModifiedEvent(int iev, mcLargeArray* fastevents){
   cutPars.fqenue = fastevents->vfqenue[iev];
   cutPars.fqenumu = fastevents->vfqenumu[iev];
   cutPars.fqrcpar = fastevents->vfqrcpar[iev];
+  cutPars.fqnring = fastevents->vfqnring[iev];
 
   // see if it passes cuts
   int passnue = selectNuE(cutPars);

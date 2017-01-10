@@ -9,9 +9,9 @@ using namespace std;
 /////////////////////////////////////////////////////////////////
 // apply the cuts to a modified event and see if it passes
 int toyMC::applyCutsToModifiedEvent(int iev){
-  return modifier->applyCutsToModifiedEvent(iev, fastevents);
+//  return modifier->applyCutsToModifiedEvent(iev, fastevents);
 
-  /*  
+    
   // fill tmp array with "nominal" MC values
   const int natt = 4;
   float attributesTmp[natt];
@@ -31,6 +31,7 @@ int toyMC::applyCutsToModifiedEvent(int iev){
   if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
 //  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
   cutPars.fqrcpar = fastevents->vfqrcpar[iev];
+  cutPars.fqnring = fastevents->vfqnring[iev];
 
   // other cut pars that are not modified
   cutPars.fqmome = fastevents->vfqmumom[iev];
@@ -48,7 +49,7 @@ int toyMC::applyCutsToModifiedEvent(int iev){
   if (passnue>0) return 1;
   if (passnumu>0) return 2;
   return 0;
-  */ 
+   
   
 }
 
@@ -285,7 +286,8 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
   // make array of histos
   cout<<"Initializing array of histograms..."<<endl;
 //  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",EnuNBins,EnuBinning);
-  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",50,0,2000);
+  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",20,0,3000);
+
   TH2FV* hfv = new TH2FV("hfv",1);
   // array of nu energy histograms
   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
@@ -306,22 +308,33 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
     chPars->GetEntry(mcmclist->getAt(i));
 
     // modify attributes using thes parameters
-    if (i>0) modifier->setFromMCMC();
+    modifier->setFromMCMC();
 
     // loop over T2K MC events
     for (int iev=0; iev<nMCevents; iev++){
 
       // apply parameters and see if it passes cuts
-      int ipass = applyCutsToModifiedEvent(iev);
-         
+//      int ipass = applyCutsToModifiedEvent(iev);
+      int ipass = 0;
+      if (i!=0){
+        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,true);
+//        ipass = applyCutsToModifiedEvent(iev);
+      }
+      else{
+        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,false);
+//        ipass = applyCutsToModifiedEvent(iev);
+      }
+
       // if it passes fill histos
       if (ipass!=2) continue;
+//      fastevents->printEvent(iev);
 
       // modified nu energy
       float enu = fastevents->vfqenumu[iev];
 
       // fill total nev
-      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+//      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+      int fvbin = fastevents->vbin[iev];
 
       // is NC?
       if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
