@@ -5,19 +5,17 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // constructor
-mcmcApply::mcmcApply(atmFitPars* fitpars, mcmcReader* mcmcpars, fqProcessedEvent* mcevent){
+mcmcApply::mcmcApply(atmFitPars* fitpars, mcmcReader* mcmcpars){
 
   // set pointers
   fitPars = fitpars;
   mcmcPars = mcmcpars;
-  mcEvent = mcevent;
 
-  // set index of parameters
-//  attIndexMom = 4;
-//  attIndexRCPar = 3;
-//  attIndexPID = 0;
-//  attIndexPi0Par = 1;
-//  attIndexPiPPar = 2;
+  // attribute indicies
+  indexPIDPar = 0;
+  indexPi0Par = 1;
+  indexPiPPar = 2;
+  indexRCPar  = 3;
 
 }
 
@@ -27,8 +25,14 @@ void mcmcApply::setFromMCMC(){
 
   // loop over mcmc pars and set int fitPars
   for (int ipar=0; ipar<mcmcPars->npars; ipar++){
+   
+    // get the index of the ipar-th parameter in the atmfitpars array
     int atmparindex = mcmcPars->parindex[ipar];
+
+    // talk about it
     cout<<"set par "<<atmparindex<<" "<<" <- "<<ipar<<" "<<mcmcPars->par[ipar]<<endl;
+
+    // change the atmfitpars array
     fitPars->setParameter(atmparindex, (double)mcmcPars->par[ipar]);
   }
 
@@ -56,6 +60,62 @@ void mcmcApply::applyPars(int nbin, int ncomponent, float attributeTmp[], int na
   //
   return;
 }
+
+
+/////////////////////////////////////////////////////////////////
+// apply the cuts to a modified event and see if it passes
+int mcmcApply::applyCutsToModifiedEvent(int iev, mcLargeArray* fastevents){
+
+  // fill tmp array with "nominal" MC values
+  const int natt = 4;
+  float attributesTmp[natt];
+  for (int iatt=0; iatt<natt; iatt++){
+    attributesTmp[iatt] = fastevents->vattribute[iev][iatt];   
+  }
+ 
+  // modify tmp array by applying the histogram shape parameters
+  applyPars(fastevents->vbin[iev],
+            fastevents->vcomponent[iev],
+            attributesTmp,
+            natt);
+
+  // structure for T2K cuts
+  fqcutparams cutPars;
+
+  // fill cut parameter structure using modified attributes
+  cutPars.fqpid = attributesTmp[indexPIDPar];
+  cutPars.fqpi0par = attributesTmp[indexPi0Par];
+  cutPars.fqpippar = attributesTmp[indexPiPPar];
+//  cutPars.fqrcpar = attributesTmp[indexRCPar];
+
+  // fill cut parameter structure using modified attributes
+//  cutPars.fqpid = attributesTmp[0];
+//  cutPars.fqpi0par = attributesTmp[1];
+//  cutPars.fqpippar = attributesTmp[2];
+//  cutPars.fqrcpar = attributesTmp[3];
+
+  // other cut pars that are not modified
+  cutPars.fqmome = fastevents->vfqmumom[iev];
+  cutPars.fqmommu = fastevents->vfqemom[iev];
+  cutPars.nhitac = fastevents->vnhitac[iev];
+  cutPars.fqnsubev = fastevents->vfqnsubev[iev];
+  cutPars.fqenue = fastevents->vfqenue[iev];
+  cutPars.fqenumu = fastevents->vfqenumu[iev];
+  cutPars.fqrcpar = fastevents->vfqrcpar[iev];
+
+  // see if it passes cuts
+  int passnue = selectNuE(cutPars);
+  int passnumu = selectNuMu(cutPars);
+  
+  //
+  if (passnue>0) return 1;
+  if (passnumu>0) return 2;
+
+  //
+  return 0;
+  
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////

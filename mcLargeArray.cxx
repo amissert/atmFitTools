@@ -126,8 +126,10 @@ void mcLargeArray::fillArray(TChain* ch){
   vfqdir[i][1][2] = (float)mcevent->fq1rdir[0][2][2];
   vfqenue[i] = (float)mcevent->fq1renu[0];
   vfqenumu[i] = (float)mcevent->fq1renu[1];
+  vfqrcpar[i] = (float)mcevent->fqrcpar;
   vpmomv[i] = (float)mcevent->pmomv[0];
   vpassnumu[i] = (Short_t)mcevent->passmucut;
+  vpassnue[i] = (Short_t)mcevent->passecut;
  }
  
  ch->SetBranchStatus("*",1);

@@ -23,6 +23,7 @@ void preProcess::setFVBinHisto(){
 }
 
 
+
 /////////////////////////////////////////////////////////////////
 //Create a TGraph that is used to make weights to see effect of
 //correcting for cosmic flux mis-modeling
@@ -806,7 +807,7 @@ void preProcess::applyT2KSelection(){
 //returns the index of the best 2R fit
 // ! temporary change to return fit 20000033 !
 int preProcess::getBest2RFitID(fqEvent* fqevent){
-  
+//  cout<<"--------"<<endl;
   int nfits = (int)fqevent->fqnmrfit;
 
   double ngLnLBest = 10000000.;
@@ -815,14 +816,21 @@ int preProcess::getBest2RFitID(fqEvent* fqevent){
   for (int ifit=0;ifit<nfits;ifit++){
 //    cout<<"hcecking: "<<ifit<<endl;
     int fitID = TMath::Abs(fqevent->fqmrifit[ifit]); //< fit fit ID code
-    if (fitID==20000033){
+//    if (fitID==20000033){
+    if (TMath::Abs(fitID-20000000)<50){
+//      cout<<fitID<<endl;
+//      cout<<fqevent->fqmrnll[ifit]<<endl;
 //      cout<<"best!"<<endl;
-      bestindex = ifit;
+      if (fqevent->fqmrnll[ifit] < ngLnLBest){
+        ngLnLBest = fqevent->fqmrnll[ifit];
+        bestindex = ifit;
+      }
      // break; //< we want best 2R fits
     }
   }
   
   best2RID = bestindex;
+//  cout<<"best: "<<fqevent->fqmrifit[bestindex]<<endl;
   return bestindex;
 }
 
@@ -847,21 +855,31 @@ void preProcess::fillAttributes(fqEvent* fqevent){
 float preProcess::getRCParameter(fqEvent* fqevent){
   
   // get best 2R ID
-  int ibest = getBest2RFitID(fqevent);
+//  int ibest = getBest2RFitID(fqevent);
+  int ibest = 0;
 
   // get best 1R Likelihood 
   float best1Rnglnl = (float)fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
- 
+//  cout<<"best 1r: "<<best1Rnglnl<<endl;
+
   // get mom of 2nd ring
   float ringmom = (float)fqevent->fqmrmom[best2RID][1];
+//  cout<<"best mr: "<<fqevent->fqmrnll[best2RID]<<endl;
+//  cout<<"mrmom: "<<fqevent->fqmrmom[best2RID][1]<<endl;
   float deltaLnL = best1Rnglnl - fqevent->fqmrnll[best2RID];
 
   // cut from fiTQun.cc
-  float a0 = 150.;
+//  float a0 = 150.;
+  float a0 = 0.;
   float a1 = -0.6;
 
   // ring-counting parameter
   float rcpar = deltaLnL - (a0 + a1*ringmom); 
+
+  // dot product between best 2 rings
+  fqmrdot =   fqevent->fqmrdir[best2RID][0][0]*fqevent->fqmrdir[best2RID][1][0]
+            + fqevent->fqmrdir[best2RID][0][1]*fqevent->fqmrdir[best2RID][1][1]
+            + fqevent->fqmrdir[best2RID][0][2]*fqevent->fqmrdir[best2RID][1][2];
 
   //
   return rcpar;
@@ -980,7 +998,9 @@ void preProcess::setupNewTree(){
     tr->SetBranchStatus("totwgt",1);
     tr->SetBranchStatus("normwgt",1);
     tr->SetBranchStatus("oscpower",1);
+    tr->SetBranchStatus("eventtype",1);
   }
+
   if (!ntupleType.CompareTo("T2KMCReduced")) tr->SetBranchStatus("totwgt");
 #ifdef USE_XL_WEIGHTS
   tr->SetBranchStatus("wgt*",1);
@@ -998,9 +1018,9 @@ void preProcess::setupNewTree(){
 
   
   //add new branches
-  
   trout->Branch("attribute",attribute,"attribute[10]/F");
   trout->Branch("fqrcpar",&fqrcpar,"fqrcpar/F");
+  trout->Branch("fqmrdot",&fqmrdot,"fqmrdot/F");
   trout->Branch("fqrcpmin",&fqrcpmin,"fqrcpmin/F");
   trout->Branch("fqrclike",&fqrclike,"fqrcliker/F");
   trout->Branch("fqpi0par",&fqpi0par,"fqpi0par/F");

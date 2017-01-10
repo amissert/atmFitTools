@@ -52,6 +52,8 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts){
  hseed->SetStats(0);
  hseed->SetBit(TH1::kNoTitle,0);
  hErec[0] = (TH1D*)hseed->Clone("herec_power");
+// hErec[0] = new TH1D("h","h",20,0,2000);
+// hseed = hErec[0];
  hErec[0]->SetTitle("Oscillation Power");
  hErec[1] = (TH1D*)hseed->Clone("herec_N");
  hErec[1]->SetTitle("# of Events");
@@ -118,8 +120,8 @@ float optimusPrime::getOscPowerFast(int nutype, int ientry, int oscpar){
  float oscpow = fastevents->vweight[ientry]*fastevents->voscpower[ientry][oscpar]; 
 
 // cout<<"oscpow: "<<oscpow<<endl;
- return oscpow;
 
+ return oscpow;
 }
 
 void optimusPrime::fillFVHistoFast(){
@@ -623,17 +625,255 @@ float optimusPrime::getSystUncertainty(int i, int nutype){
 }
 */
 
+
+/////////////////////////////////////////////////////////////////
+// use Toy MC to calculate systematics, instead of relying on maps
+float optimusPrime::calcFOMToyMC(float towallcut,
+                                 float wallcut,
+                                 int   oscpar,
+                                 int flgselection,
+                                 int nmcmcpts){
+
+  // summarize?
+  #ifdef PRINTSUMMARY
+  plots = new summaryPlots("toyplots");
+  plots->setLargeArray(fastevents);
+  plots->InitToys(hErec[0]);
+  #endif
+
+  // reset histos
+  hErec[0]->Reset();
+  hErec[1]->Reset();
+  hErec[2]->Reset();
+
+  // set up shape parameters and classes to apply them
+  atmFitPars* atmpars = new atmFitPars(cardFileName.Data()); //< create parameter containter 
+  TChain* chmcmcpars = new TChain("MCMCpath");
+  chmcmcpars->Add(mcmcParFileName.Data());
+  mcmcReader* mcmcpars = new mcmcReader(chmcmcpars);
+  modifier = new mcmcApply(atmpars, mcmcpars); //< this will perform the necessary modifications
+  atmpars->resetDefaults();
+
+  // make arrays to store info
+  const int nbins = hErec[0]->GetNbinsX()+1;
+  const int npoints = nmcmcpts;
+  float A[npoints]; 
+  float Powsq[nbins][npoints];
+  float Nev[nbins][npoints];
+  float Sys[nbins][npoints];
+
+  // set initial array values
+  for (int ibin=0; ibin<nbins; ibin++){
+    for (int ipt=0; ipt<nmcmcpts; ipt++){
+      Powsq[ibin][ipt]=0.;
+      Nev[ibin][ipt]=0.;
+      Sys[ibin][ipt]=0.;
+    }
+  }
+
+  // get the selection of mcmc points
+  vector<int> mcmcpoints;
+  TRandom2* rando = new TRandom2(nmcmcpts);
+  for (int ipt=0; ipt<nmcmcpts; ipt++){
+    mcmcpoints.push_back( rando->Integer(chmcmcpars->GetEntries()) ); 
+  }
+  // sort that list
+  std::sort(mcmcpoints.begin(),mcmcpoints.end());
+
+  // do the toy MC
+ 
+  // loop over the mcmc poins
+  for (int ipt=0; ipt<nmcmcpts; ipt++){
+
+    // get shape parameters
+    cout<<"getting mcmc point: "<<mcmcpoints.at(ipt)<<endl;
+    chmcmcpars->GetEntry(mcmcpoints.at(ipt));
+
+    // set par containter values
+    if (ipt>0) modifier->setFromMCMC();
+
+    // loop over MC events 
+    for (int iev=0; iev<nevents; iev++){
+
+      // passes FV cuts?
+      if ((fastevents->vfqtowall[iev]<towallcut)||(fastevents->vfqwall[iev]<wallcut)) continue;
+
+      // apply the cuts to the modified event
+//      int ipass = applyCutsToModifiedEvent(iev);
+      int ipass = modifier->applyCutsToModifiedEvent(iev,fastevents);
+
+      // is this the event you are looking for?
+      if (ipass!=flgselection) continue;
+      
+      // get more info
+      float enu=0.;
+      float oscpow=0.;
+      // for electron 
+      if (flgselection==1){
+        enu = fastevents->vfqenue[iev];
+        oscpow = getOscPowerFast(12,iev,oscpar);
+      }
+      // for muon
+      else if (flgselection==2){
+        enu = fastevents->vfqenumu[iev];
+        oscpow = getOscPowerFast(14,iev,oscpar);
+      }
+
+      // bin in energy
+      int enubin = hErec[0]->FindBin(enu);
+      hErec[0]->Fill(enu,fastevents->vweight[iev]);
+
+      #ifdef PRINTSUMMARY
+      plots->fillAllFromArray(iev,oscpow,0.);
+      plots->pltToySpectrum[ipt]->Fill(enu,fastevents->vweight[iev]);
+      plots->pltToyPower[ipt]->Fill(enu,oscpow*oscpow);
+      #endif
+
+      // fill arrays
+      Powsq[enubin][ipt] += oscpow*oscpow;
+      Nev[enubin][ipt] += fastevents->vweight[iev];
+
+    } //< end loop over events
+
+    // now calculate A (the curvature of likelihood for this selection and assumption of systematics)
+//    for (int ibin=0; ibin<nbins; ibin++){
+//      if (Nev[ibin][ipt]>0.) A[ipt] += Pow[ibin][ipt]/Nev[ibin][ipt];
+//    }
+
+  } //< end loop over mcmc points in toy MC
+
+
+//  float meanA = arraymean(A,npoints);
+//  cout<<"mean A: "<<meanA<<endl;
+//  float varA  = arrayvar(A,npoints,meanA);
+//  cout<<"var A: "<<varA<<endl;
+//  hCurve = new TH1D("hA","hA",20,meanA-4*TMath::Sqrt(varA),
+//                                 meanA+4*TMath::Sqrt(varA));
+//  for (int ipt=0; ipt<npoints; ipt++){
+//    hCurve->Fill(A[ipt]);
+//  }
+
+   // loop over bins to calculate FOM
+   float FOM = 0.;
+   for (int ibin=0; ibin<=nbins; ibin++){
+      
+      // get bin mean
+      float nominal_bin_content = Nev[ibin][0];
+      cout<<"nominal contnet: "<<nominal_bin_content<<endl;
+      float mean_bin_content = arraymean(Nev[ibin],npoints);
+      cout<<"mean contnet: "<<mean_bin_content<<endl;
+      float nominal_bin_power = Powsq[ibin][0];
+      cout<<"nominal bin power: "<<nominal_bin_power<<endl;
+      float nominal_bin_syst  = Sys[ibin][0];
+      cout<<"nominal bin syst: "<<nominal_bin_syst<<endl;
+      float bin_content_variance = arrayvar(Nev[ibin],npoints,mean_bin_content);
+      cout<<"bin content var : "<<bin_content_variance<<endl;
+      float bin_content_shift = mean_bin_content - nominal_bin_content;
+      float unc_total = bin_content_variance + nominal_bin_syst*nominal_bin_syst + ((bin_content_shift)*(bin_content_shift));
+      if (nominal_bin_content>0.) FOM += (nominal_bin_power)/(nominal_bin_content + unc_total);
+
+//      hErec[0]->SetBinContent(ibin,mean_bin_content);
+      hErec[0]->SetBinContent(ibin,nominal_bin_content);
+      hErec[0]->SetBinError(ibin,TMath::Sqrt(bin_content_variance));
+//      hErec[1]->SetBinContent(ibin,nominal_bin_content);
+      hErec[1]->SetBinContent(ibin,nominal_bin_power);
+
+
+   }
+ 
+
+  // calculate mean and covariance
+//  float meanPow[nbins];
+//  float meanNev[nbins];
+//  float cov[nbins][nbins];
+
+  // init to zero
+//  for (int ibin=0; ibin<nn; ibin++){
+//    mean[ibin] = 0.;
+//    for (int jbin=0; jbin<nn; jbin++){
+//      cov[ibin][jbin] = 0.;
+//    }
+//  }
+
+//  for (int ibin=0; ibin<nn; ibin++){
+//    for (int ipt=0; ipt<nmcmcpts; ipt++){
+//       mean[ibin] +=  
+
+  return FOM;
+}
+
+
+
+/////////////////////////////////////////////////////////////////
+// apply the cuts to a modified event and see if it passes
+int optimusPrime::applyCutsToModifiedEvent(int iev){
+
+  // fill tmp array with "nominal" MC values
+  const int natt = 4;
+  float attributesTmp[natt];
+  for (int iatt=0; iatt<natt; iatt++){
+    attributesTmp[iatt] = fastevents->vattribute[iev][iatt];   
+  }
+ 
+  // modify tmp array by applying the histogram shape parameters
+  modifier->applyPars(fastevents->vbin[iev],
+                      fastevents->vcomponent[iev],
+                      attributesTmp,
+                      natt);
+
+  // fill cut parameter structure using modified attributes
+  if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
+  if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
+  if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
+//  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
+  cutPars.fqrcpar = fastevents->vfqrcpar[iev];
+
+  // other cut pars that are not modified
+  cutPars.fqmome = fastevents->vfqmumom[iev];
+  cutPars.fqmommu = fastevents->vfqemom[iev];
+  cutPars.nhitac = fastevents->vnhitac[iev];
+  cutPars.fqnsubev = fastevents->vfqnsubev[iev];
+  cutPars.fqenue = fastevents->vfqenue[iev];
+  cutPars.fqenumu = fastevents->vfqenumu[iev];
+
+  // see if it passes cuts
+  int passnue = selectNuE(cutPars);
+  int passnumu = selectNuMu(cutPars);
+  
+  //
+  if (passnue>0) return 1;
+  if (passnumu>0) return 2;
+  return 0;
+  
+}
+
+
+
 ///////////////////////////////////////////
 // does event pass cuts?
 int optimusPrime::passNuMuCuts(int i){
 
-  int ipass = selectNuMu( fastevents->vnhitac[i],
-                          fastevents->vfqnsubev[i],
-                          fastevents->vfqenumu[i],
-                          fastevents->vfqemom[i],
-                          fastevents->vfqmumom[i],
-                          fastevents->vfqpid[i],
-                          fastevents->vfqnring[i] );
+  cutPars.fqmommu = fastevents->vfqmumom[i]; 
+  cutPars.fqmome = fastevents->vfqemom[i];
+  cutPars.fqpid = fastevents->vattribute[i][indexPIDPar];
+  cutPars.fqpi0par =fastevents->vattribute[i][indexPi0Par];
+  cutPars.fqpippar = fastevents->vattribute[i][indexPiPPar];
+  cutPars.fqenumu = fastevents->vfqenumu[i];
+  cutPars.fqenue = fastevents->vfqenue[i];
+  cutPars.fqrcpar = fastevents->vattribute[i][indexRCPar];
+  cutPars.nhitac = fastevents->vnhitac[i];
+  cutPars.fqnsubev = fastevents->vfqnsubev[i];
+
+ 
+  int ipass = selectNuMu(cutPars);
+
+//  int ipass = selectNuMu( fastevents->vnhitac[i],
+//                          fastevents->vfqnsubev[i],
+//                          fastevents->vfqenumu[i],
+//                          fastevents->vfqemom[i],
+//                          fastevents->vfqmumom[i],
+//                          fastevents->vfqpid[i],
+//                          fastevents->vfqnring[i] );
   return ipass;
 
 }
@@ -642,13 +882,28 @@ int optimusPrime::passNuMuCuts(int i){
 // what about nu-e cuts?
 int optimusPrime::passNuECuts(int i){
 
-  int ipass = selectNuE(  fastevents->vnhitac[i],
-                          fastevents->vfqnsubev[i],
-                          fastevents->vfqenumu[i],
-                          fastevents->vfqemom[i],
-                          fastevents->vfqpid[i],
-                          fastevents->vfqnring[i],
-                          fastevents->vfqpi0par[i]);
+  cutPars.fqmommu = fastevents->vfqmumom[i]; 
+  cutPars.fqmome = fastevents->vfqemom[i];
+  cutPars.fqpid = fastevents->vattribute[i][indexPIDPar];
+  cutPars.fqpi0par =fastevents->vattribute[i][indexPi0Par];
+  cutPars.fqpippar = fastevents->vattribute[i][indexPiPPar];
+  cutPars.fqenumu = fastevents->vfqenumu[i];
+  cutPars.fqenue = fastevents->vfqenue[i];
+  cutPars.fqrcpar = fastevents->vattribute[i][indexRCPar];
+  cutPars.nhitac = fastevents->vnhitac[i];
+  cutPars.fqnsubev = fastevents->vfqnsubev[i];
+
+
+  int ipass = selectNuE(cutPars);
+
+//  int ipass = selectNuE(  fastevents->vnhitac[i],
+//                          fastevents->vfqnsubev[i],
+//                          fastevents->vfqenumu[i],
+//                          fastevents->vfqemom[i],
+//                          fastevents->vfqpid[i],
+//                          fastevents->vfqnring[i],
+//                          fastevents->vfqpi0par[i]);
+//                          
   return ipass;
 
 }

@@ -9,7 +9,9 @@ using namespace std;
 /////////////////////////////////////////////////////////////////
 // apply the cuts to a modified event and see if it passes
 int toyMC::applyCutsToModifiedEvent(int iev){
+  return modifier->applyCutsToModifiedEvent(iev, fastevents);
 
+  /*  
   // fill tmp array with "nominal" MC values
   const int natt = 4;
   float attributesTmp[natt];
@@ -27,7 +29,8 @@ int toyMC::applyCutsToModifiedEvent(int iev){
   if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
   if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
   if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
-  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
+//  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
+  cutPars.fqrcpar = fastevents->vfqrcpar[iev];
 
   // other cut pars that are not modified
   cutPars.fqmome = fastevents->vfqmumom[iev];
@@ -45,6 +48,7 @@ int toyMC::applyCutsToModifiedEvent(int iev){
   if (passnue>0) return 1;
   if (passnumu>0) return 2;
   return 0;
+  */ 
   
 }
 
@@ -187,8 +191,8 @@ void toyMC::makeCombinedUncertainty(int nmcmcpts){
       if (ipass==0) continue;
 
       // fill histos
-      if (ipass==1) t2kToys->hEnuElectron->Fill(cutPars.fqenue, fastevents->vweight[iev]);
-      if (ipass==2) t2kToys->hEnuMuon->Fill(cutPars.fqenumu, fastevents->vweight[iev]);
+      if (ipass==1) t2kToys->hEnuElectron->Fill(fastevents->vfqenue[iev], fastevents->vweight[iev]);
+      if (ipass==2) t2kToys->hEnuMuon->Fill(fastevents->vfqenumu[iev], fastevents->vweight[iev]);
     }
     t2kToys->finishToyRun();
   }
@@ -207,7 +211,7 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
 
   // make array of histos
   cout<<"Initializing array of histograms..."<<endl;
-  TH1D* hE = new TH1D("hE_nuE","hE_nuE",EnuNBinsElectron,EnuBinningElectron);
+  TH1D* hE = new TH1D("hE_nuE_v2","hE_nuE",EnuNBinsElectron,EnuBinningElectron);
   TH2FV* hfv = new TH2FV("hfv",1);
   // array of nu energy histograms
   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
@@ -240,7 +244,7 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
       if (ipass!=1) continue;
  
       // modified neutrino energy
-      float enu = cutPars.fqenue;
+      float enu = fastevents->vfqenue[iev];
 
       // fill total nev
       int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
@@ -280,7 +284,8 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
 
   // make array of histos
   cout<<"Initializing array of histograms..."<<endl;
-  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",EnuNBins,EnuBinning);
+//  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",EnuNBins,EnuBinning);
+  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",50,0,2000);
   TH2FV* hfv = new TH2FV("hfv",1);
   // array of nu energy histograms
   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
@@ -313,7 +318,7 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
       if (ipass!=2) continue;
 
       // modified nu energy
-      float enu = cutPars.fqenumu;
+      float enu = fastevents->vfqenumu[iev];
 
       // fill total nev
       int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
@@ -467,7 +472,7 @@ void toyMC::setAtmFitPars(const char* parfile){
   
   fitPars = new atmFitPars(parfile); 
 
-  modifier = new mcmcApply(fitPars, mcmcPars, mcEvent);
+  modifier = new mcmcApply(fitPars, mcmcPars);
 
 }
 
@@ -476,7 +481,7 @@ void toyMC::setCompare(histoCompare* hc){
 
  hCompare = hc;
 
- modifier = new mcmcApply(hCompare->thePars, mcmcPars, mcEvent);
+ modifier = new mcmcApply(hCompare->thePars, mcmcPars);
 
  return;
 }
