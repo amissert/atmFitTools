@@ -239,7 +239,16 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
     for (int iev=0; iev<nMCevents; iev++){
      
       // apply parameters and see if it passes cuts
-      int ipass = applyCutsToModifiedEvent(iev);
+//      int ipass = applyCutsToModifiedEvent(iev);
+      // apply parameters and see if it passes cuts
+      int ipass = 0;
+      if (i!=0){
+        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,true);
+      }
+      else{
+        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,false);
+      }
+
 
       // if it passes fill histos
       if (ipass!=1) continue;
@@ -249,6 +258,7 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
 
       // fill total nev
       int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+//      int fvbin = fastevents->vbin[iev];
 
       // is NC?
       if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
@@ -314,27 +324,23 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
     for (int iev=0; iev<nMCevents; iev++){
 
       // apply parameters and see if it passes cuts
-//      int ipass = applyCutsToModifiedEvent(iev);
       int ipass = 0;
       if (i!=0){
         ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,true);
-//        ipass = applyCutsToModifiedEvent(iev);
       }
       else{
         ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,false);
-//        ipass = applyCutsToModifiedEvent(iev);
       }
 
       // if it passes fill histos
       if (ipass!=2) continue;
-//      fastevents->printEvent(iev);
 
       // modified nu energy
       float enu = fastevents->vfqenumu[iev];
 
       // fill total nev
-//      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
-      int fvbin = fastevents->vbin[iev];
+      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+//      int fvbin = fastevents->vbin[iev];
 
       // is NC?
       if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}

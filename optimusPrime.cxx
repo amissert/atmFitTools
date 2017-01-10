@@ -889,7 +889,8 @@ int optimusPrime::passNuECuts(int i){
   cutPars.fqpippar = fastevents->vattribute[i][indexPiPPar];
   cutPars.fqenumu = fastevents->vfqenumu[i];
   cutPars.fqenue = fastevents->vfqenue[i];
-  cutPars.fqrcpar = fastevents->vattribute[i][indexRCPar];
+  cutPars.fqrcpar = fastevents->vfqrcpar[i];
+  cutPars.fqnring = fastevents->vfqnring[i];
   cutPars.nhitac = fastevents->vnhitac[i];
   cutPars.fqnsubev = fastevents->vfqnsubev[i];
 
