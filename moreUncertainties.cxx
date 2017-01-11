@@ -5,9 +5,10 @@
 
 ///////////////////////////////////////////////////////////
 // constructor
-moreUncertainties::moreUncertainties(const char* datadir){
+moreUncertainties::moreUncertainties(const char* datadir, const char* mapfile){
 
  dataDirectory = datadir;
+ mapFileName = mapfile;
 
  init();
 
@@ -33,6 +34,7 @@ float moreUncertainties::getFVUncertainty(float towallrc, float wallrc, int mode
   if (ibin<=0) return 0;
   float sys=0.;
 
+  
   // is event from NC?
   if (TMath::Abs(mode)>=30){
     sys = hfvmapnc->GetBinContent(ibin);
@@ -52,6 +54,9 @@ float moreUncertainties::getFVUncertainty(float towallrc, float wallrc, int mode
     sys = hfvmapccnqe->GetBinContent(ibin);
     return sys;
   }
+  
+
+//  return hfvmapccnqe->GetBinContent(ibin);
 
   //
   return sys;
@@ -90,7 +95,14 @@ void moreUncertainties::init(){
 
   // read in FV uncertainty maps
   TString fmapname = dataDirectory.Data();
-  fmapname.Append("FVUncMap.root");
+
+  // default to nu-mu map
+  if (!mapFileName.CompareTo("")){
+    mapFileName = "FVUncMapNuMu.root";
+  }
+   
+  // open map file and read in histograms 
+  fmapname.Append(mapFileName.Data());
   TFile *filefvmap = new TFile(fmapname.Data());
   hfvmap = (TH2FV*)filefvmap->Get("FVUncMapNC");
   hfvmapccqe = (TH2FV*)filefvmap->Get("FVUncMapCCQE");
@@ -158,8 +170,9 @@ float moreUncertainties::getXsecUnc(int mode){
   int absmode = TMath::Abs(mode);
 
   if (absmode==1){
-    return 0.07;
+    return 0.00;
   }
+
   else if (absmode<30){
     if (absmode==16){
       return 1.0;
@@ -168,9 +181,11 @@ float moreUncertainties::getXsecUnc(int mode){
       return 0.2;
     }
   }
+
   else if (absmode==36){
     return 1.0;
   }
+
   return 0.3;
 }
 
@@ -181,22 +196,22 @@ float moreUncertainties::getTotalUncertainty(float wallv, float wallrc, float to
   
   float totalunc = .0;
 
+  // entering from wall shape uncertainty
   float enteringWallUnc = getEnteringWallUnc(wallv,wallrc);
   totalunc += (enteringWallUnc*enteringWallUnc);
 
+  // normalization uncertainty for entering bg
   float normunc = getEnteringNormUnc(wallv);
   totalunc += (normunc*normunc);
 
+  // additional normalization uncertainty from fraction of entering events
   float wallnormunc = getEnteringWallNormUnc(wallv);
   totalunc += (wallnormunc*wallnormunc);
 
-  // for FV
-//  float fvuncebin = getFVUncEBin(towallrc,wallrc,erec);
-//  totalunc += (fvuncebin*fvuncebin);
  
   // for x section
-//  float xunc = getXsecUnc(mode);
-//  totalunc += xunc;
+  float xunc = getXsecUnc(mode);
+  totalunc += xunc;
 
 //     for FV
   float fvunc = getFVUncertainty(towallrc,wallrc,mode,wronglepton);
@@ -204,9 +219,7 @@ float moreUncertainties::getTotalUncertainty(float wallv, float wallrc, float to
 
   float syst = TMath::Sqrt(totalunc);
   
-//  cout<<"totalunc: "<<syst<<endl;
   return syst;
-//  return 0.1;
 }
 
 ///////////////////////////////////////////////////

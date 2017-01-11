@@ -258,19 +258,27 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
 
       // fill total nev
       int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
-//      int fvbin = fastevents->vbin[iev];
+
+      // fill FV histos for different event catagories
+      int catagory = getEventCatagory(iev,12);
+
+      if (catagory==1){ hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      if (catagory==2){ hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      if (catagory==3){ hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      if (catagory==4){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      if (catagory==0){cout<<"event # "<<iev<<" has not a catagory..."<<endl;}
 
       // is NC?
-      if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+//      if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
 
       //  CC?
-      if (fastevents->vnutype[iev]!=12){hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-      else if (fastevents->vmode[iev]==1) {
-        hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
-      }
-      else {
-        hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
-      }
+//      if (fastevents->vnutype[iev]!=12){hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+//      else if (fastevents->vmode[iev]==1) {
+//        hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
+//      }
+//      else {
+//        hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
+//      }
 
       if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
 
@@ -287,6 +295,33 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
 }
 
 
+////////////////////////////////////////////////////////////////
+// Get event catagory. Current catagories:
+//   1 -> CCQE
+//   2 -> CCnQE
+//   3 -> CCWrong
+//   4 -> NC
+//   0 -> Uncatagorized
+int toyMC::getEventCatagory(int iev, int inutype){
+      
+
+      // is NC?
+      if (fastevents->vmode[iev]>=30){return 4;}
+
+      //  CC?
+      
+      // mid-IDed
+      if (fastevents->vnutype[iev]!=inutype){return 3;}
+      
+      // ccqe
+      else if (fastevents->vmode[iev]==1) {return 1;}
+      else {
+        return 2;
+      }
+      
+      //
+      return 0;
+}
 
 
 ////////////////////////////////////////////////////////////////
@@ -295,10 +330,10 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
 
   // make array of histos
   cout<<"Initializing array of histograms..."<<endl;
-//  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",EnuNBins,EnuBinning);
-  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",20,0,3000);
+  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",EnuNBins,EnuBinning);
+//  TH1D* hE = new TH1D("hE_nuMu","hE_nuMu",20,0,3000);
 
-  TH2FV* hfv = new TH2FV("hfv",1);
+  TH2FV* hfv = new TH2FV("hfv",2);
   // array of nu energy histograms
   hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
 
@@ -342,17 +377,23 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
       int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
 //      int fvbin = fastevents->vbin[iev];
 
-      // is NC?
-      if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      // fill FV histos for different event catagories
+      int catagory = getEventCatagory(iev,14);
+
+      if (catagory==1){ hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      if (catagory==2){ hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      if (catagory==3){ hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      if (catagory==4){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      if (catagory==0){cout<<"event # "<<iev<<" has not a catagory..."<<endl;}
 
       //  CC?
-      if (fastevents->vnutype[iev]!=14){hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-      else if (fastevents->vmode[iev]==1) {
-        hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
-      }
-      else {
-        hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
-      }
+//      if (fastevents->vnutype[iev]!=14){hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+//      else if (fastevents->vmode[iev]==1) {
+//        hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
+//      }
+//      else {
+//        hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
+//      }
 
       if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
     }

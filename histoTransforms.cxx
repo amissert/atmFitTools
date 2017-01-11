@@ -176,15 +176,17 @@ void applyLoBound(TGraph* gr, TH1D* h, double lobound){
   
   // get bin width (assume constant);
   double binw = h->GetBinWidth(1);
-
-  // identify the critical bin
+  // identify the critical bin where the lower bound lies
   int critbin = -1;
-  for (int ibin=0; ibin<=h->GetNbinsX(); ibin++){
-     double centerval = h->GetBinCenter(ibin);
-     if (centerval>lobound){
+  for (int ibin=1; ibin<=h->GetNbinsX(); ibin++){
+
+     double binloval = h->GetBinLowEdge(ibin);
+     double binhival  = binloval + h->GetBinWidth(ibin); 
+     if ((binloval <= lobound) && (binhival> lobound)){
        critbin = ibin;
        break;
      }
+
   }
 
   // integrate un-physical bins

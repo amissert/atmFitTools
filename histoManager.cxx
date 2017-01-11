@@ -522,7 +522,7 @@ TH1D* histoManager::getModHistogram(int isamp, int ibin, int icomp, int iatt){
 
   // apply any physical bounds
   if (applyPhysicalBound[iatt]){
-    applyLoBound(gr,hMCModified[isamp][ibin][icomp][iatt]);
+    applyLoBound(gr,hMCModified[isamp][ibin][icomp][iatt],physicalLoBound[iatt]);
   }
 
   
@@ -546,7 +546,7 @@ TH1D* histoManager::getModHistogramMC(int isamp, int ibin, int icomp, int iatt){
 
   // apply physical bounds if any
   if (applyPhysicalBound[iatt]){
-    applyLoBound(gr,htmp);
+    applyLoBound(gr,htmp,physicalLoBound[iatt]);
   }
 
   gr->Delete();

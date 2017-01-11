@@ -794,6 +794,7 @@ void preProcess::applyT2KSelection(){
   fqpars.fqenue = fq->fq1renu[0];
   fqpars.fqenumu = fq->fq1renu[1];
   fqpars.fqnsubev = fq->fqnse;
+  fqpars.fqnring = fq->fqmrnring[0];
 
   // 1R selections
   passecut = selectNuE(fqpars);
@@ -864,6 +865,7 @@ float preProcess::getRCParameter(fqEvent* fqevent){
 
   // get mom of 2nd ring
   float ringmom = (float)fqevent->fqmrmom[best2RID][1];
+
 //  cout<<"best mr: "<<fqevent->fqmrnll[best2RID]<<endl;
 //  cout<<"mrmom: "<<fqevent->fqmrmom[best2RID][1]<<endl;
   float deltaLnL = best1Rnglnl - fqevent->fqmrnll[best2RID];
@@ -874,8 +876,9 @@ float preProcess::getRCParameter(fqEvent* fqevent){
   float a1 = -0.6;
 
   // ring-counting parameter
-  float rcpar = deltaLnL - (a0 + a1*ringmom); 
-
+//  float rcpar = deltaLnL - (a0 + a1*ringmom); 
+//  float rcpar = deltaLnL; 
+  float rcpar = (float) fqevent->fqmrnring[0];
   // dot product between best 2 rings
   fqmrdot =   fqevent->fqmrdir[best2RID][0][0]*fqevent->fqmrdir[best2RID][1][0]
             + fqevent->fqmrdir[best2RID][0][1]*fqevent->fqmrdir[best2RID][1][1]

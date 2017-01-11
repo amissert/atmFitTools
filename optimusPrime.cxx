@@ -6,14 +6,22 @@
 
 //////////////////////////////////////////
 // constructor
-optimusPrime::optimusPrime(TChain* t2kmc, int nevts){
+optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const char* mapfile){
 
+ // set chain pointer
  chmc = t2kmc;
+
+ // set event reader
  mcevent = new fqProcessedEvent(chmc);
+
+ // max # of MC events to use
  nevents = nevts;
+
+ // flg to toggle using energy spectrom when evaluating f.o.m
  FOMType = 0;
 
- if (nevts>chmc->GetEntries()){
+ 
+ if (nevents>chmc->GetEntries()){
    nevents = chmc->GetEntries();
    flgUseEventList = 1;
  }
@@ -21,7 +29,7 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts){
   flgUseEventList = 1;
  }
 
- // we only need enu, wall, towall, and mode and wallv
+ // turn off some branches for faster array filling
  chmc->SetBranchStatus("*",0);
  chmc->SetBranchStatus("mode",1);
  chmc->SetBranchStatus("wallv",1);
@@ -34,26 +42,27 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts){
  chmc->SetBranchStatus("ipnu",1);
  chmc->SetBranchStatus("pmomv",1);
 
+ // initialze some histos
  hFVAll = new TH2FV("hall",-1,30,0,800,30,0,800);
  hFVAvg = new TH2FV("havg",-1,30,0,800,30,0,800);
 
- uncertaintyCalculator = new moreUncertainties("/nfs/data41/t2k/amissert/atmos/head/atmFitTools/data/");
+ // set up object to read uncertainties for each event
+ uncertaintyCalculator = new moreUncertainties(datadir, mapfile);
 
+ // overall scaling factors
  Scale = 1.;
  SysScale = 1.;
 
+ // fill large MC array for faster reading later
  fillArray();
 
- // setup recon energy histo
- int nbins = 100;
- float emax = 5000;
-
+ // setup recon energy histos
+ // seed from histogram binning in uncertainty map file
  TH1D* hseed = uncertaintyCalculator->hERecUnc[0];
+// TH1D* hseed = new TH1D("hseed","hseed",4,0,2500);
  hseed->SetStats(0);
  hseed->SetBit(TH1::kNoTitle,0);
  hErec[0] = (TH1D*)hseed->Clone("herec_power");
-// hErec[0] = new TH1D("h","h",20,0,2000);
-// hseed = hErec[0];
  hErec[0]->SetTitle("Oscillation Power");
  hErec[1] = (TH1D*)hseed->Clone("herec_N");
  hErec[1]->SetTitle("# of Events");
@@ -73,11 +82,12 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts){
  hErec[8]->SetTitle("CCWrong");
  hErec[9] = (TH1D*)hseed->Clone("herec_nc");
  hErec[9]->SetTitle("NC");
-
+ // reset all bin contents
  for (int ih=0; ih<6; ih++){
     hErec[ih]->Reset();
  }
 
+ // use full spectrum
  flgUseSpectrum = 1;
 }
 
@@ -208,9 +218,6 @@ void optimusPrime::calcFOMMapE(float towallmax, float wallmax,int oscpar, int np
  cout<<"Max bin: "<<maxbin<<endl;
   return;
 }
-
-
-
 
 
 //////////////////////////////////////////
@@ -452,14 +459,54 @@ void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int osc
 // calculate FOM from arrays instead of histograms
 float optimusPrime::calcFOM(float* pow, float* nev, float* sys, int nbin){
 
- float fom = 0.; 
- float S  = 0.;
- float N = 0.;
- float P = 0.;
+ float fom_total = 0.; 
+ float syst_total  = 0.;
+ float power_total = 0.;
+ float nev_total = 0.;
 
+ // loop over spectrum bins
  for (int i=0; i<nbin; i++){
+  
+    // figure of merit in this spectrum bin
+    float fom_thisbin = 0.;
+
+    // if there are events in this bin, it contributes to total
+    if (nev[i]>0.){
+      fom_thisbin = (pow[i]*pow[i])/((sys[i]*sys[i])+nev[i]);
+    }
+   
+    #ifdef PRINTSUMMARY
+    hErec[0]->SetBinContent(i,(pow[i]*pow[i]));
+    hErec[1]->SetBinContent(i,nev[i]);
+    hErec[2]->SetBinContent(i,sys[i]);
+    #endif
+
+    fom_total += fom_thisbin;
+    power_total += (pow[i]*pow[i]);
+    syst_total  += (sys[i]);
+    nev_total   += nev[i];
+ }
+
+ #ifdef PRINTSUMMARY
+ cout<<"total P: "<<power_total<<endl;
+ cout<<"total N: "<<nev_total<<endl;
+ cout<<"total S: "<<syst_total<<endl;
+ cout<<"FOM: "<<fom_total<<endl;
+ #endif
+ return fom_total;
+
+
+// float N = 0.;
+// float P = 0.;
+
+ // loop over spectrum bins
+ /*for (int i=0; i<nbin; i++){
+
+    // figure of merit in this bin 
     float fombin = 0.;
-    S+=sys[i];
+    
+    // add to totals
+    syst_total+=sys[i];
     N+=nev[i];
     P+=pow[i];
     if (FOMType==0){
@@ -483,10 +530,10 @@ float optimusPrime::calcFOM(float* pow, float* nev, float* sys, int nbin){
  
  cout<<"total P: "<<P<<endl;
  cout<<"total N: "<<N<<endl;
- cout<<"total S: "<<S<<endl;
+ cout<<"total S: "<<syst_total<<endl;
  cout<<"FOM: "<<fom<<endl;
  return fom;
-
+ */
 }
 
 
@@ -584,10 +631,13 @@ void optimusPrime:: calcFVSummary(int oscpar, int nutype){
 // calculate the fractional weighted systematic uncertainty
 // for an event
 float optimusPrime::getSystUncertainty(int i, int nutype){
+
+   // is the lepton mis-IDed?
    int wronglepton = 0;
    if (TMath::Abs(fastevents->vnutype[i])!=nutype) wronglepton = 1;
-   float lmom = fastevents->vfqenumu[i];
-   if (nutype!=14) lmom = fastevents->vfqenue[i];
+
+//   float lmom = fastevents->vfqenumu[i];
+//   if (nutype!=14) lmom = fastevents->vfqenue[i];
    float sys = uncertaintyCalculator->getTotalUncertainty(fastevents->vwallv[i],
                                                           fastevents->vfqwall[i],
                                                           fastevents->vfqtowall[i],
@@ -860,9 +910,10 @@ int optimusPrime::passNuMuCuts(int i){
   cutPars.fqpippar = fastevents->vattribute[i][indexPiPPar];
   cutPars.fqenumu = fastevents->vfqenumu[i];
   cutPars.fqenue = fastevents->vfqenue[i];
-  cutPars.fqrcpar = fastevents->vattribute[i][indexRCPar];
+  cutPars.fqrcpar = fastevents->vfqrcpar[i];
   cutPars.nhitac = fastevents->vnhitac[i];
   cutPars.fqnsubev = fastevents->vfqnsubev[i];
+  cutPars.fqnring = fastevents->vfqnring[i];
 
  
   int ipass = selectNuMu(cutPars);

@@ -27,6 +27,11 @@ void sharedPars::readParsFromFile(){
   kr->readFile();
 
   //set parameters to values
+  physLoBoundAtt0 = kr->getKeyD("physLoBoundAtt0");
+  physLoBoundAtt1 = kr->getKeyD("physLoBoundAtt1");
+  physLoBoundAtt2 = kr->getKeyD("physLoBoundAtt2");
+  physLoBoundAtt3 = kr->getKeyD("physLoBoundAtt3");
+  physLoBoundAtt4 = kr->getKeyD("physLoBoundAtt4");
   flgUsePriorsInFit = kr->getKeyI("flgUsePriorsInFit");
   useSplinesFlg = kr->getKeyI("useSplinesFlg");
   MCMCNSteps= kr->getKeyI("MCMCNSteps");
