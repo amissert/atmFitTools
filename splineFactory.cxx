@@ -8,8 +8,6 @@
 //run spline factory using parameters from file
 void splineFactory::runSplineFactory(){
   
-
-  
   //make them splines
   buildTheSplines();
 
@@ -86,7 +84,7 @@ void splineFactory::fillBranches(int isamp,int ibin,int icomp,int iatt,int isyst
 //          binWeight[ipt][jhistobin] =
 //           ((double)hMC[isamp][ibin][icomp][iatt][ipt]->GetBinContent(jhistobin))/
 //           (double)hManager->getHistogram(isamp,ibin,icomp,iatt)->GetBinContent(jhistobin);
-          cout<<"binweight: "<<binWeight[ipt][jhistobin]<<endl;
+//          cout<<"binweight: "<<binWeight[ipt][jhistobin]<<endl;
 
        }
      }
@@ -170,7 +168,7 @@ void splineFactory::buildSplineForPar(int isyspar){
     //loop over the MC events and re-fill all histograms
     int Nevts = mcTree->GetEntries();
     cout<<"splineFactory: Number of MC events: "<<Nevts<<endl;
-//    Nevts = 50000;
+//    Nevts = 500000;
     double scalefactor = (double) mcTree->GetEntries()/(double)Nevts;
     cout<<"splineFactory: scalefactor: "<<scalefactor<<endl;
 
