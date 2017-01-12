@@ -115,6 +115,12 @@ void moreUncertainties::init(){
     hERecUnc[ifvbin] = (TH1D*)filefvmap->Get(Form("Bin_Uncertainty_FVBin%d",ifvbin));
   }
 
+  // for xsec unc
+  hCCQEUnc = new TH1D("hccqeunc","hccqeunc",CCQENBins,CCQEBinning);
+  for (int i=1; i<= CCQENBins; i++){
+    hCCQEUnc->SetBinContent(i,CCQEUncertaintyValues[i-1]);
+  }
+
   //
   return;
 
@@ -165,28 +171,36 @@ float moreUncertainties::getEnteringNormUnc(float wallv){
 
 ////////////////////////////////////////////////////////////////
 // get the x-section uncertainty
-float moreUncertainties::getXsecUnc(int mode){
+float moreUncertainties::getXsecUnc(int mode, float enu){
 
   int absmode = TMath::Abs(mode);
 
   if (absmode==1){
-    return 0.00;
-  }
-
-  else if (absmode<30){
-    if (absmode==16){
-      return 1.0;
+    int ibin = hCCQEUnc->FindBin(enu);
+    if (ibin>0){
+       return hCCQEUnc->GetBinContent(ibin);
     }
     else{
-      return 0.2;
+      return 0.;
     }
   }
 
-  else if (absmode==36){
-    return 1.0;
-  }
+//  else if (absmode<30){
+//    return 0.2;
+//  }
+//    if (absmode==16){
+//      return 0.2;
+//    }
+//    else{
+//      return 0.2;
+//    }
+//  }
 
-  return 0.3;
+//  else if (absmode==36){
+//    return 1.0;
+//  }
+
+  return 0.2;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -207,10 +221,9 @@ float moreUncertainties::getTotalUncertainty(float wallv, float wallrc, float to
   // additional normalization uncertainty from fraction of entering events
   float wallnormunc = getEnteringWallNormUnc(wallv);
   totalunc += (wallnormunc*wallnormunc);
-
  
   // for x section
-  float xunc = getXsecUnc(mode);
+  float xunc = getXsecUnc(mode, erec);
   totalunc += xunc;
 
 //     for FV
