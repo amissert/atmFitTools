@@ -206,35 +206,64 @@ void preProcess::makeTestFiles(const char* outdir, int testtype, int nmc, int nd
   return;
 }
 
+
+
+float preProcess::getAtmWeight(){
+
+  float ww = 1.0;
+
+  // norm
+  ww *= atmMCNorm;
+
+  // flux
+  ww *=  fq->oscwgt;
+  
+  // get flux weight
+  ww *= ( 0.65*fq->flxh11[0] + 0.35*fq->flxh11[2] )/fq->flxh06[1]; 
+
+  return ww;
+}
+
+
 ///////////////////////////////////
 //Gets a weight for an event
 //Usefull for making fake data sets
 float preProcess::getWeight(){
 
+  // start with no weight
   evtweight = 1.0;
 
-  if (useWeights){
-    evtweight = gWeight->Eval(fq->fq1rmom[0][2],0,"s");
-  }
+  // weight from graph (no longer in use)
+//  if (useWeights){
+//    evtweight = gWeight->Eval(fq->fq1rmom[0][2],0,"s");
+//  }
+
+  // reduced T2K MC will have a branch holding the weights 
   if (!ntupleType.CompareTo("T2KMCReduced")){
     evtweight=fq->totwgt;
   }
 
-  // if using skimmed tree from Xiaoyue, calculate event weight
-  // based on these variables in the ntuples
   if (!ntupleType.CompareTo("Atmospheric")){
-    #ifdef USE_XL_WEIGHTS
-    evtweight *= fq->wgtosc1[3]; // for Xiaoyue MC
-    evtweight *= fq->wgtflx[3]; // for Xiaoyue MC
-    #endif
 
-    #ifdef USE_ST_WEIGHTS
+
+    // if using skimmed tree from Xiaoyue, calculate event weight
+    // based on these variables in the ntuples
+//    #ifdef USE_XL_WEIGHTS
+//    evtweight *= fq->wgtosc1[3]; // for Xiaoyue MC
+//    evtweight *= fq->wgtflx[3]; // for Xiaoyue MC
+//    #endif
+
+//    #ifdef USE_ST_WEIGHTS
     //////////////////////////////////////////////
     // For Shimpei MC
-    double w_maxsolact =0.35;
-    evtweight *= ((1. - w_maxsolact)*fq->flxh11[0]+w_maxsolact*fq->flxh11[2])/fq->flxh06[1];
-    evtweight *= fq->oscwgt; // for Shimpei MC
-    #endif
+//    double w_maxsolact =0.35;
+//    evtweight *= ((1. - w_maxsolact)*fq->flxh11[0]+w_maxsolact*fq->flxh11[2])/fq->flxh06[1];
+//    evtweight *= fq->oscwgt; // for Shimpei MC
+//    evtweight *= atmMCNorm;
+//    #endif
+
+     evtweight *= getAtmWeight();
+
   }
 
   // fake normalization bump
@@ -1007,9 +1036,8 @@ void preProcess::setupNewTree(){
   tr->SetBranchStatus("wgt*",1);
 #endif
 #ifdef USE_ST_WEIGHTS
-  tr->SetBranchStatus("oscwgt",1);
-  tr->SetBranchStatus("flxh11",1);
-  tr->SetBranchStatus("flxh06",1);
+  tr->SetBranchStatus("osc*",1);
+  tr->SetBranchStatus("flx*",1);
 #endif
 
   // make new output tree that is clone of old tree,
@@ -1089,10 +1117,16 @@ preProcess::preProcess(){
   nFiles=0;
   useWeights=0;
   
-  // get ring-counting parameter
+  // get ring-counting parameter (not used anymore)
   TFile* frcpar = new TFile("./data/SingleRingness.root");
-//  hRCPar =  (TH2D*)frcpar->Get("hnum_interpolatedzeros");
+ 
+  // get atm norm
+   double fMCyr = 400.;
+   double factor = SK4AtmLivetime/365.25/fMCyr;
+   atmMCNorm = (float)factor;
+
 }
+
 
 //////////////////////////////////////////
 //read in parameters and run preprocessing!
