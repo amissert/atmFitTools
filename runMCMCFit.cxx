@@ -23,7 +23,6 @@ int main(int argc, char* argv[]){
 
  // make new histogram comparison object
  histoCompare* hc= new histoCompare(parfilename.Data());
-
  
  // set up the fit
  hc->MCMCOutputFile = outfilename.Data();

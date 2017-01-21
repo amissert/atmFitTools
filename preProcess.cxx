@@ -726,8 +726,9 @@ int preProcess::preProcessIt(){
 
   // apply T2K selection?
   int applyT2K = 1;
-  if (ntupleType.CompareTo("Cosmic")==0) getCompFlg = 0;
-  if (ntupleType.CompareTo("Hybrid")==0) getCompFlg = 0;
+  if (ntupleType.CompareTo("Cosmic")==0) applyT2K = 0;
+  if (ntupleType.CompareTo("Hybrid")==0) applyT2K = 0;
+  if (ntupleType.CompareTo("Atmospheric")==0) applyT2K = 0;
 
   // loop over events in tree
   nbin = 0;
@@ -755,15 +756,12 @@ int preProcess::preProcessIt(){
     // get the MC component based on visible information
     if (getCompFlg) ncomponent = getComponent();
 
-    if (applyT2K) applyT2KSelection();
-
-
-    // add fake shift if needed
-//    if (fakeShiftFlg){
-//      if (ncomponent==0){
-//        attribute[0] = attribute[0] +50.;
-//      }
-//    }
+    if (applyT2K){
+      // see if event passes T2K selection
+      applyT2KSelection();
+      // don't bother if it doesn't pass the cuts
+      if ( (!passecut) && (!passmucut) ) continue;
+    }
 
     // find which sample the event belongs to   
     nsample=getSample();
