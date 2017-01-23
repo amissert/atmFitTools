@@ -19,7 +19,6 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
 
  // flg to toggle using energy spectrom when evaluating f.o.m
  FOMType = 0;
-
  
  if (nevents>chmc->GetEntries()){
    nevents = chmc->GetEntries();
@@ -58,8 +57,8 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
 
  // setup recon energy histos
  // seed from histogram binning in uncertainty map file
- TH1D* hseed = uncertaintyCalculator->hERecUnc[0];
-// TH1D* hseed = new TH1D("hseed","hseed",4,0,2500);
+// TH1D* hseed = uncertaintyCalculator->hERecUnc[0];
+ TH1D* hseed = new TH1D("hseed","hseed",20,0,5000);
  hseed->SetStats(0);
  hseed->SetBit(TH1::kNoTitle,0);
  hErec[0] = (TH1D*)hseed->Clone("herec_power");
@@ -67,12 +66,12 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
  hErec[1] = (TH1D*)hseed->Clone("herec_N");
  hErec[1]->SetTitle("# of Events");
  hErec[2] = (TH1D*)hseed->Clone("herec_syst");
- hErec[2]->SetTitle("Uncertainty");
- hErec[3] = (TH1D*)hseed->Clone("herec_signal");
- hErec[3]->SetTitle("# Signal");
+ hErec[2]->SetTitle("Systematic Uncertainty");
+ hErec[3] = (TH1D*)hseed->Clone("herec_fom");
+ hErec[3]->SetTitle("Figure of Merit");
  hErec[4] = (TH1D*)hseed->Clone("herec_bg");
  hErec[4]->SetTitle("# BG");
- hErec[5] = (TH1D*)hseed->Clone("herec_fom");
+ hErec[5] = (TH1D*)hseed->Clone("herec_sig");
  hErec[5]->SetTitle("F.O.M.");
  hErec[6] = (TH1D*)hseed->Clone("herec_ccqe");
  hErec[6]->SetTitle("CCQE");
@@ -89,6 +88,10 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
 
  // use full spectrum
  flgUseSpectrum = 1;
+
+ // dont fill summary plots unless told to do so
+ flgPrintSummary = 1;
+
 }
 
 /////////////////////////////////////////
@@ -117,8 +120,10 @@ float optimusPrime::getOscPower(int nutype, int oscpar){
 // get the oscillation power for this event
 float optimusPrime::getOscPowerFast(int nutype, int ientry, int oscpar){
 
+/*
  // NC events do not contribute 
- if (TMath::Abs(fastevents->vmode[ientry])>=30) return 0.;
+ // Non-CCQE do not contribute
+ if (TMath::Abs(fastevents->vmode[ientry])>=10) return 0.;
  
  // other nu do not contribute
  if (TMath::Abs(fastevents->vnutype[ientry]) != nutype) return 0.;
@@ -129,16 +134,37 @@ float optimusPrime::getOscPowerFast(int nutype, int ientry, int oscpar){
  // return power multiplied by weight
  float oscpow = fastevents->vweight[ientry]*fastevents->voscpower[ientry][oscpar]; 
 
-// cout<<"oscpow: "<<oscpow<<endl;
+ if (FOMType==2) oscpow = fastevents->vweight[ientry];
 
- return oscpow;
+*/
+
+    // is dead region?
+    if (fastevents->vwallv[ientry] < 0.) { return 0.;}
+
+    // is NC?
+    if (TMath::Abs(fastevents->vmode[ientry])>=30){return 0.;}
+
+    // is Mis ID?
+    if (TMath::Abs(fastevents->vnutype[ientry])!= nutype) {return 0;}
+
+    // is CCQE?
+    if (TMath::Abs(fastevents->vmode[ientry])<=10){
+      float opow = getEventWeight(ientry)*fastevents->voscpower[ientry][oscpar];
+      if (FOMType==2) opow = getEventWeight(ientry);
+      return opow;
+    }
+
+    // CCnQE 
+    if (TMath::Abs(fastevents->vmode[ientry])<30) {return 0.;}
+
+    return 0.;
 }
 
 void optimusPrime::fillFVHistoFast(){
 //  hFVAll = new TH2FV("hall",-1,40,0,1000,40,0,1000);
 //  hFVAvg = new TH2FV("havg",-1,40,0,1000,40,0,1000);
-  hFVAll->Reset();
-  hFVAvg->Reset();
+//  hFVAll->Reset();
+//  hFVAvg->Reset();
   for (int ievt=0; ievt<nevents; ievt++){
     hFVAll->Fill(fastevents->vfqtowall[ievt],fastevents->vfqwall[ievt],fastevents->vweight[ievt]);
     if (AvgType==0){
@@ -166,9 +192,11 @@ void optimusPrime::fillFVHistoFast(){
 // useful method to map out the figure of merit in each bin
 void optimusPrime::calcFOMMap(float towallmax, float wallmax,int oscpar, int npts){
 
+ // initialize
  double fommax = -1.;
  int    maxbin = -1;
 
+ // for finding FV 
  hFV = new TH2FV("h",-1,npts,0,towallmax,npts,0,wallmax);
  hFV->SetContour(50);
  for (int ibin = 0; ibin<hFV->GetNumberOfBins(); ibin++){
@@ -233,7 +261,10 @@ void optimusPrime::fillArray(){
 
 //////////////////////////////////////////////////
 // get FOM using a spectrum for electron selection
-float optimusPrime::calcFOMSpectrumNuE(float towallmin, float wallmin, int oscpar){
+float optimusPrime::calcFOMSpectrumNuE(float towallmin, float wallmin, int oscpar, int iplt){
+
+  
+  /* the old way
 
   // towall must be smaller than wall
   if (towallmin<wallmin){
@@ -314,34 +345,27 @@ float optimusPrime::calcFOMSpectrumNuE(float towallmin, float wallmin, int oscpa
 
   // add up figure of merit in each bin
   return calcFOM(Pow,Nev,Sys,nn);
+ */
 
-}
 
-
-/////////////////////////////////////////////
-// draw stacked histogram of events
-void optimusPrime::showBreakdown(){
-
-  hs = new THStack("hs","");
-
-  hErec[6]->SetFillColor(kCyan);
-  hErec[7]->SetFillColor(kBlue);
-  hErec[8]->SetFillColor(kRed);
-  hErec[9]->SetFillColor(kBlack);
-
-  hs->Add(hErec[9]);
-  hs->Add(hErec[8]);
-  hs->Add(hErec[7]);
-  hs->Add(hErec[6]);
-
-  hs->Draw("h");
+  // the new way:
   
-  return;
-}
 
-//////////////////////////////////////////
-// get FOM using a spectrum
-float optimusPrime::calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscpar){
+  // summarize?
+  if (flgPrintSummary){
+    if (iplt==1){
+      plots1 = new summaryPlots("nue");
+      plots1->setLargeArray(fastevents);
+      plots1->InitToys(hErec[0]);
+      plots1->Init();
+    }
+    if (iplt==2){
+      plots2 = new summaryPlots("nue");
+      plots2->setLargeArray(fastevents);
+      plots2->InitToys(hErec[0]);
+      plots2->Init();
+    }
+  }
 
   // towall must be smaller than wall
   if (towallmin<wallmin){
@@ -373,13 +397,127 @@ float optimusPrime::calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscp
     Sys[i]=0.;
   }
 
-  // nue or numu analysis?
+  // loop over events
+  for (int i=0; i<nevents; i++){
+
+     // see if event passes numu cuts
+     int ipass = fastevents->vpassnue[i];
+
+     // if it passes, add to spectrum
+     if (ipass){
+
+      // ..as long as it passes the FV cuts
+      if ((fastevents->vfqwall[i] >= wallmin)&&(fastevents->vfqtowall[i]>=towallmin)){
+       
+        // get erec bin of this event
+        int erecbin = hErec[0]->FindBin(fastevents->vfqenue[i]);
+
+        // count the overflow bin
+        if ((erecbin<0) && (fastevents->vfqenue[i]) > hErec[0]->GetBinLowEdge(hErec[0]->GetNbinsX())){
+          erecbin = hErec[0]->GetNbinsX() + 1;
+        }
+       
+        // get oscillation power (derivative w.r.t. oscillation parameter)
+        float opow = getOscPowerFast(12,i,oscpar)*Scale;
+        Pow[erecbin] += opow;
+       
+        // keep track of all events
+        float ww = getEventWeight(i)*Scale;
+        Nev[erecbin] += ww;
+       
+        // keep track of systematic uncertainty
+        float syserr =  getSystUncertainty(i,12)*Scale*SysScale;
+        Sys[erecbin] += syserr;
+
+        // plots for the details
+        if (flgPrintSummary){
+          if (iplt==1) plots1->fillAllFromArray(i,opow,syserr);
+          if (iplt==2) plots2->fillAllFromArray(i,opow,syserr);
+        }
+
+      }
+    }
+  }
+
+  // add up figure of merit in each bin
+  return calcFOM(Pow,Nev,Sys,nn);
+ 
+}
+
+
+/////////////////////////////////////////////
+// draw stacked histogram of events
+void optimusPrime::showBreakdown(){
+
+  hs = new THStack("hs","");
+  
+  // color scheme
+  int colerz[5] = {4,7,2,1,6};
+
+  hErec[6]->SetFillColor(kCyan);
+  hErec[7]->SetFillColor(kBlue);
+  hErec[8]->SetFillColor(kRed);
+  hErec[9]->SetFillColor(kBlack);
+
+  hs->Add(hErec[9]);
+  hs->Add(hErec[8]);
+  hs->Add(hErec[7]);
+  hs->Add(hErec[6]);
+
+  hs->Draw("h");
+  
+  return;
+}
+
+//////////////////////////////////////////
+// get FOM using some erec binning 
+float optimusPrime::calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscpar, int iplt){
+
+  // summarize?
+  if (flgPrintSummary){
+    if (iplt==1){
+      plots1 = new summaryPlots("numuplt1");
+      plots1->setLargeArray(fastevents);
+      plots1->InitToys(hErec[0]);
+      plots1->Init();
+    }
+    if (iplt==2){
+      plots2 = new summaryPlots("numuplt2");
+      plots2->setLargeArray(fastevents);
+      plots2->InitToys(hErec[0]);
+      plots2->Init();
+    }
+  }
+
+  // towall must be smaller than wall
+  if (towallmin<wallmin){
+    return 0.;
+  }
+
+  // reset values
+  Nevents = 0.;
+  NB = 0.; 
+  NS = 0.; 
+  Power = 0.;
+  Syst = 0.;
+
+  // make arrays
+  const int nn = hErec[0]->GetNbinsX()+1;
+  float Pow[nn];
+  float Nev[nn];
+  float Sys[nn];
+  for (int i=0; i<nn; i++){
+    Pow[i]=0.;
+    Nev[i]=0.;
+    Sys[i]=0.;
+  }
 
   // loop over events
   for (int i=0; i<nevents; i++){
 
      // see if event passes numu cuts
-     int ipass = passNuMuCuts(i);
+//     int ipass = passNuMuCuts(i);
+     int ipass = fastevents->vpassnumu[i];
 
      // if it passes, add to spectrum
      if (ipass){
@@ -389,20 +527,24 @@ float optimusPrime::calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscp
        
         // get erec bin of this event
         int erecbin = hErec[0]->FindBin(fastevents->vfqenumu[i]);
+
+        // count the overflow bin
+        if ((erecbin<0) && (fastevents->vfqenumu[i]) > hErec[0]->GetBinLowEdge(hErec[0]->GetNbinsX())){
+          erecbin = hErec[0]->GetNbinsX() + 1;
+        }
         
-        Pow[erecbin] += getOscPowerFast(14,i,oscpar)*Scale;
+        float opow = getOscPowerFast(14,i,oscpar)*Scale;
+        Pow[erecbin] += opow;
         
-        Nev[erecbin] += fastevents->vweight[i]*Scale;
+        Nev[erecbin] += getEventWeight(i)*Scale;
         
         Sys[erecbin] += getSystUncertainty(i,14)*Scale*SysScale;
 
-        // fill signal
-        if ( TMath::Abs(fastevents->vmode[i])<30){
-          hErec[3]->Fill(fastevents->vfqenumu[i],fastevents->vweight[i]);
+        if (flgPrintSummary){
+          if (iplt==1) plots1->fillAllFromArray(i,0.,0.);
+          if (iplt==2) plots2->fillAllFromArray(i,0.,0.);
         }
-        else{
-          hErec[4]->Fill(fastevents->vfqenumu[i],fastevents->vweight[i]);
-        }
+
       }
     }
   }
@@ -412,52 +554,223 @@ float optimusPrime::calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscp
 
 }
 
+///////////////////////////////////////////////////////
+// get the weight for this event (can increase norm of
+// specifice event catagories i.e. entering b.g.
+float optimusPrime::getEventWeight(int iev){
+
+  float ww = 1.0;
+
+  ww *= fastevents->vweight[iev];
+
+  if (fastevents->vwallv[iev] < 0.){
+    ww *= 1.1; //< 10% additional weight 
+  }
+
+  return ww;
+}
+
+
+
 /////////////////////////////////////////////////////
 // compare tow sets of FV cuts
-void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int oscpar,int flgnumu){;
+void optimusPrime::compareFOM(float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu){
   
+  // make sure to record histograms
+  flgPrintSummary = 1;
+
+  // canvas setup
+  multiPad = new TCanvas("multiPad","multiPad",700,800);
+  multiPad->Divide(2,2);
+
+  // colerz
+  int colerz[5] = {4,7,2,15,6};
+
+  // do the calculations and fill plots1
+  float fom1 = 0.;
+
+  if (flgnumu) fom1 = calcFOMSpectrumNuMu(tw1,w1,oscpar, 1);
+  else{
+    fom1 = calcFOMSpectrumNuE(tw1,w1,oscpar, 1);
+  }
+
+  TH1D* htmp[4];
+  htmp[0]  = (TH1D*)hErec[0]->Clone("htmp1");
+  htmp[1]  = (TH1D*)hErec[1]->Clone("htmp2");
+  htmp[2]  = (TH1D*)hErec[2]->Clone("htmp3");
+  htmp[3]  = (TH1D*)hErec[3]->Clone("htmp4");
+
+  // new cut (1)
+  multiPad->cd(1);
+  htmp[0]->SetLineStyle(1);
+  htmp[0]->SetLineWidth(3);
+  htmp[0]->SetLineColor(1);
+  htmp[0]->Draw();
+  multiPad->cd(2);
+  htmp[1]->SetLineStyle(1);
+  htmp[1]->SetLineWidth(3);
+  htmp[1]->SetLineColor(1);
+  htmp[1]->Draw();
+  multiPad->cd(3);
+  htmp[2]->SetLineStyle(1);
+  htmp[2]->SetLineWidth(3);
+  htmp[2]->SetLineColor(1);
+  htmp[2]->SetMinimum(0);
+  htmp[2]->SetMaximum( htmp[1]->GetMaximum() );
+  htmp[2]->Draw();
+  multiPad->cd(4);
+  htmp[3]->SetLineStyle(1);
+  htmp[3]->SetLineWidth(3);
+  htmp[3]->SetLineColor(1);
+  htmp[3]->Draw();
+
+  // do the calculations and fill plots2
+  float fom2 = 0.;
+  if (flgnumu) fom2 = calcFOMSpectrumNuMu(tw2,w2,oscpar, 2);
+  else{
+    fom2 = calcFOMSpectrumNuE(tw2,w2,oscpar,2);
+  }
+
+  // old cut (2)
+  multiPad->cd(1);
+  hErec[0]->SetLineStyle(2);
+  hErec[0]->SetLineWidth(3);
+  hErec[0]->SetLineColor(2);
+  hErec[0]->Draw("same");
+  multiPad->cd(2);
+  hErec[1]->SetLineStyle(2);
+  hErec[1]->SetLineWidth(3);
+  hErec[1]->SetLineColor(2);
+  hErec[1]->Draw("same");
+  multiPad->cd(3);
+  hErec[2]->SetLineStyle(2);
+  hErec[2]->SetLineWidth(3);
+  hErec[2]->SetLineColor(2);
+  hErec[2]->Draw("same");
+  multiPad->cd(4);
+  hErec[3]->SetLineStyle(2);
+  hErec[3]->SetLineWidth(3);
+  hErec[3]->SetLineColor(2);
+  hErec[3]->Draw("same");
+  
+  //
+  cout<<"FOM1: "<<fom1<<endl;
+  cout<<"FOM2: "<<fom2<<endl;
+
+  cout<<"KS N: "<<htmp[1]->KolmogorovTest(hErec[1],"N")<<endl;
+  cout<<"KS S: "<<htmp[2]->KolmogorovTest(hErec[2],"N")<<endl;
+
+  // turn recording back off
+  flgPrintSummary = 0;
+
+  //
+  return;
+}
+
+
+/////////////////////////////////////////////////////
+// compare tow sets of FV cuts
+void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu){
+  
+  // make sure to record histograms
+  flgPrintSummary = 1;
+
   // canvas setup
   multiPad = new TCanvas("multiPad","multiPad",700,800);
   multiPad->Divide(2,3);
 
+  // colerz
+  int colerz[5] = {4,7,2,15,6};
+
+  // do the calculations and fill plots1
   float fom1 = 0.;
-  if (flgnumu) fom1 = calcFOMSpectrumNuMu(tw1,w1,oscpar);
+
+  if (flgnumu) fom1 = calcFOMSpectrumNuMu(tw1,w1,oscpar, 1);
   else{
     fom1 = calcFOMSpectrumNuE(tw1,w1,oscpar);
   }
 
-  for (int ih=0; ih<6; ih++){
-    multiPad->cd(ih+1);
-    TString hname = Form("hs%d",ih);
-    hSummary[ih] = (TH1D*)hErec[ih]->Clone(hname.Data());  
-    hSummary[ih]->SetLineColor(kRed);  
-    hSummary[ih]->SetLineWidth(3);  
-    hSummary[ih]->GetYaxis()->SetRangeUser(0,hSummary[ih]->GetMaximum());
-    hSummary[ih]->Draw("h");
-  }
-
+  // do the calculations and fill plots2
   float fom2 = 0.;
-  if (flgnumu) fom2 = calcFOMSpectrumNuMu(tw2,w2,oscpar);
+  if (flgnumu) fom2 = calcFOMSpectrumNuMu(tw2,w2,oscpar, 2);
   else{
     fom2 = calcFOMSpectrumNuE(tw2,w2,oscpar);
   }
 
-  for (int ih=0; ih<6; ih++){
-    multiPad->cd(ih+1);
-    hErec[ih]->SetLineWidth(3);  
-    hErec[ih]->Draw("sameh");
-  } 
+  // draw that shizz
+  // set colors (loop of # of catagories in summaryPlots::GetCatagory() )
 
+  if (flgnumu){ 
+    multiPad->cd(1);
+    plots1->pltEnuMu->Draw();
+    plots1->pltEnuMu->SetLineWidth(3);
+    plots2->pltEnuMu->SetLineWidth(3);
+    plots2->pltEnuMu->SetLineStyle(2);
+    plots1->pltEnuMu->Draw("h");
+    plots2->pltEnuMu->Draw("same");
+    double ymin = 0.;
+    double ymax = plots1->pltEnuMu->GetMaximum();
+    for (int icat=0; icat<5; icat++){
+      plots1->pltEnuMuCat[icat]->SetLineColor(colerz[icat]);
+      plots2->pltEnuMuCat[icat]->SetLineColor(colerz[icat]);
+      plots2->pltEnuMuCat[icat]->SetLineWidth(3);
+      plots1->pltEnuMuCat[icat]->SetLineWidth(3);
+      plots2->pltEnuMuCat[icat]->SetLineStyle(2);
+      multiPad->cd(icat+2);
+      plots1->pltEnuMuCat[icat]->SetMinimum(ymin);
+      plots1->pltEnuMuCat[icat]->SetMaximum(ymax);
+      plots1->pltEnuMuCat[icat]->Draw("h");
+      plots2->pltEnuMuCat[icat]->Draw("sameh");
+    }
+  }
+  else{
+    multiPad->cd(1);
+    plots1->pltEnuE->Draw();
+    plots1->pltEnuE->SetLineWidth(3);
+    plots2->pltEnuE->SetLineWidth(3);
+    plots2->pltEnuE->SetLineStyle(2);
+    plots1->pltEnuE->Draw("h");
+    plots2->pltEnuE->Draw("same");
+    double ymin = 0.;
+    double ymax = plots1->pltEnuE->GetMaximum();
+    for (int icat=0; icat<5; icat++){
+      plots1->pltEnuECat[icat]->SetLineColor(colerz[icat]);
+      plots2->pltEnuECat[icat]->SetLineColor(colerz[icat]);
+      plots2->pltEnuECat[icat]->SetLineWidth(3);
+      plots1->pltEnuECat[icat]->SetLineWidth(3);
+      plots2->pltEnuECat[icat]->SetLineStyle(2);
+      multiPad->cd(icat+2);
+      plots1->pltEnuECat[icat]->Draw("h");
+      plots1->pltEnuECat[icat]->SetMinimum(ymin);
+      plots1->pltEnuECat[icat]->SetMaximum(ymax);
+      plots2->pltEnuECat[icat]->Draw("sameh");
+    }
+  }
 
   //
   cout<<"FOM1: "<<fom1<<endl;
   cout<<"FOM2: "<<fom2<<endl;
+
+  // turn recording back off
+  flgPrintSummary = 0;
+
+  //
   return;
 }
+
+
 
 ///////////////////////////////////////////////////
 // calculate FOM from arrays instead of histograms
 float optimusPrime::calcFOM(float* pow, float* nev, float* sys, int nbin){
+
+ if (flgPrintSummary){
+   hErec[0]->Reset();
+   hErec[1]->Reset();
+   hErec[2]->Reset();
+   hErec[3]->Reset();
+   hErec[4]->Reset();
+ }
 
  float fom_total = 0.; 
  float syst_total  = 0.;
@@ -469,17 +782,18 @@ float optimusPrime::calcFOM(float* pow, float* nev, float* sys, int nbin){
   
     // figure of merit in this spectrum bin
     float fom_thisbin = 0.;
-
     // if there are events in this bin, it contributes to total
     if (nev[i]>0.){
       fom_thisbin = (pow[i]*pow[i])/((sys[i]*sys[i])+nev[i]);
     }
    
-    #ifdef PRINTSUMMARY
-    hErec[0]->SetBinContent(i,(pow[i]*pow[i]));
-    hErec[1]->SetBinContent(i,nev[i]);
-    hErec[2]->SetBinContent(i,sys[i]);
-    #endif
+    if (flgPrintSummary){
+      hErec[0]->SetBinContent(i,(pow[i]*pow[i]));
+      hErec[1]->SetBinContent(i,nev[i]);
+      hErec[2]->SetBinContent(i,sys[i]);
+      hErec[3]->SetBinContent(i,fom_thisbin);
+      hErec[4]->SetBinContent(i,pow[i]);
+    }
 
     fom_total += fom_thisbin;
     power_total += (pow[i]*pow[i]);
@@ -487,53 +801,17 @@ float optimusPrime::calcFOM(float* pow, float* nev, float* sys, int nbin){
     nev_total   += nev[i];
  }
 
- #ifdef PRINTSUMMARY
- cout<<"total P: "<<power_total<<endl;
- cout<<"total N: "<<nev_total<<endl;
- cout<<"total S: "<<syst_total<<endl;
- cout<<"FOM: "<<fom_total<<endl;
- #endif
+ // print some info?
+ if (flgPrintSummary){
+   cout<<"total P: "<<power_total<<endl;
+   cout<<"total N: "<<nev_total<<endl;
+   cout<<"total S: "<<syst_total<<endl;
+   cout<<"FOM: "<<fom_total<<endl;
+ }
+
+ //
  return fom_total;
 
-
-// float N = 0.;
-// float P = 0.;
-
- // loop over spectrum bins
- /*for (int i=0; i<nbin; i++){
-
-    // figure of merit in this bin 
-    float fombin = 0.;
-    
-    // add to totals
-    syst_total+=sys[i];
-    N+=nev[i];
-    P+=pow[i];
-    if (FOMType==0){
-      if ((sys[i]+nev[i])>0.){
-        fombin = (pow[i]*pow[i])/((sys[i]*sys[i])+nev[i]);
-//        fom+=fombin;
-        hErec[5]->SetBinContent(i,fombin);
-      }
-      else{
-        hErec[5]->SetBinContent(i,0.);
-      }
-    }
-    if (FOMType==1) fombin = (pow[i]);
-    if (FOMType==2) fombin = (sys[i]);  
-    if (FOMType==3) fombin = (nev[i]);  
-    fom+=fombin;
-    hErec[0]->SetBinContent(i,TMath::Abs(pow[i]));
-    hErec[1]->SetBinContent(i,nev[i]);
-    hErec[2]->SetBinContent(i,sys[i]);
- }
- 
- cout<<"total P: "<<P<<endl;
- cout<<"total N: "<<N<<endl;
- cout<<"total S: "<<syst_total<<endl;
- cout<<"FOM: "<<fom<<endl;
- return fom;
- */
 }
 
 
@@ -646,38 +924,14 @@ float optimusPrime::getSystUncertainty(int i, int nutype){
                                                           wronglepton);
 //   if (sys>0.5)  cout<<"event "<<i<<" has sys: "<<sys<<endl;
 
-   return sys*fastevents->vweight[i];                                                       
+   return sys*getEventWeight(i);                                                       
 }
 
-
-/////////////////////////////////////////
-// use the filled hErec histos to calculate
-// the FOM for a set of cuts
-/*float optimusPrime::calcFOMSpectrum(){
-  
-  float fom = 0.;
-
-  // loop over bins
-  for (int ibin=1; ibin<=hErec[0]->GetNbinsX(); ibin++){
-    float P = hErec[0]->GetBinContent(ibin);
-    float N = hErec[1]->GetBinContent(ibin);
-    float S = hErec[2]->GetBinContent(ibin);
-    // add to F.O.M.
-    if ((N+S)>0)fom += (P*P)/(N+(S*S));
-  }
-
-  //
-  cout<<"P:   "<<hErec[0]->Integral()<<endl;
-  cout<<"S:   "<<hErec[2]->Integral()<<endl;
-  cout<<"N:   "<<hErec[1]->Integral()<<endl;
-  cout<<"FOM: "<<fom<<endl;
-  return fom;
-}
-*/
 
 
 /////////////////////////////////////////////////////////////////
 // use Toy MC to calculate systematics, instead of relying on maps
+/*
 float optimusPrime::calcFOMToyMC(float towallcut,
                                  float wallcut,
                                  int   oscpar,
@@ -851,7 +1105,7 @@ float optimusPrime::calcFOMToyMC(float towallcut,
 
   return FOM;
 }
-
+*/
 
 
 /////////////////////////////////////////////////////////////////
@@ -903,6 +1157,7 @@ int optimusPrime::applyCutsToModifiedEvent(int iev){
 // does event pass cuts?
 int optimusPrime::passNuMuCuts(int i){
 
+  /*
   cutPars.fqmommu = fastevents->vfqmumom[i]; 
   cutPars.fqmome = fastevents->vfqemom[i];
   cutPars.fqpid = fastevents->vattribute[i][indexPIDPar];
@@ -917,6 +1172,7 @@ int optimusPrime::passNuMuCuts(int i){
 
  
   int ipass = selectNuMu(cutPars);
+  */
 
 //  int ipass = selectNuMu( fastevents->vnhitac[i],
 //                          fastevents->vfqnsubev[i],
@@ -924,7 +1180,10 @@ int optimusPrime::passNuMuCuts(int i){
 //                          fastevents->vfqemom[i],
 //                          fastevents->vfqmumom[i],
 //                          fastevents->vfqpid[i],
-//                          fastevents->vfqnring[i] );
+//                          fastevents->vfqnring[i] )
+
+
+  int ipass = fastevents->vpassnumu[i];
   return ipass;
 
 }
@@ -933,6 +1192,7 @@ int optimusPrime::passNuMuCuts(int i){
 // what about nu-e cuts?
 int optimusPrime::passNuECuts(int i){
 
+  /*
   cutPars.fqmommu = fastevents->vfqmumom[i]; 
   cutPars.fqmome = fastevents->vfqemom[i];
   cutPars.fqpid = fastevents->vattribute[i][indexPIDPar];
@@ -955,7 +1215,8 @@ int optimusPrime::passNuECuts(int i){
 //                          fastevents->vfqpid[i],
 //                          fastevents->vfqnring[i],
 //                          fastevents->vfqpi0par[i]);
-//                          
+*/                          
+  int ipass = fastevents->vpassnue[i];
   return ipass;
 
 }

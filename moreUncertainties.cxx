@@ -224,7 +224,7 @@ float moreUncertainties::getTotalUncertainty(float wallv, float wallrc, float to
  
   // for x section
   float xunc = getXsecUnc(mode, erec);
-  totalunc += xunc;
+  totalunc += xunc*xunc;
 
 //     for FV
   float fvunc = getFVUncertainty(towallrc,wallrc,mode,wronglepton);

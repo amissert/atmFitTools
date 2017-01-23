@@ -256,8 +256,6 @@ void histoFactory::fillHistos(){
   // get total numbers of data and MC events
   int nevdata = dataTree->GetEntries();
   int nevmc   = mcTree->GetEntries();
-//  nevmc=1000;
-//  nevdata=1000;
   cout<<"histoFactory: Number of Data entries: "<<nevdata<<endl;
   cout<<"histoFactory: Number of MC entries: "<<nevmc<<endl;
 
@@ -266,15 +264,14 @@ void histoFactory::fillHistos(){
     dataTree->GetEntry(i);
     for (int iatt=0;iatt<nAttributes;iatt++){
       hManager->fillHistogramData(fqData->nsample,fqData->nbin,iatt,
-                                  fqData->attribute[iatt],fqData->evtweight);
-      totDataEvents+=fqData->evtweight; 
+                                  fqData->attribute[iatt]);
+      totDataEvents+=1.; 
    }
   }
 
   //fill MC histos
   for (int j=0;j<nevmc;j++){
     mcTree->GetEntry(j);
-    //fillAttributesMC();
     for (int jatt=0;jatt<nAttributes;jatt++){
       hManager->fillHistogram(fqMC->nsample,fqMC->nbin,fqMC->ncomponent,
                               jatt,fqMC->attribute[jatt],fqMC->evtweight);

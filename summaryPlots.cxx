@@ -3,6 +3,33 @@
 
 #include "summaryPlots.h"
 
+
+int summaryPlots::GetCatagory(int iev, int wantnutype){
+
+
+   
+    // is dead region?
+    if (fastevents->vwallv[iev] < 0.) { return 4;}
+
+    // is NC?
+    if (TMath::Abs(fastevents->vmode[iev])>=30){return 3;}
+
+    // is Mis ID?
+    if (TMath::Abs(fastevents->vnutype[iev])!=wantnutype) {return 2;}
+
+    // is CCQE?
+    if (TMath::Abs(fastevents->vmode[iev])<=10){return 0;}
+
+    // CCnQE 
+    if ((TMath::Abs(fastevents->vmode[iev])>10)&&(TMath::Abs(fastevents->vmode[iev])<30)) {return 1;}
+ 
+    cout<<"!! no catagory found"<<endl;
+    
+    
+    return -1;
+
+}
+
 /////////////////////////////////////////////////////////////////////////
 // Initialize from seed
 void summaryPlots::InitToys(TH1D* hseed){
@@ -49,11 +76,17 @@ void summaryPlots::Init(){
   //
   TString hname = nameTag.Data();
   hname.Append("_enuE");
-  pltEnuE = new TH1D(hname.Data(),hname.Data(),10,0,2000);
+  pltEnuE = new TH1D(hname.Data(),hname.Data(),20,0,2000);
+  pltEnuE->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuE->SetStats(0);
+  pltEnuE->SetTitle(0);
   //
   hname = nameTag.Data();
   hname.Append("_enuMu");
-  pltEnuMu = new TH1D(hname.Data(),hname.Data(),10,0,2000);
+  pltEnuMu = new TH1D(hname.Data(),hname.Data(),20,0,5000);
+  pltEnuMu->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuMu->SetStats(0);
+  pltEnuMu->SetTitle(0);
   //
   hname = nameTag.Data();
   hname.Append("_Power");
@@ -80,7 +113,23 @@ void summaryPlots::Init(){
   hname = nameTag.Data();
   hname.Append("_pow2D");
   pltPower2D = new TH2D(hname.Data(),hname.Data(),50,0,1000,50,0,1);
- 
+
+  for (int i=0; i<NCATS; i++){
+    hname = nameTag.Data();
+    hname.Append(Form("_enuMu_cat%d",i));
+    pltEnuMuCat[i] = new TH1D(hname.Data(),hname.Data(),20,0,5000);
+    pltEnuMuCat[i]->GetXaxis()->SetTitle("E_{rec} [MeV]");
+    pltEnuMuCat[i]->SetStats(0);
+    pltEnuMuCat[i]->SetTitle(0);
+    //
+    hname = nameTag.Data();
+    hname.Append(Form("_enuE_cat%d",i));
+    pltEnuECat[i] = new TH1D(hname.Data(),hname.Data(),20,0,1000);
+    pltEnuECat[i]->GetXaxis()->SetTitle("E_{rec} [MeV]");
+    pltEnuECat[i]->SetStats(0);
+    pltEnuECat[i]->SetTitle(0);
+  }
+  
   // set up toys
   /*
   for (int ih=0; ih<NTOYPOINTS; ih++){
@@ -110,27 +159,37 @@ void summaryPlots::Init(){
 // fill all histso from array
 void summaryPlots::fillAllFromArray(int iev, float pow, float sys){
 
-  //
+  // get interaction catagory
+  int icat = GetCatagory(iev, fastevents->vnutype[iev]); 
+
+  // get weight
   float ww = fastevents->vweight[iev];
-  pltEnuE->Fill(fastevents->vfqenue[iev],ww);
-  pltEnuMu->Fill(fastevents->vfqenue[iev],ww);
-  pltPassMu->Fill(fastevents->vpassnumu[iev],ww);
-  pltPassE->Fill(fastevents->vpassnue[iev],ww);
+
+  // for nue
+  if (fastevents->vpassnue[iev]){
+    pltEnuE->Fill(fastevents->vfqenue[iev],ww);
+    pltEnuECat[icat]->Fill(fastevents->vfqenue[iev],ww);
+    pltPassE->Fill(fastevents->vpassnue[iev],ww);
+  }
+  // for numu
+  if (fastevents->vpassnumu[iev]){
+    pltEnuMu->Fill(fastevents->vfqenumu[iev],ww);
+    pltEnuMuCat[icat]->Fill(fastevents->vfqenumu[iev],ww);
+    pltPassMu->Fill(fastevents->vpassnumu[iev],ww);
+  }
+
   for (int i=0; i<NATTS; i++){
     pltAtt[i]->Fill(fastevents->vattribute[iev][i],ww);
   }
   if (pow>=0){
-//    plotPower2D->Fill(fastevents->vpmomv[iev],pow,ww);
     pltPower->Fill(pow);
   }
   else{
-//    plotPower2D->Fill(fastevents->vpmomv[iev],fastevents->voscpower[iev],ww);
     pltPower->Fill(fastevents->voscpower[iev][0],ww);
   }
   if (sys>=0){
-//    pltPower->Fill(sys);
   }
- 
+
   return;
 }
 

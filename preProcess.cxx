@@ -903,10 +903,11 @@ float preProcess::getRCParameter(fqEvent* fqevent){
   float a1 = -0.6;
 
   // ring-counting parameter
-//  float rcpar = deltaLnL - (a0 + a1*ringmom); 
+  float rcpar = deltaLnL - (a0 + a1*ringmom); 
 //  float rcpar = deltaLnL; 
-  float rcpar = (float) fqevent->fqmrnring[0];
+//  float rcpar = (float) fqevent->fqmrnring[0];
   // dot product between best 2 rings
+//  cout<<"rcpar: "<<rcpar<<endl;
   fqmrdot =   fqevent->fqmrdir[best2RID][0][0]*fqevent->fqmrdir[best2RID][1][0]
             + fqevent->fqmrdir[best2RID][0][1]*fqevent->fqmrdir[best2RID][1][1]
             + fqevent->fqmrdir[best2RID][0][2]*fqevent->fqmrdir[best2RID][1][2];
