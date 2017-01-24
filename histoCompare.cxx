@@ -876,9 +876,12 @@ void histoCompare::showFitResult(int isamp,int ibin,int iatt){
   double xmax =  hManager->hData[isamp][ibin][iatt]->GetBinLowEdge(nbinstot-hManager->nBinBuffer);
   hManager->hData[isamp][ibin][iatt]->GetXaxis()->SetRangeUser(xmin,xmax);
   hManager->hData[isamp][ibin][iatt]->SetMarkerStyle(8);
+  hManager->hData[isamp][ibin][iatt]->SetTitle(Form("FV_bin%d",ibin));
   hManager->hData[isamp][ibin][iatt]->Draw("e");
-  hTmp->Draw("sameh");
-  hMod->Draw("sameh");
+  hTmp->SetTitle(Form("FV_bin%d",ibin));
+  hTmp->Draw("samehist");
+  hMod->SetTitle(Form("FV_bin%d",ibin));
+  hMod->Draw("samehist");
 
   //
   return;
@@ -1225,6 +1228,27 @@ void histoCompare::singleParFit(int ipar){
 
 
 void histoCompare::printFitResults(const char* directory){
+
+  cc = new TCanvas("cc","cc",700,900);
+  cc->Divide(2,3);
+  for (int isamp=0;isamp<nSamp;isamp++){
+    for (int iatt=0;iatt<nAtt;iatt++){
+      for (int ibin=0;ibin<nBin;ibin++){
+        cc->cd(ibin+1);
+        showFitResult(isamp,ibin,iatt);
+        TString plotname = directory;
+        plotname.Append(hTmp->GetName());
+        plotname.Append(".png");
+        cc->Print(plotname.Data()); 
+      }
+      TString plotname = directory;
+      plotname.Append(Form("plt_samp%d_att%d",isamp,iatt));
+      plotname.Append(".png");
+      cc->Print(plotname.Data()); 
+    }
+  }
+
+  /*
   for (int isamp=0;isamp<nSamp;isamp++){
     for (int ibin=0;ibin<nBin;ibin++){
       for (int iatt=0;iatt<nAtt;iatt++){
@@ -1236,6 +1260,8 @@ void histoCompare::printFitResults(const char* directory){
       }
     }
   }
+  */
+
   return;
 }
 
@@ -1919,15 +1945,124 @@ void histoCompare::useFakeData(){
 
 
 
+void histoCompare::makeResidualErrorMaps(const char* outdir){
+
+  // get directory name
+  TString dirname = outdir;
+
+  // make a new file
+  TString filename = dirname.Data();
+  filename.Append("ResidualErrs.root");
+  TFile *resfile = new TFile(filename.Data(),"RECREATE");
+
+  // for histo names
+  TString hname;
+  TH2FV* hfv[10];
+  int hindex=0;
+
+  // make histograms (this may have to be adjusted depending
+  // on the cut variables used)
+  
+ 
+  // NuE PID
+  hfv[hindex] = new TH2FV("ResUncNuEPID",0);
+  int attindex = 0;
+  int sampleindex = 0;
+  double cutval = 0.;
+  int accept_greater = 1;
+  for (int ibin=1; ibin<=hfv[0]->GetNumberOfBins(); ibin++){
+  
+   // get normalized MC
+   TH1D* hmc = hManager->getSumHistogramMod(sampleindex,ibin-1,attindex,1);
+
+   // get data
+   TH1D* hdata = hManager->hData[sampleindex][ibin-1][attindex];
+
+   // calc residual
+   double res = calcResErrCumFracDiff(hmc,hdata,cutval,accept_greater);
+//   double res = calcFracDiff(hmc,hdata);
+
+   // set bin content
+   hfv[hindex]->SetBinContent(ibin,res);
+
+  }
+  hfv[hindex]->Write();
+  hindex++;
+
+  // NuE PI0
+  hfv[hindex] = new TH2FV("ResUncNuEPi0",0);
+  attindex = 1;
+  sampleindex = 0;
+  cutval = 0.;
+  accept_greater = 0;
+  for (int ibin=1; ibin<=hfv[0]->GetNumberOfBins(); ibin++){
+  
+   // get normalized MC
+   TH1D* hmc = hManager->getSumHistogramMod(sampleindex,ibin-1,attindex,1);
+
+   // get data
+   TH1D* hdata = hManager->hData[sampleindex][ibin-1][attindex];
+
+   // calc residual
+   double res = calcResErrCumFracDiff(hmc,hdata,cutval,accept_greater);
+
+   // set bin content
+   hfv[hindex]->SetBinContent(ibin,res);
+
+  }
+  hfv[hindex]->Write();
+  hindex++;
+
+  // NuMu PID
+  hfv[hindex] = new TH2FV("ResUncNuMuPID",0);
+  attindex = 0;
+  sampleindex = 1;
+  cutval = 0.;
+  accept_greater = 0;
+  for (int ibin=1; ibin<=hfv[hindex]->GetNumberOfBins(); ibin++){
+  
+   // get normalized MC
+   TH1D* hmc = hManager->getSumHistogramMod(sampleindex,ibin-1,attindex,1);
+
+   // get data
+   TH1D* hdata = hManager->hData[sampleindex][ibin-1][attindex];
+
+   // calc residual
+   double res = calcResErrCumFracDiff(hmc,hdata,cutval,accept_greater);
+
+   // set bin content
+   hfv[hindex]->SetBinContent(ibin,res);
+
+  }
+  hfv[hindex]->Write();
+  hindex++;
+
+  //
+  resfile->Close();
+
+  //
+  return;
+
+}
+
 
 TH2FV* histoCompare::showResidualError(){
  
  TH2FV* hfv = new TH2FV("hfv",0);
  
  for (int ibin=1; ibin<=hfv->GetNumberOfBins(); ibin++){
-   TH1D* hmc = hManager->getSumHistogramMod(0,ibin-1,0,0);
+
+   // get normalized MC
+   TH1D* hmc = hManager->getSumHistogramMod(0,ibin-1,0,1);
+
+   // get data
    TH1D* hdata = hManager->hData[0][ibin-1][0];
-   double res = calcResError(hmc,hdata);
+
+   // calc that residual uncertainty
+//   double res = calcResError(hmc,hdata);
+   double res = calcResErrCumFracDiff(hmc,hdata,0,1);
+
+   // set bin content
    hfv->SetBinContent(ibin,res);
  }
  

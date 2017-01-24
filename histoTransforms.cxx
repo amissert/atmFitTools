@@ -128,47 +128,6 @@ double graph2histo(TGraph* gr, TH1D* h){
 }
 
 
-/*
-/////////////////////////////////////////////////////////////
-// Modify histogram filled by graph with physical lower bound
-// Can be used as a template for enforcing an upper bound as well
-void applyLoBound(TGraph* gr, TH1D* h, double lobound){
-  
-  // get bin width (assume constant);
-  double binw = h->GetBinWidth(1);
-
-  // identify the critical bin
-  int critbin = -1;
-  for (int ibin=0; ibin<=h->GetNbinsX(); ibin++){
-     double centerval = h->GetBinCenter(ibin);
-     if (centerval>lobound){
-       critbin = ibin;
-       break;
-     }
-  }
-
-
-  // reflect density on lower bound
-  for (int ibin=critbin; ibin<=h->GetNbinsX(); ibin++){
-    double distance1 = h->GetBinLowEdge(ibin) - lobound;
-    double distance2 = distance1 + binw;
-    if (distance1<0.) distance1 = 0.;
-    double density = gIntegral(gr, (lobound-distance2), (lobound-distance1));
-    h->SetBinContent(ibin,h->GetBinContent(ibin)+density);
-    h->SetBinError(ibin,TMath::Sqrt(h->GetBinContent(ibin)));
-  }
-
-  // clear un-physical bins
-  for (int ibin=(critbin-1); ibin>=0; ibin--){
-    h->SetBinContent(ibin,0.);
-  }
-  
-  //
-  return;
-}
-*/
-
-
 /////////////////////////////////////////////////////////////
 // Modify histogram filled by graph with physical lower bound
 // Can be used as a template for enforcing an upper bound as well

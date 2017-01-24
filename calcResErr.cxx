@@ -89,14 +89,31 @@ void calcCumDiff(TH1D* hmc, TH1D* hdata){
    return;
 }
 
-void calcCumFracDiff(TH1D* hmc, TH1D* hdata){
 
-   cumulateforward(hmc);
-   cumulateforward(hdata);
+// Returns the fractional difference between the cumulative
+// histograms.  If "flgfwd" (default) then cumulate forward,
+// otherwise, cumulate backward along x-axis.
+void calcCumFracDiff(TH1D* hmc, TH1D* hdata, int flgfwd){
+
+   if (flgfwd){
+     cumulateforward(hmc);
+     cumulateforward(hdata);
+   }
+   else{
+     cumulatebackward(hmc);
+     cumulatebackward(hdata);
+   }
+
+   // make tmp histogram
    TH1D* hclone = (TH1D*)hmc->Clone("hclonemc");
+
+   // difference
    hmc->Add(hdata,-1.);
+
+   // fractional difference
    hmc->Divide(hclone); 
 
+   // absolute fractional differnce
    for (int ibin=1; ibin<=hmc->GetNbinsX(); ibin++){
      double binc = hmc->GetBinContent(ibin);
      if (binc<0.){
@@ -104,16 +121,44 @@ void calcCumFracDiff(TH1D* hmc, TH1D* hdata){
      }
    }
 
+   //
    return;
 }
 
 
-double calcFracDiff(TH1D* hmc, TH1D* hdata){
+// returns the fractional difference at the cut value
+double calcResErrCumFracDiff(TH1D* hmc, TH1D* hdata, double cut, int flgfwd){
   
+  // make histogram tmp copies
+  TString clonename = hmc->GetName();
+  clonename.Append("_clonemc");
+  TH1D* hclonem = (TH1D*)hmc->Clone(clonename.Data());
+  clonename = hdata->GetName();
+  clonename.Append("_clonemc");
+  TH1D* hcloned = (TH1D*)hdata->Clone(clonename.Data());
+
+  // turn mc clone into fractional cumulative difference
+  calcCumFracDiff(hclonem,hcloned,flgfwd);
+
+  // now evaluate at cut value
+  TGraph* gtmp = new TGraph(hclonem);
+
+  // return this fractional diff
+  return gtmp->Eval(cut);
+
+}
+
+// returns average fractional difference
+double calcFracDiff(TH1D* hmc, TH1D* hdata){
+ 
+  // make histogram tmp copies
   TH1D* hclonem = (TH1D*)hmc->Clone("hclonem");
   TH1D* hcloned = (TH1D*)hdata->Clone("hcloned");
-
+  
+  // find difference
   hclonem->Add(hcloned,-1.);
+
+  // fractional difference
   hclonem->Divide(hmc);
 
   double wsum = 0.;
@@ -126,7 +171,6 @@ double calcFracDiff(TH1D* hmc, TH1D* hdata){
 
   wsum/=norm;
 
-//  hmc=(TH1D*)hclonem->Clone("hfinal");
   return wsum;
  }
 
@@ -279,11 +323,9 @@ void getSignif(TH1D* hmc, TH1D* hdata){
 
 
 double calcResError(TH1D* hmc, TH1D* hdata){
+
   return calcFracDiff(hmc,hdata);
-//  return calcCumFracDiffI(hmc,hdata);
 }
-
-
 
 
 void applyResError(TH1D* hmc, TH1D* hdata){

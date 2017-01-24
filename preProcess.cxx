@@ -4,6 +4,60 @@
 #include "preProcess.h"
 
 ////////////////////////////////////////////////////////////////
+// Get the full file name corrsponding to the given atm MC 
+// file name
+TString preProcess::getRFGFileName(const char* rootfile){
+ 
+  TString foundfile = "";
+
+  TString mcfile = rootfile;
+
+  // remove ".root" from file name
+  mcfile.Remove(mcfile.Sizeof()-6,5);
+
+  // remove all but last 3 chars
+  mcfile.Remove(0,mcfile.Sizeof()-4);
+  // ^ should just be a number now
+
+  // get list of files
+  TObjArray* oblist = rfgWeightChain->GetListOfFiles();
+
+  // look for this number
+  for (int ifile=0; ifile<oblist->GetSize(); ifile++){
+    TString testname = oblist->At(ifile)->GetTitle();
+    if (testname.Contains(mcfile.Data())){
+      foundfile = testname.Data();
+      cout<<"Found RFG file: "<<testname.Data()<<" for: "<<rootfile<<endl;
+    }
+  }
+
+  //
+  return foundfile;
+  
+}
+
+
+
+////////////////////////////////////////////////////////////////
+// Set the directory for RFG files and turn on RFG weights
+void preProcess::setRFGDir(const char* rfgdir){
+
+  // set directory name
+  TString rfgFileDirectory = rfgdir;
+
+  // toggle RFG on
+  flgUseRFGWgt = 1;
+
+  // setup rfg tree
+  rfgWeightChain = new TChain ("weightstree");
+  TString rootfiles = rfgFileDirectory.Data();
+  rootfiles.Append("/*weights.root");
+  rfgWeightChain->Add(rootfiles.Data());
+  
+  return;
+}
+
+////////////////////////////////////////////////////////////////
 // Calculate the neutrino energy for each 1R hypothesis and fill
 // the arrays
 void preProcess::calcNeutrinoEnergy(){
@@ -108,6 +162,15 @@ void preProcess::processFile(const char* fname,const char* outname){
   cout<<"  got tree: "<<intree->GetEntries()<<endl;
   setTree(intree); //< set pointers to current tree
 
+  // get RFG weight if using it
+  if (flgUseRFGWgt){
+    TString rfg_file_name = getRFGFileName(fname);
+    rfgFile = new TFile(rfg_file_name.Data());
+    rfgWeightTree = (TTree*)rfgFile->Get("weightstree");
+    // rfgWeight now points to the corresponding value
+    rfgWeightTree->SetBranchAddress("fWeight",&rfgweight);
+  }
+
   //make new tree
   cout<<"  create file: "<<outputName.Data()<<endl;
   fout = new TFile(outputName.Data(),"recreate");
@@ -120,12 +183,10 @@ void preProcess::processFile(const char* fname,const char* outname){
 
   //clean up
   if (neventsnew>0) fout->Write();
-//  intree->Delete();
-//  trout->Delete();
   fin->Close();
   fout->Close();
-//  cout<<"is pointer null? "<<trout->GetEntries()<<endl;
-//  trout->Delete();
+  if (flgUseRFGWgt) rfgFile->Close();
+
   return;   
 }
 
@@ -220,6 +281,11 @@ float preProcess::getAtmWeight(){
   
   // get flux weight
   ww *= ( 0.65*fq->flxh11[0] + 0.35*fq->flxh11[2] )/fq->flxh06[1]; 
+
+  // get RFG weight
+  if (flgUseRFGWgt){
+    ww *= rfgweight;
+  }
 
   return ww;
 }
@@ -763,9 +829,14 @@ int preProcess::preProcessIt(){
   nbin = 0;
   for (int i=0;i<nev;i++){
 
-    //get info for event
+    // get info for event
     if ((i%1000)==0) cout<<"event:  "<<i<<endl;
     tr->GetEntry(i);
+
+    // if using RFG get that too!
+    if (flgUseRFGWgt){
+      rfgWeightTree->GetEntry(i);
+    }
 
     //calc FV bin and fill FV variables
     if (getBinFlg) nbin=getBin();;
@@ -1072,9 +1143,6 @@ void preProcess::setupNewTree(){
   trout->Branch("nvk",&vis->nvk,"nvk/I");
   
   
-//  trout->Branch("visbrightness",vis->visbrightness,"visbrightness[nvis]/D");
-//  trout->Branch("viswall",vis->viswall,"viswall[100]/D");
-//  trout->Branch("vistowall",vis->vistowall,"vistowall[nvis]/D");
   trout->Branch("vismrwall1",&vis->vismrwall1,"vismrwall1/D");
   trout->Branch("vismrwall2",&vis->vismrwall2,"vismrwall2/D");
   trout->Branch("vismrtowall1",&vis->vismrtowall1,"vismrtowall1/D");
@@ -1089,12 +1157,7 @@ void preProcess::setupNewTree(){
   trout->Branch("vismrt2",&vis->vismrt2,"vismrt2/D");
   trout->Branch("vismrtype1",&vis->vismrtype1,"vismrtype1/I");
   trout->Branch("vismrtype2",&vis->vismrtype2,"vismrtype2/I");
-//  trout->Branch("vistime",vis->vistime,"vistime[nvis]/D");
-//  trout->Branch("vispid",vis->vispid,"vispid[nvis]/I");
-//  trout->Branch("visscndpid",vis->visscndpid,"visscndpid[nvis]/I");
-//  trout->Branch("visscndparentid",vis->visscndparentid,"visscndparentid[nvis]/I");
 
-//  /*
   // additional fitqun-related
   trout->Branch("fqwall",&wall,"fqwall/F");
   trout->Branch("fqtowall",&towall,"fqtowall/F");
@@ -1105,9 +1168,13 @@ void preProcess::setupNewTree(){
   trout->Branch("wallv2",&wallv2,"wallv2");
   trout->Branch("evtweight",&evtweight,"evtweight/F");
   trout->Branch("best2RID",&best2RID,"best2RID/I");
-//  trout->Branch("fq1rperim",fq1rperim,"fq1rperim[10][7]/F");
-//  trout->Branch("fq1rmincone",fq1rmincone,"fq1rmincone[10][7]/F");
 
+  // rfg weights
+  if (flgUseRFGWgt){
+    trout->Branch("rfgwgt",&rfgweight,"rfgwgt/F");
+  }
+
+  //
   return;
 }
 
@@ -1115,8 +1182,11 @@ void preProcess::setupNewTree(){
 /////////////////////////////
 //empty constructor
 preProcess::preProcess(){
+
+  // init
   nFiles=0;
   useWeights=0;
+  flgUseRFGWgt=0;
   
   // get ring-counting parameter (not used anymore)
   TFile* frcpar = new TFile("./data/SingleRingness.root");
