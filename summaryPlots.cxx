@@ -124,7 +124,7 @@ void summaryPlots::Init(){
     //
     hname = nameTag.Data();
     hname.Append(Form("_enuE_cat%d",i));
-    pltEnuECat[i] = new TH1D(hname.Data(),hname.Data(),20,0,1000);
+    pltEnuECat[i] = new TH1D(hname.Data(),hname.Data(),20,0,2000);
     pltEnuECat[i]->GetXaxis()->SetTitle("E_{rec} [MeV]");
     pltEnuECat[i]->SetStats(0);
     pltEnuECat[i]->SetTitle(0);
@@ -171,6 +171,7 @@ void summaryPlots::fillAllFromArray(int iev, float pow, float sys){
     pltEnuECat[icat]->Fill(fastevents->vfqenue[iev],ww);
     pltPassE->Fill(fastevents->vpassnue[iev],ww);
   }
+
   // for numu
   if (fastevents->vpassnumu[iev]){
     pltEnuMu->Fill(fastevents->vfqenumu[iev],ww);
@@ -181,12 +182,15 @@ void summaryPlots::fillAllFromArray(int iev, float pow, float sys){
   for (int i=0; i<NATTS; i++){
     pltAtt[i]->Fill(fastevents->vattribute[iev][i],ww);
   }
+
   if (pow>=0){
     pltPower->Fill(pow);
   }
+
   else{
     pltPower->Fill(fastevents->voscpower[iev][0],ww);
   }
+
   if (sys>=0){
   }
 

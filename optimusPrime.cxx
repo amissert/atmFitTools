@@ -57,8 +57,8 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
 
  // setup recon energy histos
  // seed from histogram binning in uncertainty map file
-// TH1D* hseed = uncertaintyCalculator->hERecUnc[0];
- TH1D* hseed = new TH1D("hseed","hseed",20,0,5000);
+ TH1D* hseed = uncertaintyCalculator->hERecUnc[0];
+// TH1D* hseed = new TH1D("hseed","hseed",1,0,8000);
  hseed->SetStats(0);
  hseed->SetBit(TH1::kNoTitle,0);
  hErec[0] = (TH1D*)hseed->Clone("herec_power");
@@ -90,7 +90,7 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
  flgUseSpectrum = 1;
 
  // dont fill summary plots unless told to do so
- flgPrintSummary = 1;
+ flgPrintSummary = 0;
 
 }
 
@@ -356,13 +356,11 @@ float optimusPrime::calcFOMSpectrumNuE(float towallmin, float wallmin, int oscpa
     if (iplt==1){
       plots1 = new summaryPlots("nue");
       plots1->setLargeArray(fastevents);
-      plots1->InitToys(hErec[0]);
       plots1->Init();
     }
     if (iplt==2){
       plots2 = new summaryPlots("nue");
       plots2->setLargeArray(fastevents);
-      plots2->InitToys(hErec[0]);
       plots2->Init();
     }
   }
@@ -478,13 +476,11 @@ float optimusPrime::calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscp
     if (iplt==1){
       plots1 = new summaryPlots("numuplt1");
       plots1->setLargeArray(fastevents);
-      plots1->InitToys(hErec[0]);
       plots1->Init();
     }
     if (iplt==2){
       plots2 = new summaryPlots("numuplt2");
       plots2->setLargeArray(fastevents);
-      plots2->InitToys(hErec[0]);
       plots2->Init();
     }
   }
@@ -717,8 +713,8 @@ void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int osc
       plots1->pltEnuMuCat[icat]->SetLineWidth(3);
       plots2->pltEnuMuCat[icat]->SetLineStyle(2);
       multiPad->cd(icat+2);
-      plots1->pltEnuMuCat[icat]->SetMinimum(ymin);
-      plots1->pltEnuMuCat[icat]->SetMaximum(ymax);
+//      plots1->pltEnuMuCat[icat]->SetMinimum(ymin);
+//      plots1->pltEnuMuCat[icat]->SetMaximum(ymax);
       plots1->pltEnuMuCat[icat]->Draw("h");
       plots2->pltEnuMuCat[icat]->Draw("sameh");
     }
@@ -741,8 +737,8 @@ void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int osc
       plots2->pltEnuECat[icat]->SetLineStyle(2);
       multiPad->cd(icat+2);
       plots1->pltEnuECat[icat]->Draw("h");
-      plots1->pltEnuECat[icat]->SetMinimum(ymin);
-      plots1->pltEnuECat[icat]->SetMaximum(ymax);
+//      plots1->pltEnuECat[icat]->SetMinimum(ymin);
+//      plots1->pltEnuECat[icat]->SetMaximum(ymax);
       plots2->pltEnuECat[icat]->Draw("sameh");
     }
   }
