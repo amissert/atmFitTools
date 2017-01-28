@@ -4,9 +4,30 @@
 #include "summaryPlots.h"
 
 
+
+/////////////////////////////////////////////////////////////
+void summaryPlots::setPoissonErrors(TH1D* hh){
+
+  int nbins = hh->GetNbinsX();
+
+  for (int i=0; i<=nbins; i++){
+    double content = hh->GetBinContent(i);
+    hh->SetBinError(i,TMath::Sqrt(content));
+  }
+
+  return;
+}
+
+
+
+/////////////////////////////////////////////////////////////
 int summaryPlots::GetCatagory(int iev, int wantnutype){
-
-
+    
+    // 0 -> CCQE
+    // 1 -> CCnQE
+    // 2 -> CCMisID
+    // 3 -> NC
+    // 4 -> Dead Region
    
     // is dead region?
     if (fastevents->vwallv[iev] < 0.) { return 4;}
@@ -77,13 +98,46 @@ void summaryPlots::Init(){
   TString hname = nameTag.Data();
   hname.Append("_enuE");
   pltEnuE = new TH1D(hname.Data(),hname.Data(),20,0,2000);
+  pltEnuE->Sumw2(kTRUE);
   pltEnuE->GetXaxis()->SetTitle("E_{rec} [MeV]");
   pltEnuE->SetStats(0);
   pltEnuE->SetTitle(0);
   //
   hname = nameTag.Data();
+  hname.Append("_enuEBg");
+  pltEnuEBg = new TH1D(hname.Data(),hname.Data(),30,0,2000);
+  pltEnuEBg->Sumw2(kTRUE);
+  pltEnuEBg->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuEBg->SetStats(0);
+  pltEnuEBg->SetTitle(0);
+  //
+  hname = nameTag.Data();
+  hname.Append("_enuESg");
+  pltEnuESg = new TH1D(hname.Data(),hname.Data(),50,0,2000);
+  pltEnuESg->Sumw2(kTRUE);
+  pltEnuESg->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuESg->SetStats(0);
+  pltEnuESg->SetTitle(0);
+  //
+  hname = nameTag.Data();
+  hname.Append("_enuMuBg");
+  pltEnuMuBg = new TH1D(hname.Data(),hname.Data(),50,0,2000);
+  pltEnuMuBg->Sumw2(kTRUE);
+  pltEnuMuBg->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuMuBg->SetStats(0);
+  pltEnuMuBg->SetTitle(0);
+  //
+  hname = nameTag.Data();
+  hname.Append("_enuMuSg");
+  pltEnuMuSg = new TH1D(hname.Data(),hname.Data(),50,0,2000);
+  pltEnuMuSg->Sumw2(kTRUE);
+  pltEnuMuSg->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuMuSg->SetStats(0);
+  pltEnuMuSg->SetTitle(0);
+  //
+  hname = nameTag.Data();
   hname.Append("_enuMu");
-  pltEnuMu = new TH1D(hname.Data(),hname.Data(),20,0,5000);
+  pltEnuMu = new TH1D(hname.Data(),hname.Data(),50,0,5000);
   pltEnuMu->GetXaxis()->SetTitle("E_{rec} [MeV]");
   pltEnuMu->SetStats(0);
   pltEnuMu->SetTitle(0);
@@ -153,30 +207,86 @@ void summaryPlots::Init(){
 
 
 
+/////////////////////////////////////////////////////////////////////////
+// Set up histos
+void summaryPlots::clearHistos(){
+ 
+  pltEnuE->Reset();
+  pltEnuMu->Reset();
+  pltEnuEBg->Reset();
+  pltEnuMuBg->Reset();
+  pltEnuESg->Reset();
+  pltEnuMuSg->Reset();
+  pltPower->Reset();
+  pltSyst->Reset(); 
+  pltPassMu->Reset(); 
+  pltPassE->Reset(); 
+  pltPower2D->Reset();
+  for (int iatt=0; iatt<NATTS; iatt++){
+    pltAtt[iatt]->Reset();
+  }
+  for (int i=0; i<NCATS; i++){
+    pltEnuMuCat[i]->Reset(); 
+    pltEnuECat[i]->Reset(); 
+  }
+
+  return;
+  
+}
+
+
 
 
 /////////////////////////////////////////////////////////////////////////
 // fill all histso from array
 void summaryPlots::fillAllFromArray(int iev, float pow, float sys){
 
-  // get interaction catagory
-  int icat = GetCatagory(iev, fastevents->vnutype[iev]); 
+    // get interaction catagory
+    // 0 -> CCQE
+    // 1 -> CCnQE
+    // 2 -> CCMisID
+    // 3 -> NC
+    // 4 -> Dead Region
 
   // get weight
   float ww = fastevents->vweight[iev];
 
   // for nue
   if (fastevents->vpassnue[iev]){
+    int wantnutype = 12;
+    // get interaction catagory
+    // 0 -> CCQE
+    // 1 -> CCnQE
+    // 2 -> CCMisID
+    // 3 -> NC
+    // 4 -> Dead Region
+    int icat = GetCatagory(iev, wantnutype);
     pltEnuE->Fill(fastevents->vfqenue[iev],ww);
     pltEnuECat[icat]->Fill(fastevents->vfqenue[iev],ww);
     pltPassE->Fill(fastevents->vpassnue[iev],ww);
+    if (icat==0) pltEnuESg->Fill(fastevents->vfqenue[iev],ww);
+    else{
+      pltEnuEBg->Fill(fastevents->vfqenue[iev],ww);
+    }
   }
 
   // for numu
   if (fastevents->vpassnumu[iev]){
+    int wantnutype = 14;
+    // get interaction catagory
+    // 0 -> CCQE
+    // 1 -> CCnQE
+    // 2 -> CCMisID
+    // 3 -> NC
+    // 4 -> Dead Region
+    int icat = GetCatagory(iev, wantnutype);
     pltEnuMu->Fill(fastevents->vfqenumu[iev],ww);
     pltEnuMuCat[icat]->Fill(fastevents->vfqenumu[iev],ww);
     pltPassMu->Fill(fastevents->vpassnumu[iev],ww);
+    if (icat==0) pltEnuMuSg->Fill(fastevents->vfqenumu[iev],ww);
+    else{
+      pltEnuMuBg->Fill(fastevents->vfqenumu[iev],ww);
+    }
   }
 
   for (int i=0; i<NATTS; i++){

@@ -6,7 +6,7 @@ gROOT->ProcessLine(".L histoManager.cxx++");
 
 
 
-histoManager* hm = new histoManager("atmparsE.dat");
+histoManager* hm = new histoManager("dryrun.dat");
 
  
 

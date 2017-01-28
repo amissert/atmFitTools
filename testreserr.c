@@ -1,5 +1,5 @@
 {
-gROOT->ProcessLine(".L calcResErr.C+");
+gROOT->ProcessLine(".L calcResErr.cxx+");
 gROOT->ProcessLine(".L histoTransforms.cxx+");
 
 TH1D* h1 = testBumpD(100000,1,0,"h1");

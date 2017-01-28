@@ -8,8 +8,7 @@
   gROOT->ProcessLine(".x ~/style.c");
 
   //run spline factory form parameter file
-  splineFactory *sfact = new splineFactory("shimpars.dat"); //< atmospheric pars
-//  sfact->buildSplineForPar(0);
+  splineFactory *sfact = new splineFactory("dryrun.dat"); //< atmospheric pars
   sfact->runSplineFactory();
 
 

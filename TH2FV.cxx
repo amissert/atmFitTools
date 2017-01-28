@@ -622,7 +622,9 @@ void TH2FV::InitSplitDiagonal(){
          SetSplitBins(binxval, binyval); 
        }
        else{
-         AddBinWithCenter(4,binxval,binyval);
+//         if (binxval[0]>binyval[0]){
+           AddBinWithCenter(4,binxval,binyval);
+//         }
         // AddBin(4,binxval,binyval);
        }
      }
