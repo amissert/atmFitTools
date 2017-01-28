@@ -52,8 +52,8 @@ opt->indexPiPPar = IndexPiPPar;
 opt->indexRCPar = IndexRCPar;
 
 //opt->calcDeltaMapNuMu(50,50,200,200);
-//opt->makeAllPlotsNuMu(350,350,0,70);
-//opt->makeAllPlots(450,450,2,55,0);
+//opt->makeAllPlotsNuMu(350,350,0,100);
+opt->makeAllPlots(400,400,2,70,0);
 
 //opt->compareCuts(0,0,200,200,0,1);
 

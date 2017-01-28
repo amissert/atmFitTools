@@ -8,6 +8,7 @@
 void optimusPrime::printCutDiff(int flgnumu){
 
   txtSummary = new TPaveText(0.1,0.1,0.9,0.9,"NB");
+  txtSummary->SetFillColor(kWhite);
 
   const int nlines = 6;
   TString txtline[nlines];
@@ -27,7 +28,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuMu->Integral();
     diff = n1 - n2;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = 100.*(n1 - n2)/n1;
     }
     else{
       pdiff = 0.;
@@ -197,7 +198,7 @@ void optimusPrime::printCutDiff(int flgnumu){
 void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, int flgnumu){
 
 
-  // name setup
+  // name setup///////////////////////////////////
   if (!outDir.CompareTo("")){
     outDir = "~/transfer/";
   }
@@ -209,14 +210,15 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
   TString pltname;
   TString pltfile;
 
+  // canvas setup//////////////////////////////////
   TCanvas* cc = new TCanvas("cc","cc",800,700);
 
-  // get map of figure of merit and calc best bin
+  // get map of figure of merit and calc best bin//
   cout<<"Calculating FOM Map: "<<endl;
   if (flgnumu) calcFOMMap(twmax,wmax,oscpar,npts,1);
   else calcFOMMap(twmax,wmax,oscpar,npts,0);
 
-  // print figure of merit and save
+  // print figure of merit and save ///////////////
   hFV->SetStats(0);
   hFV->SetTitle(0);
   hFV->Draw("colz");
@@ -233,11 +235,10 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
   }
   hFV->SaveAs(pltfile.Data());
 
+  // get 10% variation in systematic estimat
   cout<<"Defining small variation: "<<endl;
-  //
   double besttowall = hFV->GetBinCenterX(bestFOMbin);
   double bestwall = hFV->GetBinCenterY(bestFOMbin);
-  // find what a small variation is near the optimum
   flgPrintSummary = 1;
   if (flgnumu) calcFOMSpectrumNuMu(besttowall,bestwall,oscpar);
   else{
@@ -254,27 +255,28 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
   flgUseMask = 1.;
 
   // make a plot of the statistical error fraction
-  FOMType = 3;
-  if (flgnumu) calcFOMMap(twmax,wmax,oscpar,npts,1);
-  else{
-    calcFOMMap(twmax,wmax,oscpar,npts,0);
-  }
+//  FOMType = 3;
+//  if (flgnumu) calcFOMMap(twmax,wmax,oscpar,npts,1);
+//  else{
+//    calcFOMMap(twmax,wmax,oscpar,npts,0);
+//  }
+
   // print figure of merit and save
-  hFV->SetStats(0);
-  hFV->SetTitle(0);
-  hFV->Draw("colz");
-  pltname = prefix.Data();
-  if (flgnumu) pltname.Append("hFV_NuMu_sysfrac.png");
-  else{
-    pltname.Append("hFV_NuE_sysfrac.png");
-  }
-  cc->Print(pltname.Data());
-  pltfile = outDir.Data();
-  if (flgnumu) pltfile.Append("hFV_NuMu_sysfrac.root");
-  else{
-    pltfile.Append("hFV_NuE_sysfrac.root");
-  }
-  hFV->SaveAs(pltfile.Data());
+//  hFV->SetStats(0);
+//  hFV->SetTitle(0);
+//  hFV->Draw("colz");
+//  pltname = prefix.Data();
+//  if (flgnumu) pltname.Append("hFV_NuMu_sysfrac.png");
+//  else{
+//    pltname.Append("hFV_NuE_sysfrac.png");
+//  }
+//  cc->Print(pltname.Data());
+//  pltfile = outDir.Data();
+//  if (flgnumu) pltfile.Append("hFV_NuMu_sysfrac.root");
+//  else{
+//    pltfile.Append("hFV_NuE_sysfrac.root");
+//  }
+//  hFV->SaveAs(pltfile.Data());
 
   // now print out the mask:
   for (int i=0; i<hMask->GetNumberOfBins(); i++){
@@ -1219,8 +1221,8 @@ void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int osc
       plots2->pltEnuMuCat[icat]->SetLineStyle(2);
       multiPad->cd(icat+2);
       plots1->pltEnuMuCat[icat]->Draw("h");
-      plots1->pltEnuECat[icat]->SetMinimum(ymin);
-      plots1->pltEnuECat[icat]->SetMaximum(ymax);
+//      plots1->pltEnuECat[icat]->SetMinimum(ymin);
+//      plots1->pltEnuECat[icat]->SetMaximum(ymax);
       plots2->pltEnuMuCat[icat]->Draw("sameh");
 
     }
@@ -1243,8 +1245,8 @@ void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int osc
       plots2->pltEnuECat[icat]->SetLineStyle(2);
       multiPad->cd(icat+2);
       plots1->pltEnuECat[icat]->Draw("h");
-      plots1->pltEnuECat[icat]->SetMinimum(ymin);
-      plots1->pltEnuECat[icat]->SetMaximum(ymax);
+//      plots1->pltEnuECat[icat]->SetMinimum(ymin);
+//      plots1->pltEnuECat[icat]->SetMaximum(ymax);
       plots2->pltEnuECat[icat]->Draw("sameh");
     }
   }

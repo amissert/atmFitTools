@@ -116,8 +116,8 @@ float getSysVariation(float pow, float nev, float sys){
 //  float powavg = 0.5;
 //  float fom1 = ((pow-powavg)*(pow-powavg))/((nev-1) + ((sys-sysavg)*(sys-sysavg)));
 //  float fom2 = ((pow+powavg)*(pow+powavg))/((nev+1) + ((sys+sysavg)*(sys+sysavg)));
-  float scaleup = 1.05;
-  float scaledown = 0.95;
+  float scaleup = 1.025;
+  float scaledown = 0.975;
   float fom1 = ((pow)*(pow))/((nev) + ((sys*scaleup)*(sys*scaleup)));
   float fom2 = ((pow)*(pow))/((nev) + ((sys*scaledown)*(sys*scaledown)));
 

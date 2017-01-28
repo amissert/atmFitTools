@@ -52,9 +52,9 @@ opt->indexPiPPar = IndexPiPPar;
 opt->indexRCPar = IndexRCPar;
 
 //opt->calcDeltaMapNuMu(50,50,200,200);
-//opt->makeAllPlots(350,350,0,10,1);
+//opt->makeAllPlots(350,350,0,70,1);
 
-opt->compareCuts(0,0,200,200,0,1);
+opt->compareCuts(110,30,250,30,0,1);
 
 // run
 //opt->calcFOMToyMC(200,200,0,2,10);

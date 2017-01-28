@@ -4,6 +4,30 @@
 #include "summaryPlots.h"
 
 
+/////////////////////////////////////////////////////////////
+float summaryPlots::calcDipDepth(){
+  
+  // find the dip bin
+  float pdip = 600.;
+  int dipbin = pltEnuMu->FindBin(pdip);
+  float dipval = pltEnuMu->GetBinContent(dipval);
+
+  // find the max after the dip
+  int maxbin = dipbin;
+  float maxval = dipval;
+  for (int ibin = dipbin; ibin<pltEnuMu->GetNbinsX(); ibin++){
+    float binc = (float)pltEnuMu->GetBinContent(ibin);
+    if (binc>maxval){
+      maxval = binc;
+      maxbin = ibin;
+    }
+  }
+
+  // return diff
+  return maxval-dipval;
+}
+
+
 
 /////////////////////////////////////////////////////////////
 void summaryPlots::setPoissonErrors(TH1D* hh){
@@ -137,7 +161,7 @@ void summaryPlots::Init(){
   //
   hname = nameTag.Data();
   hname.Append("_enuMu");
-  pltEnuMu = new TH1D(hname.Data(),hname.Data(),50,0,5000);
+  pltEnuMu = new TH1D(hname.Data(),hname.Data(),50,0,3000);
   pltEnuMu->GetXaxis()->SetTitle("E_{rec} [MeV]");
   pltEnuMu->SetStats(0);
   pltEnuMu->SetTitle(0);
@@ -171,14 +195,14 @@ void summaryPlots::Init(){
   for (int i=0; i<NCATS; i++){
     hname = nameTag.Data();
     hname.Append(Form("_enuMu_cat%d",i));
-    pltEnuMuCat[i] = new TH1D(hname.Data(),hname.Data(),20,0,5000);
+    pltEnuMuCat[i] = new TH1D(hname.Data(),hname.Data(),20,0,3000);
     pltEnuMuCat[i]->GetXaxis()->SetTitle("E_{rec} [MeV]");
     pltEnuMuCat[i]->SetStats(0);
     pltEnuMuCat[i]->SetTitle(0);
     //
     hname = nameTag.Data();
     hname.Append(Form("_enuE_cat%d",i));
-    pltEnuECat[i] = new TH1D(hname.Data(),hname.Data(),20,0,2000);
+    pltEnuECat[i] = new TH1D(hname.Data(),hname.Data(),20,0,3000);
     pltEnuECat[i]->GetXaxis()->SetTitle("E_{rec} [MeV]");
     pltEnuECat[i]->SetStats(0);
     pltEnuECat[i]->SetTitle(0);
