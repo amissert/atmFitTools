@@ -167,8 +167,12 @@ void summaryPlots::Init(){
   pltEnuMu->SetTitle(0);
   //
   hname = nameTag.Data();
-  hname.Append("_Power");
-  pltPower= new TH1D(hname.Data(),hname.Data(),10,0,2000);
+  hname.Append("_PowerE");
+  pltPowerE= new TH1D(hname.Data(),hname.Data(),50,0,3000);
+  //
+  hname = nameTag.Data();
+  hname.Append("_PowerMu");
+  pltPowerMu= new TH1D(hname.Data(),hname.Data(),50,0,3000);
   //
   hname = nameTag.Data();
   hname.Append("_Syst");
@@ -241,7 +245,8 @@ void summaryPlots::clearHistos(){
   pltEnuMuBg->Reset();
   pltEnuESg->Reset();
   pltEnuMuSg->Reset();
-  pltPower->Reset();
+  pltPowerE->Reset();
+  pltPowerMu->Reset();
   pltSyst->Reset(); 
   pltPassMu->Reset(); 
   pltPassE->Reset(); 
@@ -288,7 +293,10 @@ void summaryPlots::fillAllFromArray(int iev, float pow, float sys){
     pltEnuE->Fill(fastevents->vfqenue[iev],ww);
     pltEnuECat[icat]->Fill(fastevents->vfqenue[iev],ww);
     pltPassE->Fill(fastevents->vpassnue[iev],ww);
-    if (icat==0) pltEnuESg->Fill(fastevents->vfqenue[iev],ww);
+    pltPowerE->Fill(fastevents->vfqenue[iev],pow);
+    if (icat==0){
+      pltEnuESg->Fill(fastevents->vfqenue[iev],ww);
+    }
     else{
       pltEnuEBg->Fill(fastevents->vfqenue[iev],ww);
     }
@@ -307,6 +315,7 @@ void summaryPlots::fillAllFromArray(int iev, float pow, float sys){
     pltEnuMu->Fill(fastevents->vfqenumu[iev],ww);
     pltEnuMuCat[icat]->Fill(fastevents->vfqenumu[iev],ww);
     pltPassMu->Fill(fastevents->vpassnumu[iev],ww);
+    pltPowerE->Fill(fastevents->vfqenumu[iev],pow);
     if (icat==0) pltEnuMuSg->Fill(fastevents->vfqenumu[iev],ww);
     else{
       pltEnuMuBg->Fill(fastevents->vfqenumu[iev],ww);
@@ -317,16 +326,16 @@ void summaryPlots::fillAllFromArray(int iev, float pow, float sys){
     pltAtt[i]->Fill(fastevents->vattribute[iev][i],ww);
   }
 
-  if (pow>=0){
-    pltPower->Fill(pow);
-  }
+//  if (pow>=0){
+//    pltPower->Fill(pow);
+//  }
 
-  else{
-    pltPower->Fill(fastevents->voscpower[iev][0],ww);
-  }
+//  else{
+//    pltPower->Fill(fastevents->voscpower[iev][0],ww);
+//  }
 
-  if (sys>=0){
-  }
+//  if (sys>=0){
+//  }
 
   return;
 }

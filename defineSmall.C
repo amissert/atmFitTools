@@ -110,12 +110,6 @@ float getVariation(float pow, float nev, float sys, float powavg, float sysavg){
 
 float getSysVariation(float pow, float nev, float sys){
 
-//  float fom0 = (pow*pow)/(nev + (sys*sys));
-//  float fom1 = ((pow-1.)*(pow-1.))/((nev-1.) + ((sys-0.5)*(sys-0.5)));
-//  float fom2 = ((pow+1.)*(pow+1.))/((nev+1.) + ((sys+0.5)*(sys+0.5)));
-//  float powavg = 0.5;
-//  float fom1 = ((pow-powavg)*(pow-powavg))/((nev-1) + ((sys-sysavg)*(sys-sysavg)));
-//  float fom2 = ((pow+powavg)*(pow+powavg))/((nev+1) + ((sys+sysavg)*(sys+sysavg)));
   float scaleup = 1.025;
   float scaledown = 0.975;
   float fom1 = ((pow)*(pow))/((nev) + ((sys*scaleup)*(sys*scaleup)));
@@ -175,20 +169,6 @@ float defineSmall2(int nbins, float* pow, float* nev, float* sys){
       maxbin = i;
     }
   }
-
-//  double fomi = (pow[maxbin]*pow[maxbin])/(nev[maxbin] + ((sys[maxbin]*1.1)*(sys[maxbin]*1.1)) );
-//  double fomf = (pow[maxbin]*pow[maxbin])/(nev[maxbin] + ((sys[maxbin]*0.9)*(sys[maxbin]*0.9)) );
-
-//  return TMath::Abs(fomi-fomf)/2.;
-
-//  cout<<"maxbin: "<<maxbin<<endl;
-//  cout<<"fomax: "<<fomax<<endl;
-
-  // now, get average power estimate in that bin
-//  float powavg = TMath::Abs(pow[maxbin])/nev[maxbin];
-//  float sysavg = TMath::Abs(sys[maxbin])/nev[maxbin];
-
-//  cout<<"powavg: "<<powavg<<endl;
 
   // see how much a variation changes
   float var = getSysVariation(pow[maxbin],nev[maxbin],sys[maxbin]);

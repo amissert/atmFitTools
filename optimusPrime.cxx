@@ -5,6 +5,42 @@
 #include "optimusPrime.h"
 
 
+
+////////////////////////////////////////////////////////////////////
+void optimusPrime::printCompare(const char* dir,float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu){
+
+  // plot name setup
+  TString plotdir = dir;
+  TString name = "";
+
+  // compare plots
+  compareCuts(tw1, w1, tw2, w2, oscpar, flgnumu);
+
+  // print it
+  name = plotdir.Data();
+  if (flgnumu) name.Append("numu_");
+  else{
+    name.Append("nue_");
+  }
+  name.Append(Form("compare_%dw%d_vs_%dw%d.png",(int)tw1,(int)w1,(int)tw2,(int)w2));
+  multiPad->Print(name.Data());
+
+  // print it in words
+  canPad = new TCanvas("can","can",800,700);
+  printCutDiff(flgnumu);
+  name = plotdir.Data();
+  if (flgnumu) name.Append("numu_");
+  else{
+    name.Append("nue_");
+  }
+  name.Append(Form("text_%dw%d_vs_%dw%d.png",(int)tw1,(int)w1,(int)tw2,(int)w2));
+  canPad->Print(name.Data());
+
+  return;
+}
+
+
+////////////////////////////////////////////////////////////////////
 void optimusPrime::printCutDiff(int flgnumu){
 
   txtSummary = new TPaveText(0.1,0.1,0.9,0.9,"NB");
@@ -24,11 +60,11 @@ void optimusPrime::printCutDiff(int flgnumu){
     float diff;
     float pdiff;
     // get numbers
-    n1 = plots1->pltEnuMu->Integral();
-    n2 = plots2->pltEnuMu->Integral();
-    diff = n1 - n2;
+    n1 = plots1->pltEnuMu->Integral(1, plots1->pltEnuMu->GetNbinsX()+1);
+    n2 = plots2->pltEnuMu->Integral(1,plots2->pltEnuMu->GetNbinsX()+1);
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = 100.*(n1 - n2)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -37,11 +73,11 @@ void optimusPrime::printCutDiff(int flgnumu){
     txtSummary->AddText(txtline[0].Data());
     iline++;
     // 
-    n1 = plots1->pltEnuMuCat[0]->Integral();
-    n2 = plots2->pltEnuMuCat[0]->Integral();
-    diff = n1 - n2;
+    n1 = plots1->pltEnuMuCat[0]->Integral(1,plots1->pltEnuMuCat[0]->GetNbinsX()+1);
+    n2 = plots2->pltEnuMuCat[0]->Integral(1,plots2->pltEnuMuCat[0]->GetNbinsX()+1);
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -50,11 +86,11 @@ void optimusPrime::printCutDiff(int flgnumu){
     txtSummary->AddText(txtline[iline].Data());
     iline++;
     // 
-    n1 = plots1->pltEnuMuCat[1]->Integral();
-    n2 = plots2->pltEnuMuCat[1]->Integral();
-    diff = n1 - n2;
+    n1 = plots1->pltEnuMuCat[1]->Integral(1,plots1->pltEnuMuCat[1]->GetNbinsX()+1);
+    n2 = plots2->pltEnuMuCat[1]->Integral(1,plots2->pltEnuMuCat[1]->GetNbinsX()+1);
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -63,11 +99,11 @@ void optimusPrime::printCutDiff(int flgnumu){
     txtSummary->AddText(txtline[iline].Data());
     iline++;
     // 
-    n1 = plots1->pltEnuMuCat[2]->Integral();
-    n2 = plots2->pltEnuMuCat[2]->Integral();
-    diff = n1 - n2;
+    n1 = plots1->pltEnuMuCat[2]->Integral(1, plots1->pltEnuMuCat[2]->GetNbinsX()+1);
+    n2 = plots2->pltEnuMuCat[2]->Integral(1, plots1->pltEnuMuCat[2]->GetNbinsX()+1);
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -76,11 +112,11 @@ void optimusPrime::printCutDiff(int flgnumu){
     txtSummary->AddText(txtline[iline].Data());
     iline++;
     // 
-    n1 = plots1->pltEnuMuCat[3]->Integral();
-    n2 = plots2->pltEnuMuCat[3]->Integral();
-    diff = n1 - n2;
+    n1 = plots1->pltEnuMuCat[3]->Integral(1,plots1->pltEnuMuCat[3]->GetNbinsX()+1);
+    n2 = plots2->pltEnuMuCat[3]->Integral(1,plots2->pltEnuMuCat[3]->GetNbinsX()+1);
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -89,11 +125,11 @@ void optimusPrime::printCutDiff(int flgnumu){
     txtSummary->AddText(txtline[iline].Data());
     iline++;
     // 
-    n1 = plots1->pltEnuMuCat[4]->Integral();
-    n2 = plots2->pltEnuMuCat[4]->Integral();
-    diff = n1 - n2;
+    n1 = plots1->pltEnuMuCat[4]->Integral(1,plots2->pltEnuMuCat[4]->GetNbinsX()+1);
+    n2 = plots2->pltEnuMuCat[4]->Integral(1,plots2->pltEnuMuCat[4]->GetNbinsX()+1);
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -111,9 +147,9 @@ void optimusPrime::printCutDiff(int flgnumu){
     // get numbers
     n1 = plots1->pltEnuE->Integral();
     n2 = plots2->pltEnuE->Integral();
-    diff = n1 - n2;
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -124,9 +160,9 @@ void optimusPrime::printCutDiff(int flgnumu){
     // 
     n1 = plots1->pltEnuECat[0]->Integral();
     n2 = plots2->pltEnuECat[0]->Integral();
-    diff = n1 - n2;
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -137,9 +173,9 @@ void optimusPrime::printCutDiff(int flgnumu){
     // 
     n1 = plots1->pltEnuECat[1]->Integral();
     n2 = plots2->pltEnuECat[1]->Integral();
-    diff = n1 - n2;
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -150,9 +186,9 @@ void optimusPrime::printCutDiff(int flgnumu){
     // 
     n1 = plots1->pltEnuECat[2]->Integral();
     n2 = plots2->pltEnuECat[2]->Integral();
-    diff = n1 - n2;
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -163,9 +199,9 @@ void optimusPrime::printCutDiff(int flgnumu){
     // 
     n1 = plots1->pltEnuECat[3]->Integral();
     n2 = plots2->pltEnuECat[3]->Integral();
-    diff = n1 - n2;
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -176,9 +212,9 @@ void optimusPrime::printCutDiff(int flgnumu){
     // 
     n1 = plots1->pltEnuECat[4]->Integral();
     n2 = plots2->pltEnuECat[4]->Integral();
-    diff = n1 - n2;
+    diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n1 - n2)/n1;
+      pdiff = (n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -286,6 +322,7 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
       hMask->SetBinContent(i,1.);
     }
   }
+  maskThresh = 0.8;
   hMask->SetMinimum(0.9);
   hMask->SetMaximum(1.2);
 
@@ -363,7 +400,7 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
  // setup recon energy histos
  // seed from histogram binning in uncertainty map file
  TH1D* hseed = uncertaintyCalculator->hERecUnc[0];
-// TH1D* hseed = new TH1D("hseed","hseed",1,0,10000);
+// TH1D* hseed = new TH1D("hseed","hseed",3,0,5000);
  hseed->SetStats(0);
  hseed->SetBit(TH1::kNoTitle,0);
  hErec[0] = (TH1D*)hseed->Clone("herec_power");
@@ -892,11 +929,12 @@ float optimusPrime::calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscp
         
         Nev[erecbin] += getEventWeight(i)*Scale;
         
-        Sys[erecbin] += getSystUncertainty(i,14)*Scale*SysScale;
+        float syserr =  getSystUncertainty(i,14)*Scale*SysScale;
+        Sys[erecbin] += syserr;
 
         if (flgPrintSummary){
-          if (iplt==1) plots1->fillAllFromArray(i,0.,0.);
-          if (iplt==2) plots2->fillAllFromArray(i,0.,0.);
+          if (iplt==1) plots1->fillAllFromArray(i,opow,syserr);
+          if (iplt==2) plots2->fillAllFromArray(i,opow,syserr);
         }
 
       }
@@ -904,6 +942,7 @@ float optimusPrime::calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscp
   }
 
   // add up figure of merit in each bin
+  if (FOMType==4) return plots1->calcDipDepth();
   return calcFOM(Pow,Nev,Sys,nn);
 
 }
