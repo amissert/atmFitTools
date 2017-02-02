@@ -823,7 +823,7 @@ int preProcess::preProcessIt(){
   int applyT2K = 1;
   if (ntupleType.CompareTo("Cosmic")==0) applyT2K = 0;
   if (ntupleType.CompareTo("Hybrid")==0) applyT2K = 0;
-  if (ntupleType.CompareTo("Atmospheric")==0) applyT2K = 0;
+//  if (ntupleType.CompareTo("Atmospheric")==0) applyT2K = 0;
 
   // loop over events in tree
   nbin = 0;
