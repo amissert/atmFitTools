@@ -6,11 +6,42 @@
 #include "mcmcReader.h"
 #include "histoCompare.h"
 #include "mcmcApply.h"
-#include "modHistoArray.h"
+//#include "modHistoArray.h"
+#include "modHistoArrayFV.h"
 #include "histoCompare.h"
-#include "eventSelector.h"
+#include "eventSelectors.h"
+#include "t2kSample.h"
+//#include "eventSelector.h"
+//#include "calcEnu.h"
+#include "randomList.h"
+#include "mcLargeArray.h"
+#include <exception>
 #include "TH2FV.h"
 
+
+// binning for muons
+//const double EnuBinning[] = {0.,100.,300.,500,700,900,1100,2000,5000,30000};
+//const int    EnuNBins = 9;
+
+//const double EnuBinningElectron[] = {0.,100.,300.,500,700,900,1100,2000,5000,30000};
+//const int    EnuNBinsElectron = 9;
+
+// binning for muons
+const double EnuBinning[] = {0.,600.,950.,1275.,2120.,10000.};
+const int    EnuNBins = 5;
+
+//const double EnuBinning[] = {0.,,596.,843.,1275.,2120.};
+//const int    EnuNBins = 5;
+
+//const double EnuBinningElectron[] = {0.,400,800,1200.};
+const double EnuBinningElectron[] = {0.,1250.};
+const int    EnuNBinsElectron = 1;
+
+//const double EnuBinning[] = {0.,100.,300.,700.,1250.,2000.,5000.,30000.};
+//const int    EnuNBins = 7;
+
+//const double EnuBinning[] = {0.,350.,800.,1250.,30000.};
+//const int    EnuNBins = 4;
 
 ///////////////////////////////////////////////////
 // Class to run a toy MC to apply MCMC results
@@ -27,13 +58,27 @@ class toyMC{
   mcmcReader* mcmcPars;
   mcmcApply* modifier;
   histoCompare* hCompare;
-  modHistoArray* hArr;
+  atmFitPars* fitPars;
+  modHistoArrayFV* hArrFV;
+  t2kSample* t2kToys;
+  mcLargeArray* fastevents;
+  fqcutparams cutPars;
+  int nMCevents;
+  int indexPIDPar;
+  int indexPi0Par;
+  int indexPiPPar;
+  int indexRCPar;
+  int indexMom;
 
   // methods
-  void setChains(TChain* chmc, TChain *chpars);
+  void setChains(TChain* chmc, TChain *chpars,int nmcevents);
   void setCompare(histoCompare* hc);
-  void fillArrayDirect(int isamp, int ibin, int iatt, int npts);
-  void testToy(int nmcmcpts);
+  void makeFVMapNuMu(int nmcmcpts, const char* outfile);
+  void makeFVMapNuE(int nmcmcpts,const char* outfile);
+  void makeCombinedUncertainty(int nmcmcpts);
+  void setAtmFitPars(const char* parfile);
+  int applyCutsToModifiedEvent(int iev,bool flgmod=true);
+  int getEventCatagory(int iev, int nutype);
   int getRandomMCMCPoint();  
 
 };

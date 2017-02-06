@@ -1,6 +1,8 @@
 #ifndef HISTCOMPARE_H
 #define HISTCOMPARE_H
 
+//#define VERBOSE
+
 #include <time.h>
 
 #include "TMath.h"
@@ -11,13 +13,13 @@
 #include "TRandom3.h"
 #include "TChain.h"
 #include "TCanvas.h"
-
 #include "histoManager.h"
 #include "histoTransforms.h"
 #include "TH2FV.h"
 #include "likelihood.h"
 #include "shared.h"
 #include "calcResErr.h"
+//#include "calcResErr.cxx"
 #include "markovTools.h"
 
 using namespace std;
@@ -95,6 +97,7 @@ class histoCompare{
   TGraph2D* show2DLnLG(int parx, double xmin, double xmax, int pary, double ymin, double ymax, int npts=100);
   void runMCMC(int nsteps=-1);
   TH2FV* showResidualError();
+  void makeResidualErrorMaps(const char* outdir);
   void runDEMCMC(int nstep=-1);
   void runDiffMCMC(int nsteps); //< fill with differential steps
   double getErrLo(int isyst);

@@ -8,8 +8,10 @@ using namespace std;
 
 /////////////////////////////////////////////////////////////////
 // apply the cuts to a modified event and see if it passes
-int toyMC::applyCutsToModifiedEvent(int iev){
-//  return modifier->applyCutsToModifiedEvent(iev, fastevents);
+int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
+  
+//  cout<<"smear 0 "<<hCompare->thePars->getAttModParameter(0,0,0,0)<<endl;
+//  cout<<"smear 1 "<<hCompare->thePars->getAttModParameter(0,0,0,1)<<endl;
 
     
   // fill tmp array with "nominal" MC values
@@ -18,19 +20,26 @@ int toyMC::applyCutsToModifiedEvent(int iev){
   for (int iatt=0; iatt<natt; iatt++){
     attributesTmp[iatt] = fastevents->vattribute[iev][iatt];   
   }
- 
+
+  if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
+  if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
+  if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
+  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
+
   // modify tmp array by applying the histogram shape parameters
-  modifier->applyPars(fastevents->vbin[iev],
-                      fastevents->vcomponent[iev],
-                      attributesTmp,
-                      natt);
+  if (flgmod){
+    modifier->applyPars(fastevents->vbin[iev],
+                        fastevents->vcomponent[iev],
+                        attributesTmp,
+                        natt);
+  }
 
   // fill cut parameter structure using modified attributes
   if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
   if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
   if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
-//  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
-  cutPars.fqrcpar = fastevents->vfqrcpar[iev];
+  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
+//  cutPars.fqrcpar = fastevents->vfqrcpar[iev];
   cutPars.fqnring = fastevents->vfqnring[iev];
 
   // other cut pars that are not modified
@@ -48,6 +57,8 @@ int toyMC::applyCutsToModifiedEvent(int iev){
   //
   if (passnue>0) return 1;
   if (passnumu>0) return 2;
+
+  //
   return 0;
    
   
@@ -243,10 +254,12 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
       // apply parameters and see if it passes cuts
       int ipass = 0;
       if (i!=0){
-        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,true);
+//        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,true);
+        ipass = applyCutsToModifiedEvent(iev,true);
       }
       else{
-        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,false);
+//        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,false);
+        ipass = applyCutsToModifiedEvent(iev,false);
       }
 
 
@@ -357,14 +370,17 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
 
     // loop over T2K MC events
     for (int iev=0; iev<nMCevents; iev++){
-
+      cout<<"event: "<<iev<<endl;
+      cout<<"point: "<<i<<endl;
       // apply parameters and see if it passes cuts
       int ipass = 0;
       if (i!=0){
-        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,true);
+//        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,true);
+        ipass = applyCutsToModifiedEvent(iev,true);
       }
       else{
-        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,false);
+//        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,false);
+        ipass = applyCutsToModifiedEvent(iev,false);
       }
 
       // if it passes fill histos

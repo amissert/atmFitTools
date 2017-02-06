@@ -39,10 +39,10 @@ int main(int argc, char* argv[]){
 // hc->hManager->setLoBound(3,0);
 // hc->thePars->readPars("/nfs/data41/t2k/amissert/atmos/head/atmFitTools/pars/initial_lnlfit_pars.root");
  hc->diffChainFileName = diffnames.Data();
- hc->tunePar = 0.02;
+// hc->tunePar = 0.02;
 
  // fix these pars
- hc->thePars->fixAllAttPars(3);
+// hc->thePars->fixAllAttPars(3);
 
  // run the mcmc
  hc->runDEMCMC(-1); 

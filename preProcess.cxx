@@ -992,7 +992,7 @@ float preProcess::getRCParameter(fqEvent* fqevent){
 // get the pi0 parameter
 float preProcess::getPiPParameter(fqEvent* fqevent){
    float Lpip = fqevent->fq1rnll[0][2] - fqevent->fq1rnll[0][3]; 
-   float mumom = fqevent->fq1rnll[0][2];
+   float mumom = fqevent->fq1rmom[0][2];
    float pippar = Lpip - (0.15*mumom);
    return pippar;
 }
