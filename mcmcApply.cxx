@@ -58,7 +58,7 @@ void mcmcApply::applyPars(int nbin, int ncomponent, float attributeTmp[], int na
     // apply parameters
 //    cout<<"att "<<iatt<<": "<<attributeTmp[iatt]<<" -> ";
     attributeTmp[iatt] = smear*attributeTmp[iatt] + bias;
-    cout<<attributeTmp[iatt]<<endl;
+//    cout<<attributeTmp[iatt]<<endl;
   }
 
   //

@@ -370,8 +370,6 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
 
     // loop over T2K MC events
     for (int iev=0; iev<nMCevents; iev++){
-      cout<<"event: "<<iev<<endl;
-      cout<<"point: "<<i<<endl;
       // apply parameters and see if it passes cuts
       int ipass = 0;
       if (i!=0){

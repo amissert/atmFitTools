@@ -954,27 +954,40 @@ void preProcess::fillAttributes(fqEvent* fqevent){
 float preProcess::getRCParameter(fqEvent* fqevent){
   
   // get best 2R ID
-//  int ibest = getBest2RFitID(fqevent);
-  int ibest = 0;
+  int ibest = getBest2RFitID(fqevent);
+//  int ibest = 0;
 
   // get best 1R Likelihood 
-  float best1Rnglnl = (float)fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
+  float best1Rnglnl = 0.;
+  float ring1mom = 0.;
+  if ( fqevent->fq1rnll[0][1]<fqevent->fq1rnll[0][2]){
+    best1Rnglnl = fqevent->fq1rnll[0][1];
+    ring1mom = fqevent->fq1rmom[0][1];
+  }
+  else{
+    best1Rnglnl = fqevent->fq1rnll[0][2];
+    ring1mom = fqevent->fq1rmom[0][2];
+  }
+
+//  float best1Rnglnl = (float)fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
 //  cout<<"best 1r: "<<best1Rnglnl<<endl;
 
   // get mom of 2nd ring
   float ringmom = (float)fqevent->fqmrmom[best2RID][1];
+  
 
 //  cout<<"best mr: "<<fqevent->fqmrnll[best2RID]<<endl;
 //  cout<<"mrmom: "<<fqevent->fqmrmom[best2RID][1]<<endl;
   float deltaLnL = best1Rnglnl - fqevent->fqmrnll[best2RID];
 
   // cut from fiTQun.cc
-//  float a0 = 150.;
-  float a0 = 0.;
+  float a0 = 150.;
   float a1 = -0.6;
 
   // ring-counting parameter
+//  float rcpar = deltaLnL - (a0 + a1*ringmom); 
   float rcpar = deltaLnL - (a0 + a1*ringmom); 
+
 //  float rcpar = deltaLnL; 
 //  float rcpar = (float) fqevent->fqmrnring[0];
   // dot product between best 2 rings

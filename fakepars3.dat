@@ -1,0 +1,162 @@
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$  PARAMETER FILE FOR FITS $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$  FORMAT:<type>,<name>=<value>;
+$  FIRST CHARACTER DENOTES DATA TYPE
+$  SUPPORTED TYPES:
+$	'i' -> integer
+$	'f' -> float
+$	'd' -> double
+$	's' -> string
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ GLOBAL PARAMETERS $$$$$$$
+$d:normFactor=2.503919e-01;
+d:normFactor=0.998138;
+$d:normFactor=1.;
+i,nSamples=3;
+i,nFVBins=6;
+i,nComponents=5;
+i,nAttributes=1;
+i,nSysPars=19;
+s,globalRootName=atm_fake3;
+s,FVBinName0=wall0;
+s,FVBinName1=wall1;
+s,FVBinName2=wall2;
+s,fQAttName0=fqelike;
+s,fQAttName1=fqrcpar;
+s,fQAttName2=fqpi0like;
+s,fQAttName3=fqpi0mass;
+s,fQAttName4=fqpi0towallmin;
+s,fQAttName5=fqpi0photangle;
+s,MCComponentName0=single_e;
+s,MCComponentName1=single_mu;
+s,MCComponentName2=e_other;
+s,MCComponentName3=mu_other;
+s,MCComponentName4=pi0;
+s,MCComponentName5=other;
+s,sampleName0=1se;
+s,sampleName1=2se;
+s,sampleName2=gt2se;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ PREPROC PARAMETERS $$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ OUTPUT DIRECTORY FOR THE PROCESSED FILES 
+s,preProcessOutDir=/nfs/data41/t2k/amissert/processed/fake3/;
+s,preProcessFilesMC=/nfs/data41/t2k/amissert/skdata/atmospheric/xl_mcsample3/*.root;
+s,preProcessFilesData=/nfs/data41/t2k/amissert/skdata/atmospheric/xl_fakedata3/xx*.root;
+$$ CODE FOR FV BINNING
+$$   0 -> SIMPLE (3 FV BINS BASED ON WALL CUTS)
+$$   1 -> COSMIC (SORT BY SIDE VS TOP ENTERING)
+$$   2 -> NO FV BINNING (ONE BIN)
+$$   4 -> BIN USING FV HISTOS
+i,preProcessFVBinning=4;
+$$ MC COMPONENT DEFINITIONS
+$$   0 -> VISIBLE+NEUT
+$$   1 -> COSMIC  (CUTS ON SUBEV #)
+$$   2 -> VISIBLE (CUTS ONLY ON # VIS RINGS)
+$$   3 -> HPI0 (NO CUTS)
+i,preProcessMCComponents=2;
+$$ MC AND DATA SAMPLE DEFINITION
+$$  0 -> ATMOSPHERIC (BY NSE)
+$$  1 -> COSMIC
+$$  2 -> HYBRID PI0 (ONE SAMPLE)
+$$  3 -> ATMOSPHERIC + E 
+i,preProcessMCSamples=0;
+$$ NHITAC CUT FOR FC EVENTS
+i,preProcFCCut=16;
+$$ VISIBLE ENERGY CUT
+d,preProcEVisCut=100.;
+$$ MIN WALL CUT
+d,preProcWallMinCut=0;
+$$ MIN TOWALL Cut
+d,preProcToWallMinCut=0;
+$$ MAX SUBEVENTS
+i,preProcNseMax=100;
+$$ MIN SUBEVENTS
+i,preProcNseMin=0;
+$$ MIN TIME BETWEEN FIRST TWO SUBEVENTS (INGATE CUT)
+d,preProcInGateCut=0;
+$$ ADD ADDIONAL VARIABLES TO OUTPUT (MAY INCREASE PROCESSING TIME)
+i,preProcAddMoreVars=0;
+$$ NTUPLE STRUCTURE OF INPUT FILES
+$$  Atmospheric -> Atmospheric MC structure
+$$  T2KMCReduced -> Reduced T2K MC structure 
+s:ntupleType=Atmospheric;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ HFACTORY PARAMETERS $$$$$
+$$ $$$$$$$$$$$$$$$$$$$$$$$$$
+$$ OUTPUT FILE FOR FILLED HISTOGRAMS
+$s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_same.root;
+$s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_same_50bin.root;
+$
+$ s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_diffbin.root;
+$ s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_samefinebin.root;
+$ s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_samebinbin.root;
+$s:hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_samebin.root;
+$s:hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_diffbinfine.root;
+$s:hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_diffbinveryfine.root;
+s:hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_fake3x.root;
+$
+$s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_same_diffbin.root;
+$s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos.root;
+$s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/filled_histos_wide.root;
+$$ PROCESSED MC FILES
+s,hFactoryMCFiles=/nfs/data41/t2k/amissert/processed/fake3/*ppmc*.root;
+$$ PROCESSED DATA FILES
+s,hFactoryDataFiles=/nfs/data41/t2k/amissert/processed/fake3/*ppd*.root;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ HISTOGRAM BINNING $$$$$$$
+i,nBinsAtt0=90;
+i,nBinsDataAtt0=30;
+i,nBinsAtt1=50;
+i,nBinsAtt2=50;
+i,nBinsAtt3=50;
+i,nBinsAtt4=50;
+i,nBinsAtt5=55;
+i,nBinsAtt6=55;
+d,xMinAtt0=-1500;
+d,xMaxAtt0=1500;
+d,xMinAtt1=-50;
+d,xMaxAtt1=2000.;
+d,xMinAtt2=-50;
+d,xMaxAtt2=1000;
+d,xMinAtt3=0;
+d,xMaxAtt3=1000;
+d,xMinAtt4=0;
+d,xMaxAtt4=4000;
+d,xMinAtt5=-0.5;
+d,xMaxAtt5=3.2;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ SPLINE FACTORY PARAMETERS $$
+s,splineFactoryOutput=/nfs/data41/t2k/amissert/processed/fake3/spline_pars.root;
+$  CODE FOR THE TYPE OF SYSTEMATIC ERROR PARAMETERIZATION
+$    tn186 -> SIMPLE TN186 PARAMETERIZATION 
+$    none  -> NO SYSTEMATIC ERRORS
+$    cosmic -> COSMIC MUON FLUX SYSTEMATICS
+$    debug -> 5% scaling uncertainty for each bin
+$s,sysParType=tn186;
+s,sysParType=none;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ FIT & MCMC PARAMETERS $$$$$$
+i,MCMCNSteps=10000;
+d,MCMCTunePar=0.1;
+i,flgFixAllSmearPars=0;
+i,useSplinesFlg=0;
+i,flgUseNormPars=0;
+i,flgUsePriorsInFit=0;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ POSTFIT PARAMETERS $$$$$$$$$
+s,MCMCFile=mcmctree.root;
+i,MCMCBurnIn=1000;
+i,NMCEvents=500000;
+i,NDataEvents=500000;
+i,NMCMCPts=20;

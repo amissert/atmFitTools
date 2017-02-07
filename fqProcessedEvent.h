@@ -9,6 +9,7 @@
 #define fqProcessedEvent_h
 
 #include <TROOT.h>
+#include <iostream>
 #include <TChain.h>
 #include <TFile.h>
 
@@ -17,6 +18,10 @@ public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
+   // index of important attribtes
+   int momentumIndex;
+   int PIDIndex;
+   
    // Declaration of leaf types
    Int_t           nev;
    UInt_t          nhitac;
@@ -33,6 +38,8 @@ public :
    Int_t           fqtwnd_iclstr[10];   //[fqntwnd]
    Int_t           fqtwnd_npeak[10];   //[fqntwnd]
    Float_t         fqtwnd_prftt0[10];   //[fqntwnd]
+   Float_t         fqrcpar;
+   Float_t         fqpi0par;
    Float_t         fqtwnd_prftpos[10][3];   //[fqntwnd]
    Float_t         fqtwnd[10][2];   //[fqntwnd]
    Float_t         fqtwnd_peakt0[10][10];   //[fqntwnd]
@@ -114,16 +121,19 @@ public :
    Float_t         fqtowall;
    Float_t         fq1rwall[10][7];
    Float_t         fq1rtowall[10][7];
+   Float_t         fq1renu[2];
    Float_t         towallv[50];
    Float_t         wallv2;
    Float_t         evtweight;
    Int_t           best2RID;
+   Int_t           passecut;
+   Int_t           passmucut;
    Float_t         fq1rperim[10][7];
    Float_t         fq1rmincone[10][7];
    // from Xiaoyue's skimmed tree with atmospheric weights
    Double_t        wgtosc1[4];
    Double_t        wgtflx[4];
-
+   Float_t         oscpower[4];
 
    // List of branches
    TBranch        *b_nev;   //!
@@ -230,6 +240,11 @@ public :
    TBranch        *b_fq1rmincone;   //!
 
    fqProcessedEvent(TTree *tree=0);
+
+   float getOscPower();
+   int passMuCuts();
+   int passECuts();
+   void useImportantOnly();
    virtual ~fqProcessedEvent();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);

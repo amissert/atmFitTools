@@ -77,7 +77,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuMuCat[0]->Integral(1,plots2->pltEnuMuCat[0]->GetNbinsX()+1);
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -90,7 +90,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuMuCat[1]->Integral(1,plots2->pltEnuMuCat[1]->GetNbinsX()+1);
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -103,7 +103,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuMuCat[2]->Integral(1, plots1->pltEnuMuCat[2]->GetNbinsX()+1);
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -116,7 +116,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuMuCat[3]->Integral(1,plots2->pltEnuMuCat[3]->GetNbinsX()+1);
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -129,7 +129,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuMuCat[4]->Integral(1,plots2->pltEnuMuCat[4]->GetNbinsX()+1);
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -149,7 +149,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuE->Integral();
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -162,7 +162,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuECat[0]->Integral();
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -175,7 +175,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuECat[1]->Integral();
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -188,7 +188,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuECat[2]->Integral();
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -201,7 +201,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuECat[3]->Integral();
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -214,7 +214,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     n2 = plots2->pltEnuECat[4]->Integral();
     diff = n2 - n1;
     if (n1>0.){
-      pdiff = (n2 - n1)/n1;
+      pdiff = 100.*(n2 - n1)/n1;
     }
     else{
       pdiff = 0.;
@@ -226,6 +226,10 @@ void optimusPrime::printCutDiff(int flgnumu){
 
   txtSummary->Draw();
 }
+
+
+
+
 ////////////////////////////////////////////////////////////////////////
 // make FV map
 // make Delta plots
