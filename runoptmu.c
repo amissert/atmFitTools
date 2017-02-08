@@ -12,13 +12,14 @@ gROOT->ProcessLine(".L moreUncertainties.cxx+");
 // parameters /////////////////////////////////////////////////////////////
 
 // file names of processed T2K MC
-TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan19/*.root";
+//TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan19/*.root";
+TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan30fixed/*.root";
 
 // card file name for other settings
-TString CardFileName = "dryrun.dat";
+TString CardFileName = "wetrun.dat";
 
 // file name(s) for MCMC parameters
-TString MCMCParFileName = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/dryrun/mcmcfit_summary_sample.root";
+TString MCMCParFileName = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun/demcmcfit_summary_sample.root";
 
 // directory to find additional uncertainty files (entering bg, etc)
 TString DataFileDirectory = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/data/";
@@ -27,7 +28,7 @@ TString DataFileDirectory = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/dat
 TString UncertaintyMapFile = "FVUncMapNuMu.root";
 
 // max # of events to use
-//int     NMaxMCEvents = 50010;
+//int     NMaxMCEvents = 100010;
 int     NMaxMCEvents = 2e9;
 
 int IndexPIDPar = 0;
@@ -50,11 +51,11 @@ opt->indexPIDPar = IndexPIDPar;
 opt->indexPi0Par = IndexPi0Par;
 opt->indexPiPPar = IndexPiPPar;
 opt->indexRCPar = IndexRCPar;
-
+//opt->calcFOMMap(200,200,0,20,1);
 //opt->calcDeltaMapNuMu(50,50,200,200);
-//opt->makeAllPlots(350,350,0,70,1);
+//opt->makeAllPlots(220,220,0,45,1);
 
-opt->compareCuts(110,30,250,30,0,1);
+//opt->compareCuts(110,30,250,30,0,1);
 
 // run
 //opt->calcFOMToyMC(200,200,0,2,10);

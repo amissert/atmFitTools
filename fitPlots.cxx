@@ -68,6 +68,40 @@ void fitPlots::drawFitSummary(int isamp, int ibin){
 
     cc->cd(iatt+1);
 
+    // calc summaryy
+    hAtt[iatt]->calcSummary();
+    hAtt[iatt]->hSummary->SetMarkerStyle(1);
+    hAtt[iatt]->hSummary->Draw("e2");
+
+    // draw MC original
+    TH1D* hmc = hCompare->hManager->getSumHistogram(isamp,ibin,iatt,1);
+    hmc->SetLineColor(kRed);
+    hmc->Draw("samehisto");
+
+    // draw Data
+    TH1D* hd = hCompare->hManager->hData[isamp][ibin][iatt];
+    hd->SetMarkerStyle(8);
+    hd->Draw("samee");
+
+  }
+
+  //
+  return;
+}
+
+/////////////////////////////////////////////////////////////
+void fitPlots::drawFitThrows(int isamp, int ibin){
+
+  // fill arrays
+  fillArrays(ibin, isamp);
+
+  cc = new TCanvas("cc","cc",800,800);
+  cc->Divide(2,2);
+
+  for (int iatt=0; iatt<4; iatt++){
+
+    cc->cd(iatt+1);
+
     // draw array
     hAtt[iatt]->drawArray();
 

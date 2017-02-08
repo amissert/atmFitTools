@@ -6,6 +6,40 @@
 
 
 ///////////////////////////////////////////////////////
+void hArray::calcSummary(){
+
+  // get template
+  TString hname = nameTag.Data();
+  hname.Append("_array_summary");
+  hSummary = (TH1D*)hSeed->Clone(hname.Data());
+  hSummary->Reset();
+
+  // calc mean and rms for each bin
+  const int N = nHistos;
+  double contents[N];
+  for (int ibin=1; ibin<=hSummary->GetNbinsX(); ibin++){
+    
+    // fill array
+    for (int ipt=1; ipt<N; ipt++){
+      contents[ipt] = histos[ipt]->GetBinContent(ibin);
+    }
+
+    // get array stats
+    double mean = arraymeanD(contents,N);
+    double sig  = TMath::Sqrt(arrayvarD(contents,N));
+
+    // set as summary
+    hSummary->SetBinContent(ibin,mean);
+    hSummary->SetBinError(ibin,sig);
+    hSummary->SetFillColor(kCyan + 1);
+    hSummary->SetMarkerStyle(1);
+
+  }
+
+  return;
+}
+
+///////////////////////////////////////////////////////
 hArray::hArray(const char *name, TH1D* hseed, int nh){
   nameTag = name;
   hSeed = hseed;

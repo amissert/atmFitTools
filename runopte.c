@@ -12,10 +12,10 @@ gROOT->ProcessLine(".L moreUncertainties.cxx+");
 // parameters /////////////////////////////////////////////////////////////
 
 // file names of processed T2K MC
-TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan19/*.root";
+TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan30fixed/*.root";
 
 // card file name for other settings
-TString CardFileName = "dryrun.dat";
+TString CardFileName = "wetrun.dat";
 
 // file name(s) for MCMC parameters
 TString MCMCParFileName = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/dryrun/mcmcfit_summary_sample.root";
@@ -52,8 +52,8 @@ opt->indexPiPPar = IndexPiPPar;
 opt->indexRCPar = IndexRCPar;
 
 //opt->calcDeltaMapNuMu(50,50,200,200);
-//opt->makeAllPlotsNuMu(350,350,0,100);
-opt->makeAllPlots(400,400,2,70,0);
+//opt->makeAllPlotsNuMu(300,300,0,100);
+//opt->makeAllPlots(300,300,3,50,0);
 
 //opt->compareCuts(0,0,200,200,0,1);
 

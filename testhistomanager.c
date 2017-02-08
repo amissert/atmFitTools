@@ -6,7 +6,8 @@ gROOT->ProcessLine(".L histoManager.cxx++");
 
 
 
-histoManager* hm = new histoManager("dryrun.dat");
+//histoManager* hm = new histoManager("dryrun.dat");
+histoManager* hm = new histoManager("wetrun.dat");
 
  
 

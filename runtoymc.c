@@ -10,15 +10,19 @@ gROOT->ProcessLine(".L toyMC.cxx+");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parameters //
-TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan12/*.root";
-TString MCMCFiles = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/dryrun/mcmcfit_summary_sample.root";
+//TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan30full//*.root";
+TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/feb6full/*.root";
+//TString MCMCFiles = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun/demcmc_summary_sample.root";
+//TString MCMCFiles = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun/demcmc_run3_summary_sample.root";
+TString MCMCFiles = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun/mcmcfit_run1_summary_sample.root";
 int   NMCEvents = 1e9;
-int   NMCMCPoints = 150;
+//int   NMCEvents = 50000;
+int   NMCMCPoints = 100;
 int   index_of_pidpar = 0;
 int   index_of_pi0par = 1;
 int   index_of_pippar = 2;
-int   index_of_pmom   = 3;
-int   index_of_rcpar  = -1;
+int   index_of_pmom   = -1;
+int   index_of_rcpar  = 3;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -39,13 +43,13 @@ TChain* parfiles = new TChain("MCMCpath");
 parfiles->Add(MCMCFiles.Data());
 
 toy->setChains(mcfiles,parfiles,NMCEvents);
-toy->setAtmFitPars("dryrun.dat");
+toy->setAtmFitPars("wetrun.dat");
 
 mcfiles->GetEntry(500); // initialize some parameters
 parfiles->GetEntry(500); // initialize some parameters
 toy->makeFVMapNuMu(NMCMCPoints,"./data/FVUncMapNuMu.root");
 //toy->makeFVMapNuE(NMCMCPoints,"./data/FVUncMapNuE.root");
 //toy->makeFVMapNuE(NMCMCPoints);
-//toy->hArrFV->saveClose();
+toy->hArrFV->saveClose();
 
 }
