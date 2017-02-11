@@ -6,9 +6,10 @@
 
 #include "TH2D.h"
 #include "TString.h"
+#include "stats.C"
 
 
-#define HARRAYMAX 50
+#define HARRAYMAX 100
 
 class hArray{
 
@@ -23,6 +24,7 @@ class hArray{
   int nHistos;
 
   void init();
+  void calcSummary();
   void setHistogram(int ih, TH1D* hh);
   void drawArray();
   void delArray();

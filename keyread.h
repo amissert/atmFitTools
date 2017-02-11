@@ -15,7 +15,7 @@ using namespace std;
 //USAGE////////////////////////////////////////////////////////////////
 //CREATE WITH keyread("<cardname.txt>")
 //ACCESS DATA FROM CARD FILE WITH I.E. .getKeyD("<variable_name>")
-//CARD PARAMETER FORMAT (WHITESPACE SENSITIVE)
+//CARD PARAMETER FORMAT
 //<TYPE>,<NAME>=<VALUE>;
 //EX:
 //i,par1=20;

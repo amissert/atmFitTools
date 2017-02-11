@@ -31,11 +31,15 @@ void hArray::calcSummary(){
     // set as summary
     hSummary->SetBinContent(ibin,mean);
     hSummary->SetBinError(ibin,sig);
-    hSummary->SetFillColor(kCyan + 1);
-    hSummary->SetMarkerStyle(1);
-
   }
 
+  hSummary->SetFillColor(kCyan + 1);
+  hSummary->SetMarkerStyle(1);
+  double binw = hSummary->GetBinWidth(1);
+  double buffer = 4.*binw;
+  double xmin = hSummary->GetBinLowEdge(1);
+  double xmax = hSummary->GetBinLowEdge(hSummary->GetNbinsX())+binw;
+  hSummary->GetXaxis()->SetRangeUser(xmin+buffer,xmax-buffer);
   return;
 }
 
@@ -75,7 +79,7 @@ void hArray::drawArray(){
   histos[0]->SetMinimum(0.);
   histos[0]->SetMaximum(1.3*histos[0]->GetMaximum());
   double binw = histos[0]->GetBinWidth(1);
-  double buffer = 2.*binw;
+  double buffer = 4.*binw;
   double xmin = histos[0]->GetBinLowEdge(1);
   double xmax = histos[0]->GetBinLowEdge(histos[0]->GetNbinsX())+binw;
   histos[0]->GetXaxis()->SetRangeUser(xmin+buffer,xmax-buffer);

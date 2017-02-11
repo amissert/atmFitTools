@@ -134,7 +134,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     else{
       pdiff = 0.;
     }
-    txtline[iline] = Form("Dead Region: %5.2f #rightarrow %5.2f #Delta = %5.2f (%5.2f \%)",n1,n2,diff,pdiff);
+    txtline[iline] = Form("Entering: %5.2f #rightarrow %5.2f #Delta = %5.2f (%5.2f \%)",n1,n2,diff,pdiff);
     txtSummary->AddText(txtline[iline].Data());
     iline++;
   }
@@ -219,7 +219,7 @@ void optimusPrime::printCutDiff(int flgnumu){
     else{
       pdiff = 0.;
     }
-    txtline[iline] = Form("Dead Region: %5.2f #rightarrow %5.2f #Delta = %5.2f (%5.2f \%)",n1,n2,diff,pdiff);
+    txtline[iline] = Form("Entering: %5.2f #rightarrow %5.2f #Delta = %5.2f (%5.2f \%)",n1,n2,diff,pdiff);
     txtSummary->AddText(txtline[iline].Data());
     iline++;
   }

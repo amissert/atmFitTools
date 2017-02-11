@@ -12,6 +12,8 @@
  TChain ch("MCMCpath");
 // ch.Add("./run/results/wetrun/demcmc_summary_sample.root");
  ch.Add("./run/results/wetrun/demcmc_run3_summary_sample.root");
+// ch.Add("./run/results/wetrun/mcmcfit_summary_sample.root");
+// ch.Add("./run/results/wetrun/demcmc_run4_summary_sample.root");
 
  fitPlots* fp = new fitPlots(hc,(TTree*)&ch);
  fp->nPoints = 100;

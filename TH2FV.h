@@ -4,10 +4,9 @@
 #include "TH2Poly.h"
 #include "TVector2.h"
 #include "TMath.h"
+#include <iostream>
 
-#ifndef NHBINSMAX
-#define NHBINSMAX 9999
-#endif
+#define NPOLYBINSMAX 9999
 
 
 using namespace std;
@@ -39,8 +38,9 @@ class TH2FV:public TH2Poly{
   double fXMax;
   double fYMin;
   double fYMax;
-  double fCenter[NHBINSMAX][2];
+  double fCenter[NPOLYBINSMAX][2];
   int fNCells;
+  int fAdded;
 
   //initialize
   void Init();
@@ -51,6 +51,10 @@ class TH2FV:public TH2Poly{
 
   //add bin center
   void AddBinCenter(int n, double *xx, double* yy);
+  void AddSquareDiagonalBins(int nbins, double maxval);
+
+  // set min to be smallest non-zero value
+  void SetMinNonZero();
 
   // get the center of a bin
   double GetBinCenterX(int nbin);
@@ -70,6 +74,7 @@ class TH2FV:public TH2Poly{
   protected:
 
   //for triangle plots:
+//  void AddSquareDiagonalBins(int nbins, double maxval);
   int LineIntersects(double* binx, double* biny);
   //double fMaxWall;
   void SetSplitBins(double* splitx, double* splity);

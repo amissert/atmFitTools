@@ -32,11 +32,14 @@ class fitPlots{
   int nAtt;
   int nPoints;
   TCanvas* cc;
+  TH1D* hTmp;
+//  TH1D* hSummary;;
 
   // methods
   void applyPars();
   void fillArrays(int ibin, int isamp);
   void drawFitSummary(int isamp, int ibin);
+  void drawFitThrows(int isamp, int ibin);
   void printFitSummary(const char* dir, const char* name);
   void initArrays();
 

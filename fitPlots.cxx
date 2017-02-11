@@ -2,6 +2,7 @@
 #define FITPLOTS_C
 
 #include "fitPlots.h"
+#include "hBound.cxx"
 
 
 
@@ -63,15 +64,20 @@ void fitPlots::drawFitSummary(int isamp, int ibin){
 
   cc = new TCanvas("cc","cc",800,800);
   cc->Divide(2,2);
-
+//  cc->cd(1);
+  
   for (int iatt=0; iatt<4; iatt++){
 
     cc->cd(iatt+1);
 
     // calc summaryy
     hAtt[iatt]->calcSummary();
-    hAtt[iatt]->hSummary->SetMarkerStyle(1);
+    hAtt[iatt]->hSummary->SetMarkerStyle(4);
     hAtt[iatt]->hSummary->Draw("e2");
+//    hTmp = (TH1D*)hAtt[iatt]->hSummary->Clone("htmp");
+//    hTmp->SetFillColor(0);
+//    hTmp->Draw("samehisto");
+//    hAtt[iatt]->hSummary->SetFillColor(kCyan + 1);
 
     // draw MC original
     TH1D* hmc = hCompare->hManager->getSumHistogram(isamp,ibin,iatt,1);
@@ -80,8 +86,12 @@ void fitPlots::drawFitSummary(int isamp, int ibin){
 
     // draw Data
     TH1D* hd = hCompare->hManager->hData[isamp][ibin][iatt];
+    if (iatt==3) applyLoBound(hd,0.);
     hd->SetMarkerStyle(8);
     hd->Draw("samee");
+
+ //   cc->cd(iatt+1);
+//    hTmp->Delete();
 
   }
 

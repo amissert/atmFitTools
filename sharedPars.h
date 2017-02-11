@@ -1,6 +1,7 @@
 #ifndef SHAREDPARS_H
 #define SHAREDPARS_H
 
+#include "shared.h"
 #include "TString.h"
 #include "keyread.h"
 #include <iostream>
@@ -119,6 +120,11 @@ class sharedPars{
   double biasPriorWidthAtt4;
   double biasPriorWidthAtt5;
   int flgUsePhysLoBound;
+  double physLoBoundAtt0;
+  double physLoBoundAtt1;
+  double physLoBoundAtt2;
+  double physLoBoundAtt3;
+  double physLoBoundAtt4;
   int flgUseFitParFile;
   int nBinBuffer;
 //  double physBoundAtt0;
