@@ -4,7 +4,7 @@
 #include "preProcess.h"
 
 ////////////////////////////////////////////////////////////////
-// Get the full file name corrsponding to the given atm MC 
+// Get the full RFG file name corrsponding to the given atm MC 
 // file name
 TString preProcess::getRFGFileName(const char* rootfile){
  
@@ -916,7 +916,9 @@ int preProcess::getBest2RFitID(fqEvent* fqevent){
 //    cout<<"hcecking: "<<ifit<<endl;
     int fitID = TMath::Abs(fqevent->fqmrifit[ifit]); //< fit fit ID code
 //    if (fitID==20000033){
-    if (TMath::Abs(fitID-20000000)<50){
+    if (TMath::Abs(fitID-10000000)<50){
+//    if (TMath::Abs(fitID-20000000)<50){
+//    if (TMath::Abs(fitID)<50){
 //      cout<<fitID<<endl;
 //      cout<<fqevent->fqmrnll[ifit]<<endl;
 //      cout<<"best!"<<endl;
@@ -958,8 +960,11 @@ float preProcess::getRCParameter(fqEvent* fqevent){
 //  int ibest = 0;
 
   // get best 1R Likelihood 
+  float best1Rnglnl = TMath::Min(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2] );
+
+  /*
   float best1Rnglnl = 0.;
-  float ring1mom = 0.;
+//  float ring1mom = 0.;
   if ( fqevent->fq1rnll[0][1]<fqevent->fq1rnll[0][2]){
     best1Rnglnl = fqevent->fq1rnll[0][1];
     ring1mom = fqevent->fq1rmom[0][1];
@@ -971,9 +976,12 @@ float preProcess::getRCParameter(fqEvent* fqevent){
 
 //  float best1Rnglnl = (float)fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
 //  cout<<"best 1r: "<<best1Rnglnl<<endl;
+  */
 
+
+  ///////////////////////////////////////////////////
   // get mom of 2nd ring
-  float ringmom = (float)fqevent->fqmrmom[best2RID][1];
+  float ringmom = (float)TMath::Min(fqevent->fqmrmom[best2RID][0],fqevent->fqmrmom[best2RID][1]);
   
 
 //  cout<<"best mr: "<<fqevent->fqmrnll[best2RID]<<endl;
@@ -984,9 +992,17 @@ float preProcess::getRCParameter(fqEvent* fqevent){
   float a0 = 150.;
   float a1 = -0.6;
 
-  // ring-counting parameter
+//  float cthresh = a0 + a1*(ringmom);
+  float cthresh = a0 + a1*(ringmom);;
+  if (!(cthresh>0.)) cthresh=0.;
+  
+  float rcpar = deltaLnL - cthresh;
+
+  //////////////////////////////////////
+
+ // ring-counting parameter
 //  float rcpar = deltaLnL - (a0 + a1*ringmom); 
-  float rcpar = deltaLnL - (a0 + a1*ringmom); 
+//  float rcpar = deltaLnL - (a0 + a1*ringmom); 
 
 //  float rcpar = deltaLnL; 
 //  float rcpar = (float) fqevent->fqmrnring[0];
@@ -996,8 +1012,17 @@ float preProcess::getRCParameter(fqEvent* fqevent){
             + fqevent->fqmrdir[best2RID][0][1]*fqevent->fqmrdir[best2RID][1][1]
             + fqevent->fqmrdir[best2RID][0][2]*fqevent->fqmrdir[best2RID][1][2];
 
-  //
-  return rcpar;
+
+  // signed sq root ///////////
+  if (rcpar<0.){
+    rcpar =  -1.*TMath::Sqrt(-1.*rcpar);
+  }
+  else{
+    rcpar = TMath::Sqrt(rcpar);
+  }
+  ////////////////////////////
+  
+  return TMath::Log(rcpar+40.);
 }
 
 

@@ -66,6 +66,61 @@ void mcmcApply::applyPars(int nbin, int ncomponent, float attributeTmp[], int na
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// get total weight from xsec pars
+float mcmcApply::getXsecWeight(int mode, float Enu){
+
+  // weights from tn186!! ////////////////////////////
+  float ww = 1.0; 
+  if (mode<10){
+      if (Enu<190.) ww*=fitPars->getSysParameter(0);
+      if ((Enu>190.)&&(Enu<240.)) ww*=fitPars->getSysParameter(1);
+      if ((Enu>240.)&&(Enu<294.)) ww*=fitPars->getSysParameter(2);
+      if ((Enu>294.)&&(Enu<333.)) ww*=fitPars->getSysParameter(3);
+      if ((Enu>333.)&&(Enu<390.)) ww*=fitPars->getSysParameter(4);
+      if ((Enu>390.)&&(Enu<440.)) ww*=fitPars->getSysParameter(5);
+      if ((Enu>440.)&&(Enu<487.)) ww*=fitPars->getSysParameter(6);
+      if ((Enu>487.)&&(Enu<590.)) ww*=fitPars->getSysParameter(7);
+      if ((Enu>590.)&&(Enu<690.)) ww*=fitPars->getSysParameter(8);
+      if ((Enu>690.)&&(Enu<786.)) ww*=fitPars->getSysParameter(9);
+      if ((Enu>786.)&&(Enu<896.)) ww*=fitPars->getSysParameter(10);
+      if ((Enu>896.)&&(Enu<994.)) ww*=fitPars->getSysParameter(11);
+      if ((Enu>994.)&&(Enu<2000.)) ww*=fitPars->getSysParameter(12);
+      if (Enu>2000.) ww*=fitPars->getSysParameter(13);
+  }
+  else if (mode<30){
+    ww *= fitPars->getSysParameter(16);
+  }
+  else if (mode>=30){
+    ww *= fitPars->getSysParameter(17);
+  }
+
+  //
+  return ww;
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// apply parameters to temporary array
+float mcmcApply::getEvtWeight(int nbin, int nsamp, int nmode, float enutrue){
+
+  // start fresh
+  float ww = 1.0;
+
+  // apply normalization
+  ww *= (float)fitPars->getNormParameter(nsamp,nbin);
+
+  // apply ssec
+  ww *= getXsecWeight(nmode, enutrue);
+
+  return ww;
+}
+
+
+
 /////////////////////////////////////////////////////////////////
 // apply the cuts to a modified event and see if it passes
 int mcmcApply::applyCutsToModifiedEvent(int iev, mcLargeArray* fastevents, bool modflg){

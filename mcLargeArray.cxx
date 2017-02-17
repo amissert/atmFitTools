@@ -73,6 +73,7 @@ void mcLargeArray::fillArray(TChain* ch){
  ch->SetBranchStatus("ipnu",1);
  ch->SetBranchStatus("pass*",1);
  ch->SetBranchStatus("nbin",1);
+ ch->SetBranchStatus("nsample",1);
  ch->SetBranchStatus("ncomponent",1);
  ch->SetBranchStatus("att*",1);
 
@@ -112,6 +113,7 @@ void mcLargeArray::fillArray(TChain* ch){
   vfqpid[i] = (float)mcevent->fq1rnll[0][2]-(float)mcevent->fq1rnll[0][1];
   vweight[i] = (float)mcevent->evtweight; 
   vbin[i] = (Short_t)mcevent->nbin;
+  vsample[i] = (Short_t)mcevent->nsample;
   vfqnsubev[i] = (int)mcevent->fqnse;
   vcomponent[i] = (Short_t)mcevent->ncomponent;
   vattribute[i][0] = (float)mcevent->attribute[0];

@@ -298,7 +298,6 @@ splineFactory::splineFactory(const char*  parfile){
   cout<<"splineFactory: Parameter File: "<<parfile<<endl;
   runpars = new sharedPars(parFileName.Data());
   runpars->readParsFromFile();
-;
   //setup systematic parameters object
   fitPars = new atmFitPars(parfile);
 

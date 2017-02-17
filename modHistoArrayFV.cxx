@@ -295,27 +295,27 @@ void modHistoArrayFV::calcSummary(){
     float binc1 = FVUncMap->GetBinContent(fvbin+1);
     float binc2 = FVShiftMap->GetBinContent(fvbin+1);
 //    FVUncMap->SetBinContent(fvbin+1,binc1+binc2);
-    FVUncMap->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2);
+    FVUncMap->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2));
     //
     binc1 = FVUncMapCCQE->GetBinContent(fvbin+1);
     binc2 = FVShiftMapCCQE->GetBinContent(fvbin+1);
 //    FVUncMapCCQE->SetBinContent(fvbin+1,binc1+binc2);
-    FVUncMapCCQE->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2);
+    FVUncMapCCQE->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2));
     //
     binc1 = FVUncMapCCnQE->GetBinContent(fvbin+1);
     binc2 = FVShiftMapCCnQE->GetBinContent(fvbin+1);
 //    FVUncMapCCnQE->SetBinContent(fvbin+1,binc1+binc2);
-    FVUncMapCCnQE->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2);
+    FVUncMapCCnQE->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2));
     //
     binc1 = FVUncMapCCWrong->GetBinContent(fvbin+1);
     binc2 = FVShiftMapCCWrong->GetBinContent(fvbin+1);
 //    FVUncMapCCWrong->SetBinContent(fvbin+1,binc1+binc2);
-    FVUncMapCCWrong->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2);
+    FVUncMapCCWrong->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2));
     //
     binc1 = FVUncMapNC->GetBinContent(fvbin+1);
     binc2 = FVShiftMapNC->GetBinContent(fvbin+1);
 //    FVUncMapNC->SetBinContent(fvbin+1,binc1+binc2);
-    FVUncMapNC->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2);
+    FVUncMapNC->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2));
   }
 
   return;

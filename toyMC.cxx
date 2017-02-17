@@ -253,15 +253,14 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
 //      int ipass = applyCutsToModifiedEvent(iev);
       // apply parameters and see if it passes cuts
       int ipass = 0;
+      float ww = 1.0;
       if (i!=0){
-//        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,true);
         ipass = applyCutsToModifiedEvent(iev,true);
+        ww = modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev], fastevents->vmode[iev], fastevents->vpmomv[iev] );
       }
       else{
-//        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,false);
         ipass = applyCutsToModifiedEvent(iev,false);
       }
-
 
       // if it passes fill histos
       if (ipass!=1) continue;
@@ -270,15 +269,15 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
       float enu = fastevents->vfqenue[iev];
 
       // fill total nev
-      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
+      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]) - 1;
 
       // fill FV histos for different event catagories
       int catagory = getEventCatagory(iev,12);
 
-      if (catagory==1){ hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-      if (catagory==2){ hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-      if (catagory==3){ hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-      if (catagory==4){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      if (catagory==1){ hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
+      if (catagory==2){ hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
+      if (catagory==3){ hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
+      if (catagory==4){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
       if (catagory==0){cout<<"event # "<<iev<<" has not a catagory..."<<endl;}
 
       // is NC?
@@ -293,7 +292,7 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
 //        hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
 //      }
 
-      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
+      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, ww*fastevents->vweight[iev]);
 
     }
   }

@@ -51,7 +51,11 @@ void  hSplines::draw2D(int npts,int isyst){
       parval = drawHisto->GetYaxis()->GetBinCenter(ybin);
       cout<<"parameter value: "<<parval<<endl;
       cout<<"spline value: "<< theSpline[xbin-1][isyst]->Eval(parval)<<endl;
-      drawHisto->SetBinContent(xbin,ybin,theSpline[xbin-1][isyst]->Eval(parval)*baseHisto->GetBinContent(xbin)); 
+      // old way 
+//      drawHisto->SetBinContent(xbin,ybin,theSpline[xbin-1][isyst]->Eval(parval)*baseHisto->GetBinContent(xbin)); 
+      // new way
+      double binc = evaluateSpline(xbin-1,isyst,parval)*baseHisto->GetBinContent(xbin);
+      drawHisto->SetBinContent(xbin,ybin,binc); 
     }
   }
   cout<<"draw histogram"<<endl;
