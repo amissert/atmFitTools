@@ -1022,7 +1022,7 @@ float preProcess::getRCParameter(fqEvent* fqevent){
   }
   ////////////////////////////
   
-  return TMath::Log(rcpar+40.);
+  return 500.*(TMath::Log(rcpar+40.)-TMath::Log(40));
 }
 
 

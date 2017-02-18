@@ -8,7 +8,10 @@ using namespace std;
 
 /////////////////////////////////////////////////////////////////
 // apply the cuts to a modified event and see if it passes
+//   returns 1 -> passed electron selection
+//   returns 2 -> passed muon selection
 int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
+
   
 //  cout<<"smear 0 "<<hCompare->thePars->getAttModParameter(0,0,0,0)<<endl;
 //  cout<<"smear 1 "<<hCompare->thePars->getAttModParameter(0,0,0,1)<<endl;
@@ -49,6 +52,7 @@ int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
   cutPars.fqnsubev = fastevents->vfqnsubev[iev];
   cutPars.fqenue = fastevents->vfqenue[iev];
   cutPars.fqenumu = fastevents->vfqenumu[iev];
+  cutPars.fqnring = fastevents->vfqnring[iev];
 
   // see if it passes cuts
   int passnue = selectNuE(cutPars);
@@ -63,6 +67,7 @@ int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
    
   
 }
+
 
 
 /////////////////////////////////////////////////////////////////
@@ -213,6 +218,67 @@ void toyMC::makeCombinedUncertainty(int nmcmcpts){
 
   return;
 
+}
+
+
+
+////////////////////////////////////////////////////////////////
+// fill the SKError class
+void toyMC::fillSKErrors(int ntoys){
+
+  // make error container
+  skErr = new SKError(ntoys);
+
+  // get list of random MCMC points
+  cout<<"Making list of MCMC points"<<endl;
+  randomList* mcmclist = new randomList(ntoys,chPars->GetEntries(),ntoys);
+
+  // determine max events
+  int nevmax = chMC->GetEntries();
+  if (nMCevents>nevmax) nMCevents = nevmax;
+
+
+  // loop over mcmc points
+  for (int i=0; i<ntoys; i++){
+
+    // read in MCMC parameters
+    cout<<"getting event"<<mcmclist->getAt(i)<<endl;
+    chPars->GetEntry(mcmclist->getAt(i));
+
+    // modify attributes using thes parameters
+    if (i>0) modifier->setFromMCMC();
+
+    // reset histogram contents
+    skErr->resetHistos();
+
+    // loop over T2K MC events
+    for (int iev=0; iev<nMCevents; iev++){
+ 
+      // apply parameters and see if it passes cuts
+      int ipass = applyCutsToModifiedEvent(iev,true);
+//      int ipass = 1;
+      
+      // if it passes fill histos
+      if (ipass==0) continue;
+
+      // get the new event weight
+      float   ww = fastevents->vweight[iev]
+                   *modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev], fastevents->vmode[iev], fastevents->vpmomv[iev] );
+
+      // fill histos
+      skErr->addEvent( fastevents->vnutype[iev],
+               fastevents->vmode[iev],
+               fastevents->vcomponent[iev],
+               fastevents->vfqemom[iev],
+               ww );
+    }
+
+    // save toy histo contents
+    skErr->addToy(i);
+  }
+
+  //
+  return;
 }
 
 

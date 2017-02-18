@@ -6,6 +6,64 @@
 
 
 ///////////////////////////////////////////////////////////////
+void SKError::drawScatter(int iclass, int jclass){
+
+  const int nn = Ntoys;
+  double X[nn];
+  double Y[nn];
+
+  for (int i=0; i<Ntoys; i++){
+    X[i] = Nevents[iclass][i];
+    Y[i] = Nevents[jclass][i];
+  }
+
+  gScat = new TGraph(nn,X,Y);
+
+  gScat->Draw("ap");
+
+  return;
+}
+
+
+///////////////////////////////////////////////////////////////
+void SKError::calcCov(){
+
+  // histogram setup
+  hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
+  hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
+
+  // loops
+  for (int i=0; i<Nclass; i++){
+    for (int j=0; j<Nclass; j++){
+     
+      // symmetry
+      if (j<i) continue;
+
+      cout<<"finding covariance: "<<i<<","<<j<<endl;
+      float cov = arraycov(Nevents[i],Nevents[j],Ntoys);
+      float cor = arraycor(Nevents[i],Nevents[j],Ntoys);
+      cout<<"cor: "<<i<<","<<j<<" = "<<cor<<endl;
+     
+      hCov->SetBinContent(i,j,cov);
+      hCor->SetBinContent(i,j,cor);
+      //
+      if (i!=j){
+        hCov->SetBinContent(j,i,cov);
+        hCor->SetBinContent(j,i,cor);
+      }
+    }
+  }
+
+  hCor->SetMinimum(-1.);
+  hCor->SetMaximum(1.);
+
+  //
+  return;
+}
+
+
+
+///////////////////////////////////////////////////////////////
 void SKError::addToy(int ntoy){
 
  // save histos in arrays
@@ -32,7 +90,7 @@ void SKError::addToy(int ntoy){
  }
 
  // clear histos for next toy
- resetHistos();
+// resetHistos();
 
  // 
  return;
@@ -55,7 +113,9 @@ void SKError::resetHistos(){
 
 
 ///////////////////////////////////////////////////////////////
-void SKError::addEvent(int nclass, float evis, float weight){
+void SKError::addEvent(int nutype, int mode, int component, float evis, float weight){
+
+  int nclass = getClass(nutype, mode, component, evis);
 
   //
   if (nclass==1){
@@ -85,20 +145,42 @@ int SKError::getClass(int nutype, int mode, int component, float evis){
   //  3 -> CCOth Nu E
   //  4 -> CCOth Nu Mu
  
-  if (component==0){
+  if (component==0 && TMath::Abs(mode)<30 ){
     return 1;
   }
-  if (component==2){
+  if (component==2 && TMath::Abs(mode)<30){
     return 3;
   }
-  if (component==1){
+  if (component==1 && TMath::Abs(mode)<30){
     return 2;
   }
-  if (component==3){
+  if (component==3 && TMath::Abs(mode)<30){
     return 4;
   }
 
   return 0;
+}
+
+
+
+///////////////////////////////////////////////////////////////
+void SKError::drawAll(){
+
+  TH1D* hTmp[NTOYS];
+
+  //
+  for (int itoy=0; itoy<Ntoys; itoy++){
+    drawSlice(itoy);
+    hTmp[itoy] = (TH1D*)hSlice->Clone(Form("htmp%d",itoy));
+  }
+  //
+  hTmp[0]->Draw();
+  for (int itoy=1; itoy<Ntoys; itoy++){
+    hTmp[itoy]->Draw("same");
+  }
+
+  //
+  return; 
 }
 
 
@@ -152,7 +234,7 @@ void SKError::initHistos(){
 
   // setup histos
   hEvisNuECCQE = new TH1D("hnueccqe","hnueccqe",NbinsNuECCQE,BinsNuECCQE); 
-  hEvisNuECCOth = new TH1D("hnueccqe","hnueccqe",NbinsNuECCOth,BinsNuECCOth); 
+  hEvisNuECCOth = new TH1D("hnueccoth","hnueccoth",NbinsNuECCOth,BinsNuECCOth); 
   hEvisNuMuCCQE = new TH1D("hnumuccqe","hnumuccqe",NbinsNuMuCCQE,BinsNuMuCCQE); 
   hEvisNuMuCCOth = new TH1D("hnumuccoth","hnumuccoth",NbinsNuMuCCOth,BinsNuMuCCOth); 
 
