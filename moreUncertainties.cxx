@@ -33,7 +33,6 @@ float moreUncertainties::getFVUncertainty(float towallrc, float wallrc, int mode
   int ibin = hfvmap->FindBin(towallrc,wallrc);
   if (ibin<=0) return 0;
   float sys=0.;
-
   
   // is event from NC?
   if (TMath::Abs(mode)>=30){
@@ -45,7 +44,7 @@ float moreUncertainties::getFVUncertainty(float towallrc, float wallrc, int mode
     return sys;
   }
   // now for ccqe
-  else if (TMath::Abs(mode)==1){
+  else if (TMath::Abs(mode)<=10){
     sys = hfvmapccqe->GetBinContent(ibin); 
     return sys;
   }
@@ -55,8 +54,6 @@ float moreUncertainties::getFVUncertainty(float towallrc, float wallrc, int mode
     return sys;
   }
   
-
-//  return hfvmapccnqe->GetBinContent(ibin);
 
   //
   return sys;
@@ -175,7 +172,8 @@ float moreUncertainties::getXsecUnc(int mode, float enu){
 
   int absmode = TMath::Abs(mode);
 
-  if (absmode==1){
+  // CCQE
+  if (absmode<=10){
     int ibin = hCCQEUnc->FindBin(enu);
     if (ibin>0){
        return hCCQEUnc->GetBinContent(ibin);
@@ -184,24 +182,24 @@ float moreUncertainties::getXsecUnc(int mode, float enu){
       return 0.;
     }
   }
+  
+  // CCnQE
+  else if (absmode<30){
+    return 0.2;
+  }
+ 
+  // NC Coh
+  else if (absmode==36){
+    return 1.0;
+  }
 
-//  else if (absmode<30){
-//    return 0.2;
-//  }
-//    if (absmode==16){
-//      return 0.2;
-//    }
-//    else{
-//      return 0.2;
-//    }
-//  }
-
-//  else if (absmode==36){
-//    return 1.0;
-//  }
-
+  // NC
   return 0.2;
+//  return 1.0;
 }
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Return the total fractional uncertainty for this event
@@ -226,7 +224,7 @@ float moreUncertainties::getTotalUncertainty(float wallv, float wallrc, float to
   float xunc = getXsecUnc(mode, erec);
   totalunc += xunc*xunc;
 
-//     for FV
+  //  for FV
   float fvunc = getFVUncertainty(towallrc,wallrc,mode,wronglepton);
   totalunc += (fvunc*fvunc);
 

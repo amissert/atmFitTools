@@ -52,23 +52,28 @@ class modHistoArrayFV{
   int currentIndex;
 
   // summary histograms
-//  TH2D*  binCor[FVBINSMAX];
-//  TH2D*  binCov[FVBINSMAX];
   // bin uncertainties
   TH1D*  binUnc[FVBINSMAX]; 
-//  TH2D* hCov;
-//  TH2D* hCor;
   TLine* nominalLine[FVBINSMAX];
+  //
   TH2FV* FVUncMap; //< total uncertainty in # of events
   TH2FV* FVUncMapCCQE; //< total uncertainty in # of events
   TH2FV* FVUncMapCCnQE; //< total uncertainty in # of events
   TH2FV* FVUncMapCCWrong; //< total uncertainty in # of events
   TH2FV* FVUncMapNC; //< total uncertainty in # of events
+  //
   TH2FV* FVShiftMap;
   TH2FV* FVShiftMapCCQE;
   TH2FV* FVShiftMapCCnQE;
   TH2FV* FVShiftMapCCWrong;
   TH2FV* FVShiftMapNC;
+  //
+  TH2FV* FVFitMap;
+  TH2FV* FVFitMapCCQE;
+  TH2FV* FVFitMapCCnQE;
+  TH2FV* FVFitMapCCWrong;
+  TH2FV* FVFitMapNC;
+
   TH1D*  hNevents[FVBINSMAX];
   TH1D*  hNeventsCCQE[FVBINSMAX];
   TH1D*  hNeventsCCnQE[FVBINSMAX];
@@ -88,7 +93,7 @@ class modHistoArrayFV{
   void printUncMap(const char* plotdir);
 //  void printUncSummary(const char* plotdir, int type);
   private:
-  void fitGaussians();
+  void fillFitAndShiftError();
 
 
 };

@@ -12,11 +12,6 @@ using namespace std;
 //   returns 2 -> passed muon selection
 int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
 
-  
-//  cout<<"smear 0 "<<hCompare->thePars->getAttModParameter(0,0,0,0)<<endl;
-//  cout<<"smear 1 "<<hCompare->thePars->getAttModParameter(0,0,0,1)<<endl;
-
-    
   // fill tmp array with "nominal" MC values
   const int natt = 4;
   float attributesTmp[natt];
@@ -64,6 +59,137 @@ int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
 
   //
   return 0;
+   
+  
+}
+
+
+
+/////////////////////////////////////////////////////////////////
+// Same as above but applies "core" cuts to modified event (a la
+// TN 186)
+//   returns:
+//     -1 -> Neither core nor tail
+//      0 -> Tail
+//      1 -> Core
+/////////////////////////////////////////////////////////////////
+int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
+
+  // fill tmp array with "nominal" MC values
+  const int natt = 4;
+  float attributesTmp[natt];
+  for (int iatt=0; iatt<natt; iatt++){
+    attributesTmp[iatt] = fastevents->vattribute[iev][iatt];   
+  }
+  // also set cut parameters structure
+  if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
+  if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
+  if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
+  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
+
+  // modify tmp array by applying the histogram shape parameters
+  if (flgmod){
+    modifier->applyPars(fastevents->vbin[iev],
+                        fastevents->vcomponent[iev],
+                        attributesTmp,
+                        natt);
+  }
+
+  // re-fill cut parameter structure using modified attributes
+  if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
+  if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
+  if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
+  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
+  cutPars.fqnring = fastevents->vfqnring[iev];
+
+  // other cut pars that are not modified
+  cutPars.fqmome = fastevents->vfqmumom[iev];
+  cutPars.fqmommu = fastevents->vfqemom[iev];
+  cutPars.nhitac = fastevents->vnhitac[iev];
+  cutPars.fqnsubev = fastevents->vfqnsubev[iev];
+  cutPars.fqenue = fastevents->vfqenue[iev];
+  cutPars.fqenumu = fastevents->vfqenumu[iev];
+  cutPars.fqnring = fastevents->vfqnring[iev];
+
+  // see if it passes cuts
+  // classes: 1 -> nu e CCQE
+  //          2 -> nu mu CCQE
+  //          3 -> nu e CCOth
+  //          4 -> nu mu CCOth
+  //          5 -> NC pi0
+  // electron CCQE
+  if (nclass==1){
+    if (cutPars.fqnsubev==1 && cutPars.fqmome > 100.){
+      if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){
+        return 1;
+      }
+      else{
+        return 0.;
+      }
+    }
+    else{
+      return -1;
+    }
+  }
+  // muon CCQE
+  if (nclass==2){
+    if (cutPars.fqnsubev<=2 && cutPars.fqmome > 100.){
+      if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+        return 1;
+      }
+      else{
+        return 0.;
+      }
+    }
+    else{
+      return -1;
+    }
+  }
+  // electron CCOth
+  if (nclass==3){
+    if (cutPars.fqnsubev>=2 && cutPars.fqmome > 100.){
+      if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){
+        return 1;
+      }
+      else{
+        return 0.;
+      }
+    }
+    else{
+      return -1;
+    }
+  }
+  // muon CCOth
+  if (nclass==4){
+    if (cutPars.fqnsubev>=3 && cutPars.fqmome > 100.){
+      if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+        return 1;
+      }
+      else{
+        return 0.;
+      }
+    }
+    else{
+      return -1;
+    }
+  }
+  // NC
+  if (nclass==5){
+    if (cutPars.fqnsubev==1){
+      if (cutPars.fqpid>=0 && cutPars.fqpi0par>=0.){
+        return 1;
+      }
+      else{
+        return 0.;
+      }
+    }
+    else{
+      return -1;
+    }
+  }
+
+  //
+  return -1;
    
   
 }
@@ -238,6 +364,7 @@ void toyMC::fillSKErrors(int ntoys){
   if (nMCevents>nevmax) nMCevents = nevmax;
 
 
+
   // loop over mcmc points
   for (int i=0; i<ntoys; i++){
 
@@ -253,24 +380,31 @@ void toyMC::fillSKErrors(int ntoys){
 
     // loop over T2K MC events
     for (int iev=0; iev<nMCevents; iev++){
- 
-      // apply parameters and see if it passes cuts
-      int ipass = applyCutsToModifiedEvent(iev,true);
-//      int ipass = 1;
-      
+
+      // get class
+      int nclass = skErr->getClassMC(fastevents->vnutype[iev],
+                                     fastevents->vmode[iev],
+                                     fastevents->vcomponent[iev],
+                                     fastevents->vfqemom[iev]);
+    
+      // passes core selection?
+      int iscore = applyCoreCutsToModifiedEvent(iev,nclass,true);
+
       // if it passes fill histos
-      if (ipass==0) continue;
+      if (iscore<0) continue;
 
       // get the new event weight
       float   ww = fastevents->vweight[iev]
                    *modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev], fastevents->vmode[iev], fastevents->vpmomv[iev] );
+     
+      // fill total histos
+      skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,true);
 
-      // fill histos
-      skErr->addEvent( fastevents->vnutype[iev],
-               fastevents->vmode[iev],
-               fastevents->vcomponent[iev],
-               fastevents->vfqemom[iev],
-               ww );
+      if (iscore==1){
+        // fill core histos
+        skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,false);
+      }
+
     }
 
     // save toy histo contents
@@ -322,7 +456,7 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
       float ww = 1.0;
       if (i!=0){
         ipass = applyCutsToModifiedEvent(iev,true);
-        ww = modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev], fastevents->vmode[iev], fastevents->vpmomv[iev] );
+//        ww *= modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev], fastevents->vmode[iev], fastevents->vpmomv[iev] );
       }
       else{
         ipass = applyCutsToModifiedEvent(iev,false);
@@ -339,24 +473,13 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
 
       // fill FV histos for different event catagories
       int catagory = getEventCatagory(iev,12);
-
+      //
       if (catagory==1){ hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
       if (catagory==2){ hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
       if (catagory==3){ hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
       if (catagory==4){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
       if (catagory==0){cout<<"event # "<<iev<<" has not a catagory..."<<endl;}
 
-      // is NC?
-//      if (fastevents->vmode[iev]>=30){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-
-      //  CC?
-//      if (fastevents->vnutype[iev]!=12){hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-//      else if (fastevents->vmode[iev]==1) {
-//        hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
-//      }
-//      else {
-//        hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
-//      }
 
       if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, ww*fastevents->vweight[iev]);
 
@@ -377,7 +500,7 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
 // Get event catagory. Current catagories:
 //   1 -> CCQE
 //   2 -> CCnQE
-//   3 -> CCWrong
+//   3 -> CCMisID
 //   4 -> NC
 //   0 -> Uncatagorized
 int toyMC::getEventCatagory(int iev, int inutype){
@@ -399,6 +522,114 @@ int toyMC::getEventCatagory(int iev, int inutype){
       
       //
       return 0;
+}
+
+
+
+////////////////////////////////////////////////////////////////
+// make map of uncertainties in different (wall,towall) regions
+void toyMC::makeFVUncMap(int nmcmcpts, int nselection, const char* outfile, int fvbintype){
+
+  // get name of selection
+  TString selection_name;
+  int selection_nutype;
+  if (nselection==1){
+    selection_name = "NuE";
+    selection_nutype = 12;
+  }
+  else if (nselection==3){
+    selection_name = "NuE_1Pi";
+    selection_nutype = 12;
+  }
+  else if (nselection==2){
+    selection_name = "NuMu";
+    selection_nutype = 14;
+  }
+
+  // make array of histos
+  cout<<"Initializing array of histograms..."<<endl;
+  TH1D* hE; //< nu energy binning...this is passed on optimusPrime
+  if (nselection==2){
+     hE = new TH1D(selection_name.Data(),selection_name.Data(),EnuNBins,EnuBinning);
+  }
+  else if (nselection==1){
+     hE = new TH1D(selection_name.Data(),selection_name.Data(),EnuNBinsElectron,EnuBinningElectron);
+  }
+
+  // make FV histogram for binning
+  TH2FV* hfv = new TH2FV("hfv",fvbintype);
+
+  // array of nu energy and FV histograms to be filled
+  hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
+
+  // get list of mc events
+  int nevmax = chMC->GetEntries();
+  if (nMCevents>nevmax) nMCevents = nevmax;
+
+  // get list of points in mcmc parameter space
+  cout<<"Making list of MCMC points"<<endl;
+  randomList* mcmclist = new randomList(nmcmcpts,chPars->GetEntries(),nmcmcpts);
+
+  // loop over mcmc points
+  for (int i=0; i<nmcmcpts; i++){
+
+    // read in parameters
+    cout<<"getting event"<<mcmclist->getAt(i)<<endl;
+    chPars->GetEntry(mcmclist->getAt(i));
+
+    // modify attributes using thes parameters
+    modifier->setFromMCMC();
+
+    // loop over T2K MC events
+    for (int iev=0; iev<nMCevents; iev++){
+
+      // apply parameters and see if it passes cuts
+      int ipass = 0;
+      float ww = 1.0;
+      if (i!=0){
+        ipass = applyCutsToModifiedEvent(iev,true); 
+        ww *= modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev], fastevents->vmode[iev], fastevents->vpmomv[iev] );
+      }
+      else{
+        ipass = applyCutsToModifiedEvent(iev,false);
+      }
+
+      // if it passes fill histos
+      if (ipass!=nselection) continue;
+
+      // modified nu energy
+      float enu = fastevents->vfqenumu[iev];
+
+      // fill total nev
+      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]) - 1;
+
+      // fill FV histos for different event catagories
+      //   1 -> CCQE
+      //   2 -> CCnQE
+      //   3 -> CCMisID
+      //   4 -> NC
+      //   0 -> Uncatagorized
+      int catagory = getEventCatagory(iev,selection_nutype);
+      // fill histograms based on catagory
+      if (catagory==1){ hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
+      if (catagory==2){ hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
+      if (catagory==3){ hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
+      if (catagory==4){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
+      if (catagory==0){cout<<"event # "<<iev<<" has not a catagory..."<<endl;}
+      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, ww*fastevents->vweight[iev]);
+
+    }
+  }
+
+  // calculate summary and save output
+  hArrFV->calcSummary();
+  hArrFV->saveSummary(outfile);
+  hArrFV->saveClose();
+
+  return;
+
+
+
 }
 
 
@@ -435,14 +666,15 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
 
     // loop over T2K MC events
     for (int iev=0; iev<nMCevents; iev++){
+
       // apply parameters and see if it passes cuts
       int ipass = 0;
+      float ww = 1.0;
       if (i!=0){
-//        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,true);
-        ipass = applyCutsToModifiedEvent(iev,true);
+        ipass = applyCutsToModifiedEvent(iev,true); 
+//        ww *= modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev], fastevents->vmode[iev], fastevents->vpmomv[iev] );
       }
       else{
-//        ipass = modifier->applyCutsToModifiedEvent(iev,fastevents,false);
         ipass = applyCutsToModifiedEvent(iev,false);
       }
 
@@ -453,28 +685,19 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
       float enu = fastevents->vfqenumu[iev];
 
       // fill total nev
-      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]) - 1;
-//      int fvbin = fastevents->vbin[iev];
+      int fvbin = hArrFV->hFV[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]) - 1;
 
       // fill FV histos for different event catagories
       int catagory = getEventCatagory(iev,14);
 
-      if (catagory==1){ hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-      if (catagory==2){ hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-      if (catagory==3){ hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-      if (catagory==4){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
+      if (catagory==1){ hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
+      if (catagory==2){ hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
+      if (catagory==3){ hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
+      if (catagory==4){ hArrFV->hFVNC[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],ww*fastevents->vweight[iev]);}
       if (catagory==0){cout<<"event # "<<iev<<" has not a catagory..."<<endl;}
 
-      //  CC?
-//      if (fastevents->vnutype[iev]!=14){hArrFV->hFVCCWrong[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);}
-//      else if (fastevents->vmode[iev]==1) {
-//        hArrFV->hFVCCQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
-//      }
-//      else {
-//        hArrFV->hFVCCnQE[i]->Fill(fastevents->vfqtowall[iev],fastevents->vfqwall[iev],fastevents->vweight[iev]);
-//      }
 
-      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, fastevents->vweight[iev]);
+      if (fvbin>=0) hArrFV->getHistogram(i,fvbin)->Fill(enu, ww*fastevents->vweight[iev]);
     }
   }
 

@@ -86,7 +86,7 @@ void fitPlots::drawFitSummary(int isamp, int ibin){
 
     // draw Data
     TH1D* hd = hCompare->hManager->hData[isamp][ibin][iatt];
-    if (iatt==3) applyLoBound(hd,0.);
+//    if (iatt==3) applyLoBound(hd,0.);
     hd->SetMarkerStyle(8);
     hd->Draw("samee");
 

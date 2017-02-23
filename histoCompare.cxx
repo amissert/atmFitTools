@@ -871,7 +871,7 @@ void histoCompare::showFitResult(int isamp,int ibin,int iatt){
   hTmp->SetLineColor(kRed);
  
   // draw data histograms
-  double xmin = hManager->hData[isamp][ibin][iatt]->GetBinLowEdge(hManager->nBinBuffer+1);
+  double xmin = hManager->hData[isamp][ibin][iatt]->GetBinLowEdge(hManager->nBinBuffer);
   int nbinstot = hManager->hData[isamp][ibin][iatt]->GetNbinsX();
   double xmax =  hManager->hData[isamp][ibin][iatt]->GetBinLowEdge(nbinstot-hManager->nBinBuffer);
   hManager->hData[isamp][ibin][iatt]->GetXaxis()->SetRangeUser(xmin,xmax);

@@ -36,7 +36,7 @@ void hArray::calcSummary(){
   hSummary->SetFillColor(kCyan + 1);
   hSummary->SetMarkerStyle(1);
   double binw = hSummary->GetBinWidth(1);
-  double buffer = 4.*binw;
+  double buffer = 3.*binw;
   double xmin = hSummary->GetBinLowEdge(1);
   double xmax = hSummary->GetBinLowEdge(hSummary->GetNbinsX())+binw;
   hSummary->GetXaxis()->SetRangeUser(xmin+buffer,xmax-buffer);

@@ -17,6 +17,7 @@
 #include "mcLargeArray.h"
 #include <exception>
 #include "TH2FV.h"
+#include "SKError.h"
 
 
 // binning for muons
@@ -27,7 +28,8 @@
 //const int    EnuNBinsElectron = 9;
 
 // binning for muons
-const double EnuBinning[] = {0.,600.,950.,1275.,2120.,10000.};
+//const double EnuBinning[] = {0.,600.,950.,1275.,2120.,10000.};
+const double EnuBinning[] = {0.,400.,950.,1275.,2200.,20000.};
 const int    EnuNBins = 5;
 
 //const double EnuBinning[] = {0.,,596.,843.,1275.,2120.};
@@ -63,6 +65,8 @@ class toyMC{
   t2kSample* t2kToys;
   mcLargeArray* fastevents;
   fqcutparams cutPars;
+  SKError* skErr;
+
   int nMCevents;
   int indexPIDPar;
   int indexPi0Par;
@@ -73,11 +77,16 @@ class toyMC{
   // methods
   void setChains(TChain* chmc, TChain *chpars,int nmcevents);
   void setCompare(histoCompare* hc);
+
   void makeFVMapNuMu(int nmcmcpts, const char* outfile);
   void makeFVMapNuE(int nmcmcpts,const char* outfile);
+  void makeFVUncMap(int nmcmcpts, int nselection, const char* outfile, int fvbintype=1);
+
   void makeCombinedUncertainty(int nmcmcpts);
   void setAtmFitPars(const char* parfile);
+  void fillSKErrors(int ntoys);
   int applyCutsToModifiedEvent(int iev,bool flgmod=true);
+  int applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod=true);
   int getEventCatagory(int iev, int nutype);
   int getRandomMCMCPoint();  
 

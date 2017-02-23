@@ -37,7 +37,17 @@ class mcmcApply{
 
   // methods
   void setFromMCMC();
+
+  // modify the reconstructed fiTQun attributes
   void applyPars(int nbin, int ncomponent, float attributeTmp[], int natt);
+
+
+  // get additional weights from xsec parameters, normalization, etc
+  float getXsecWeight(int mode, float enutrue);
+
+  // get additional weights from xsec parameters, normalization, etc
+  float getEvtWeight(int nbin, int nsamp, int mode, float enutrue);
+  
   // reads in attributes from large array of MC points, then applies
   // the mcmc shape parameters and re-evaluates the event selection cuts
   // returns 1 for nue, 2 for numu, 0 for neither

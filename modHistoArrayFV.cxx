@@ -20,14 +20,23 @@ void modHistoArrayFV::saveSummary(const char* fname){
   // write histograms
   FVUncMap->Write();
   FVShiftMap->Write();
+  FVFitMap->Write();
+  //
   FVUncMapCCQE->Write();
   FVUncMapCCnQE->Write();
   FVUncMapCCWrong->Write();
   FVUncMapNC->Write();
+  //
   FVShiftMapCCQE->Write();
   FVShiftMapCCnQE->Write();
   FVShiftMapCCWrong->Write();
   FVShiftMapNC->Write();
+  //
+  FVFitMapCCQE->Write();
+  FVFitMapCCnQE->Write();
+  FVFitMapCCWrong->Write();
+  FVFitMapNC->Write();
+
   for (int ibin=0; ibin<hFV[0]->GetNumberOfBins(); ibin++){
     for (int ebin=0; ebin<binUnc[ibin]->GetNbinsX(); ebin++){
       float binc =  binUnc[ibin]->GetBinContent(ebin);
@@ -140,22 +149,27 @@ void modHistoArrayFV::calcSummary(){
   }
 
   //////////////////////////////////////////////////////
-  // total uncertainty maps in FV space 
+  // total uncertainty maps in (towall,wall) space 
   FVUncMap = (TH2FV*)hFV[0]->Clone("FVUncMap");
   FVUncMapCCQE = (TH2FV*)hFV[0]->Clone("FVUncMapCCQE");
   FVUncMapCCnQE = (TH2FV*)hFV[0]->Clone("FVUncMapCCnQE");
   FVUncMapNC = (TH2FV*)hFV[0]->Clone("FVUncMapNC");
   FVUncMapCCWrong = (TH2FV*)hFV[0]->Clone("FVUncMapCCWrong");
+  //
   FVShiftMap = (TH2FV*)hFV[0]->Clone("FVShiftMap");
   FVShiftMapCCQE = (TH2FV*)hFV[0]->Clone("FVShiftMapCCQE");
   FVShiftMapCCnQE = (TH2FV*)hFV[0]->Clone("FVShiftMapCCnQE");
   FVShiftMapCCWrong = (TH2FV*)hFV[0]->Clone("FVShiftMapCCWrong");
   FVShiftMapNC = (TH2FV*)hFV[0]->Clone("FVShiftMapNC");
-  
+  //
+  FVFitMap = (TH2FV*)hFV[0]->Clone("FVFitMap");
+  FVFitMapCCQE = (TH2FV*)hFV[0]->Clone("FVFitMapCCQE");
+  FVFitMapCCnQE = (TH2FV*)hFV[0]->Clone("FVFitMapCCnQE");
+  FVFitMapCCWrong = (TH2FV*)hFV[0]->Clone("FVFitMapCCWrong");
+  FVFitMapNC = (TH2FV*)hFV[0]->Clone("FVFitMapNC");
 
-
-  // calc RMS and mean
-  float RMS[nfvbins][5];
+  // calc RMS and mean for each event type in each FV bin
+  float RMS[nfvbins][5]; 
   float NMean[nfvbins][5];
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     for (int ih=0; ih<5; ih++){
@@ -163,6 +177,7 @@ void modHistoArrayFV::calcSummary(){
        NMean[fvbin][ih]=0.;
     }
   }
+  // calculate mean
   float norm = (float)(nPoints-1);
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     for (int ithrow=1; ithrow<nPoints; ithrow++){
@@ -184,6 +199,7 @@ void modHistoArrayFV::calcSummary(){
       //
     }
   }
+  // calculate variance
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     for (int ithrow=1; ithrow<nPoints; ithrow++){
       //
@@ -209,13 +225,14 @@ void modHistoArrayFV::calcSummary(){
       //
     }
   }
+  // make it RMS
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     for (int ih=0; ih<5; ih++){
        RMS[fvbin][ih]=TMath::Sqrt(RMS[fvbin][ih]);
     }
   }
  
-  // make and fill histos
+  // make and fill histograms of the # of events in each FV bin
   // get max # of events from largest bin
   float Nmax = 0;;
   float width=0;
@@ -256,6 +273,7 @@ void modHistoArrayFV::calcSummary(){
     hNeventsNC[fvbin] = new TH1D(hname.Data(),hname.Data(),nbins,Nmin,Nmax);
     //
   }
+  // now fill values
   for (int fvbin=0; fvbin<nfvbins; fvbin++){
     for (int ithrow=1; ithrow<nPoints; ithrow++){
       //
@@ -279,7 +297,7 @@ void modHistoArrayFV::calcSummary(){
 
   //////////////////////////////////////////////////////////
   // fit to gaussians and calculate shifts
-  fitGaussians();
+  fillFitAndShiftError();
 
   // fill lines at the values of the nominal contents
   nominalLine[0] = new TLine(hFV[0]->GetBinContent(1),0,hFV[0]->GetBinContent(1),10000);
@@ -292,113 +310,85 @@ void modHistoArrayFV::calcSummary(){
   // find the total uncertainty
   for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
     //
-    float binc1 = FVUncMap->GetBinContent(fvbin+1);
-    float binc2 = FVShiftMap->GetBinContent(fvbin+1);
-//    FVUncMap->SetBinContent(fvbin+1,binc1+binc2);
+    float binc1 = FVFitMap->GetBinContent(fvbin+1); //< this is "fit" error
+    float binc2 = FVShiftMap->GetBinContent(fvbin+1); //< this is "shift" error
     FVUncMap->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2));
     //
-    binc1 = FVUncMapCCQE->GetBinContent(fvbin+1);
+    binc1 = FVFitMapCCQE->GetBinContent(fvbin+1);
     binc2 = FVShiftMapCCQE->GetBinContent(fvbin+1);
-//    FVUncMapCCQE->SetBinContent(fvbin+1,binc1+binc2);
     FVUncMapCCQE->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2));
     //
-    binc1 = FVUncMapCCnQE->GetBinContent(fvbin+1);
+    binc1 = FVFitMapCCnQE->GetBinContent(fvbin+1);
     binc2 = FVShiftMapCCnQE->GetBinContent(fvbin+1);
-//    FVUncMapCCnQE->SetBinContent(fvbin+1,binc1+binc2);
     FVUncMapCCnQE->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2));
     //
-    binc1 = FVUncMapCCWrong->GetBinContent(fvbin+1);
+    binc1 = FVFitMapCCWrong->GetBinContent(fvbin+1);
     binc2 = FVShiftMapCCWrong->GetBinContent(fvbin+1);
-//    FVUncMapCCWrong->SetBinContent(fvbin+1,binc1+binc2);
     FVUncMapCCWrong->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2));
     //
-    binc1 = FVUncMapNC->GetBinContent(fvbin+1);
+    binc1 = FVFitMapNC->GetBinContent(fvbin+1);
     binc2 = FVShiftMapNC->GetBinContent(fvbin+1);
-//    FVUncMapNC->SetBinContent(fvbin+1,binc1+binc2);
     FVUncMapNC->SetBinContent(fvbin+1,TMath::Sqrt(binc1*binc1 + binc2*binc2));
   }
 
+  //
   return;
  
 }
 
 ////////////////////////////////////////////////////////////
-// Fit Gaussians to Nevent distributions
-void modHistoArrayFV::fitGaussians(){
+// fill Fit and Shift Erros
+void modHistoArrayFV::fillFitAndShiftError(){
 
   // make array of gaussians
   const int nfvbins = hFV[0]->GetNumberOfBins();
-//  TF1* gaussians[nfvbins];
-//  TF1* gaussiansCCQE[nfvbins];
-//  TF1* gaussiansCCnQE[nfvbins];
-//  TF1* gaussiansCCWrong[nfvbins];
-//  TF1* gaussiansNC[nfvbins];
-
   // for total # of events
-  for (int fvbin=0; fvbin<nfvbins; fvbin++){
-    TString fname = Form("fgauss_%d",fvbin);
-//    gaussians[fvbin] = new TF1(fname.Data(),"gaus",0,
-//                               hNevents[0]->GetBinLowEdge(hNevents[0]->GetNbinsX())*1.5);
-//    gaussians[fvbin]->SetParameter(0,hNevents[fvbin]->GetMaximum());
-//    gaussians[fvbin]->SetParameter(1,hNevents[fvbin]->GetMean());
-//    gaussians[fvbin]->SetParameter(2,hNevents[fvbin]->GetRMS());
-//    gaussians[fvbin]->SetLineColor(kRed);
-//    hNevents[fvbin]->Fit(fname.Data());
-    float fractional_uncertainty = (hNevents[fvbin]->GetRMS()/hNevents[fvbin]->GetMean());
-    float fractional_shift = TMath::Abs( hNevents[fvbin]->GetMean()- hFV[0]->GetBinContent(fvbin+1));
-    fractional_shift /= hFV[0]->GetBinContent(fvbin+1);
-    FVUncMap->SetBinContent(fvbin+1,fractional_uncertainty);
-    FVShiftMap->SetBinContent(fvbin+1,fractional_shift);
+  for (int fvbin=1; fvbin<=nfvbins; fvbin++){
+
+    // Total
+    float Norm =  hFV[0]->GetBinContent(fvbin);
+    float fractional_uncertainty = hNevents[fvbin-1]->GetRMS()/Norm;
+    float fractional_shift = ( hNevents[fvbin-1]->GetMean()- hFV[0]->GetBinContent(fvbin));
+    fractional_shift /= Norm;
+    FVFitMap->SetBinContent(fvbin,fractional_uncertainty);
+    FVShiftMap->SetBinContent(fvbin,fractional_shift);
+    // CCQE
+    Norm =  hFVCCQE[0]->GetBinContent(fvbin);
+    fractional_uncertainty = hNeventsCCQE[fvbin-1]->GetRMS()/Norm;
+    fractional_shift = (hNeventsCCQE[fvbin-1]->GetMean() - hFVCCQE[0]->GetBinContent(fvbin));
+    fractional_shift /= Norm;
+    FVFitMapCCQE->SetBinContent(fvbin,fractional_uncertainty);
+    FVShiftMapCCQE->SetBinContent(fvbin,fractional_shift);    
+    // CCnQE
+    Norm =  hFVCCnQE[0]->GetBinContent(fvbin);
+    fractional_uncertainty = hNeventsCCnQE[fvbin-1]->GetRMS()/Norm;
+    fractional_shift = (hNeventsCCnQE[fvbin-1]->GetMean() - hFVCCnQE[0]->GetBinContent(fvbin));
+    fractional_shift /= Norm;
+    FVFitMapCCnQE->SetBinContent(fvbin,fractional_uncertainty);
+    FVShiftMapCCnQE->SetBinContent(fvbin,fractional_shift);
+    // CCWrong
+    Norm = hFVCCWrong[0]->GetBinContent(fvbin);
+    fractional_uncertainty = hNeventsCCWrong[fvbin-1]->GetRMS()/Norm;
+    fractional_shift = (hNeventsCCWrong[fvbin-1]->GetMean() - hFVCCWrong[0]->GetBinContent(fvbin));
+    fractional_shift /= Norm;
+    FVFitMapCCWrong->SetBinContent(fvbin,fractional_uncertainty);
+    FVShiftMapCCWrong->SetBinContent(fvbin,fractional_shift);
+    // NC
+    Norm =  hFVNC[0]->GetBinContent(fvbin);
+    fractional_uncertainty = hNeventsNC[fvbin-1]->GetRMS()/Norm;
+    fractional_shift = (hNeventsNC[fvbin-1]->GetMean() - hFVNC[0]->GetBinContent(fvbin));
+    fractional_shift /= Norm;
+    FVFitMapNC->SetBinContent(fvbin,fractional_uncertainty);
+    FVShiftMapNC->SetBinContent(fvbin,fractional_shift);
+
   }
 
-  // for CCQE
-  for (int fvbin=0; fvbin<nfvbins; fvbin++){
-    float fractional_uncertainty = hNeventsCCQE[fvbin]->GetRMS()/hNeventsCCQE[fvbin]->GetMean();
-    float fractional_shift = TMath::Abs(hNeventsCCQE[fvbin]->GetMean() - hFVCCQE[0]->GetBinContent(fvbin+1));
-    fractional_shift /= hFVCCQE[0]->GetBinContent(fvbin+1);
-    FVUncMapCCQE->SetBinContent(fvbin+1,fractional_uncertainty);
-    FVShiftMapCCQE->SetBinContent(fvbin+1,fractional_shift);
-  }
- 
-  // for CCnQE
-  for (int fvbin=0; fvbin<nfvbins; fvbin++){
-    float fractional_uncertainty = hNeventsCCnQE[fvbin]->GetRMS()/hNeventsCCnQE[fvbin]->GetMean();
-    float fractional_shift = TMath::Abs(hNeventsCCnQE[fvbin]->GetMean() - hFVCCnQE[0]->GetBinContent(fvbin+1));
-    fractional_shift /= hFVCCnQE[0]->GetBinContent(fvbin+1);
-    FVUncMapCCnQE->SetBinContent(fvbin+1,fractional_uncertainty);
-    FVShiftMapCCnQE->SetBinContent(fvbin+1,fractional_shift);
-  }
-
-  // for CCWrong
-  for (int fvbin=0; fvbin<nfvbins; fvbin++){
-    float fractional_uncertainty = hNeventsCCWrong[fvbin]->GetRMS()/hNeventsCCWrong[fvbin]->GetMean();
-    float fractional_shift = TMath::Abs(hNeventsCCWrong[fvbin]->GetMean() - hFVCCWrong[0]->GetBinContent(fvbin+1));
-    fractional_shift /= hFVCCWrong[0]->GetBinContent(fvbin+1);
-    FVUncMapCCWrong->SetBinContent(fvbin+1,fractional_uncertainty);
-    FVShiftMapCCWrong->SetBinContent(fvbin+1,fractional_shift);
-  }
-
-  // for NC
-  for (int fvbin=0; fvbin<nfvbins; fvbin++){
-    float fractional_uncertainty = hNeventsNC[fvbin]->GetRMS()/hNeventsNC[fvbin]->GetMean();
-    float fractional_shift = TMath::Abs(hNeventsNC[fvbin]->GetMean() - hFVNC[0]->GetBinContent(fvbin+1));
-    fractional_shift /= hFVNC[0]->GetBinContent(fvbin+1);
-    FVUncMapNC->SetBinContent(fvbin+1,fractional_uncertainty);
-    FVShiftMapNC->SetBinContent(fvbin+1,fractional_shift);
-  }
 
   
   return; 
 }
 
 
-////////////////////////////////////////////////////////////
-// print some useful summaryplots
-//void modHistoArrayFV::printUncSummary(const char* plotdir, int evttype){
-
-
-
-//}
 
 ////////////////////////////////////////////////////////////
 // print to directory

@@ -6,6 +6,8 @@
 
 //#define VERBOSE
 
+#define USELOGRC
+
 using namespace std;
 
 struct fqcutparams{
@@ -90,7 +92,7 @@ int selectNuMu(fqcutparams fq){
   }
 
   // muon momentum cut
-  if (fq.fqmommu<100.){
+  if (fq.fqmommu<200.){
     return 0;
   }
 
@@ -109,9 +111,15 @@ int selectNuMu(fqcutparams fq){
 //    return 0;
 //  }
 
-  if (fq.fqrcpar>120.){
+  #ifndef USELOGRC
+  if (fq.fqnring!=1){
     return 0;
   }
+  #else
+  if (fq.fqrcpar>0.){
+    return 0;
+  }
+  #endif 
 
 //#ifdef VERBOSE
 //  cout<<"PASSED NU MU CUTS"<<endl;
@@ -189,8 +197,18 @@ int selectNuE(fqcutparams fq){
 
   // ring-counting cut
 //  if (fq.fqnring!=1) return 0;
-  if (fq.fqrcpar>0.) return 0;
+//  if (fq.fqrcpar>120.) return 0;
 
+  #ifndef USELOGRC
+  if (fq.fqnring!=1){
+    return 0;
+  }
+  #else
+  if (fq.fqrcpar>0.){
+    return 0;
+  }
+
+  #endif 
   // pi0 cut
   if (fq.fqpi0par>0) return 0;
 

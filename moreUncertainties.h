@@ -18,7 +18,6 @@ using namespace std;
 // fractional uncertaintiy on number of entering backgrounds
 // calculated from extrapolating MC
 const float enteringNormUncertainty = 0.301;
-//const float enteringNormUncertainty = 1.0;
 
 /////////////////////////////////////////
 // uncertainty in the fraction of entering

@@ -30,9 +30,10 @@ class mcLargeArray{
   float vfqemom[LARGE];
   float vfqmumom[LARGE];
   float vfqrcpar[LARGE];
-  int vfqnring[LARGE];
-  int vfqnsubev[LARGE];
+  Short_t vfqnring[LARGE];
+  Short_t vfqnsubev[LARGE];
   Short_t vbin[LARGE];
+  Short_t vsample[LARGE];
   Short_t vpassnumu[LARGE];
   Short_t vpassnue[LARGE];
   Short_t vcomponent[LARGE];

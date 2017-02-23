@@ -403,8 +403,9 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
 
  // setup recon energy histos
  // seed from histogram binning in uncertainty map file
- TH1D* hseed = uncertaintyCalculator->hERecUnc[0];
-// TH1D* hseed = new TH1D("hseed","hseed",3,0,5000);
+// TH1D* hseed = uncertaintyCalculator->hERecUnc[0];
+ double xbins[] = {0.,600,1500.,30000.};
+ TH1D* hseed = new TH1D("hseed","hseed",3,xbins);
  hseed->SetStats(0);
  hseed->SetBit(TH1::kNoTitle,0);
  hErec[0] = (TH1D*)hseed->Clone("herec_power");

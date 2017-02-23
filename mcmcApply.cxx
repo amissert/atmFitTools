@@ -51,14 +51,20 @@ void mcmcApply::applyPars(int nbin, int ncomponent, float attributeTmp[], int na
   for (int iatt=0; iatt<natt; iatt++){
    
     // get parameters
+    
     smear = (float)fitPars->getAttModParameter(nbin, ncomponent, iatt, 0);
     bias = (float)fitPars->getAttModParameter(nbin, ncomponent, iatt, 1);
-//    cout<<"bias: "<<bias<<endl;
-//    cout<<"smear: "<<smear<<endl;
-    // apply parameters
-//    cout<<"att "<<iatt<<": "<<attributeTmp[iatt]<<" -> ";
+    // apply parameter
     attributeTmp[iatt] = smear*attributeTmp[iatt] + bias;
-//    cout<<attributeTmp[iatt]<<endl;
+    
+
+    // debugging
+//    smear = 1.0;
+//    bias = 200.;
+
+    // apply parameter
+//    if (iatt==2) attributeTmp[iatt] = smear*attributeTmp[iatt] + bias;
+    //
   }
 
   //
@@ -113,8 +119,8 @@ float mcmcApply::getEvtWeight(int nbin, int nsamp, int nmode, float enutrue){
   // apply normalization
   ww *= (float)fitPars->getNormParameter(nsamp,nbin);
 
-  // apply ssec
-  ww *= getXsecWeight(nmode, enutrue);
+  // apply xsec
+//  ww *= getXsecWeight(nmode, enutrue);
 
   return ww;
 }

@@ -575,26 +575,17 @@ int preProcess::passCuts(){
   //Fully Contained Cut
   if ((int)fq->nhitac>NHITACMax) return 0;
 
-//#ifdef VERBOSE
-//  cout<<"passed nhitac cut"<<endl;
-//#endif
 
   //////////////////////
   //Visible Energy Cut
   if (fq->fq1rmom[0][1]<EVisMin) return 0;
 
-//#ifdef VERBOSE
-//  cout<<"passed Evis cut"<<endl;
-//#endif
 
   ////////////////
   //FV Basic Cuts
   if (WallMin>0) if (wall<WallMin) return 0; 
   if (ToWallMin>0) if (towall<ToWallMin) return 0;  
 
-//#ifdef VERBOSE
-//  cout<<"passed FV preliminary cut"<<endl;
-//#endif
 
   /////////////////////////
   //Number of subevent cuts
@@ -602,19 +593,12 @@ int preProcess::passCuts(){
   if (fq->fqnse<NSEMin) return 0;
  
 
-//#ifdef VERBOSE
-//  cout<<"passed nsubev cut"<<endl;
-//#endif
-
   /////////////////////////////////////////////
   // optional masking cut for hybrid pi0 spikes
-  if (flgUseSpikeMask>0){
-     if (!passMask(hmask,fq1rwall[0][2])) return 0;
-  }
+//  if (flgUseSpikeMask>0){
+//     if (!passMask(hmask,fq1rwall[0][2])) return 0;
+//  }
 
-//#ifdef VERBOSE
-//  cout<<"passed all cuts"<<endl;
-//#endif
 
   ////////////////////
   //all cuts passed!!
@@ -860,7 +844,7 @@ int preProcess::preProcessIt(){
       // see if event passes T2K selection
       applyT2KSelection();
       // don't bother if it doesn't pass the cuts
-//      if ( (!passecut) && (!passmucut) ) continue;
+      if ( (!passecut) && (!passmucut) ) continue;
     }
 
     // find which sample the event belongs to   
@@ -1041,7 +1025,10 @@ float preProcess::getPiPParameter(fqEvent* fqevent){
 float preProcess::getPi0Parameter(fqEvent* fqevent){
    float Lpi0 = fqevent->fq1rnll[0][1] - fqevent->fqpi0nll[0]; 
    float pi0mass = fqevent->fqpi0mass[0];
-   float pi0par = Lpi0 - 70. - ((140.-70.)/(40.- 120.))*(pi0mass - 120.);
+   float slope = -0.85;
+   float intercept = 175.0;
+   float pi0par = Lpi0 - (intercept + slope*pi0mass);
+//   float pi0par = Lpi0 - 70. - ((140.-70.)/(40.- 120.))*(pi0mass - 120.);
    return pi0par;
 }
 
