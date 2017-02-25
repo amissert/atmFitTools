@@ -132,6 +132,7 @@ void mcLargeArray::fillArray(TChain* ch){
   vpmomv[i] = (float)mcevent->pmomv[0];
   vpassnumu[i] = (Short_t)mcevent->passmucut;
   vpassnue[i] = (Short_t)mcevent->passecut;
+  vpassnue1rpi[i] = (Short_t)mcevent->passe1rpicut;
  }
  
  ch->SetBranchStatus("*",1);

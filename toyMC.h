@@ -21,23 +21,24 @@
 
 
 // binning for muons
-//const double EnuBinning[] = {0.,100.,300.,500,700,900,1100,2000,5000,30000};
-//const int    EnuNBins = 9;
+const double EnuBinning[] = {0.,100.,300.,500,700,900,1100,2000,5000};
+const int    EnuNBins = 8;
 
-//const double EnuBinningElectron[] = {0.,100.,300.,500,700,900,1100,2000,5000,30000};
-//const int    EnuNBinsElectron = 9;
+const double EnuBinningElectron[] = {0.,100.,300.,500,700,900,1100,2000,5000,30000};
+const int    EnuNBinsElectron = 9;
 
 // binning for muons
 //const double EnuBinning[] = {0.,600.,950.,1275.,2120.,10000.};
-const double EnuBinning[] = {0.,400.,950.,1275.,2200.,20000.};
-const int    EnuNBins = 5;
+//const double EnuBinning[] = {0.,500.,950.,1275.,2200.,20000.};
+//const double EnuBinning[] = {0.,500.,1000,2000,30000.};
+//const int    EnuNBins = 3;
 
 //const double EnuBinning[] = {0.,,596.,843.,1275.,2120.};
 //const int    EnuNBins = 5;
 
 //const double EnuBinningElectron[] = {0.,400,800,1200.};
-const double EnuBinningElectron[] = {0.,1250.};
-const int    EnuNBinsElectron = 1;
+//const double EnuBinningElectron[] = {0.,1250.};
+//const int    EnuNBinsElectron = 1;
 
 //const double EnuBinning[] = {0.,100.,300.,700.,1250.,2000.,5000.,30000.};
 //const int    EnuNBins = 7;
@@ -61,7 +62,7 @@ class toyMC{
   mcmcApply* modifier;
   histoCompare* hCompare;
   atmFitPars* fitPars;
-  modHistoArrayFV* hArrFV;
+//  modHistoArrayFV* hArrFV;
   t2kSample* t2kToys;
   mcLargeArray* fastevents;
   fqcutparams cutPars;
@@ -72,14 +73,14 @@ class toyMC{
   int indexPi0Par;
   int indexPiPPar;
   int indexRCPar;
-  int indexMom;
+//  int indexMom;
 
   // methods
   void setChains(TChain* chmc, TChain *chpars,int nmcevents);
   void setCompare(histoCompare* hc);
 
-  void makeFVMapNuMu(int nmcmcpts, const char* outfile);
-  void makeFVMapNuE(int nmcmcpts,const char* outfile);
+//  void makeFVMapNuMu(int nmcmcpts, const char* outfile);
+//  void makeFVMapNuE(int nmcmcpts,const char* outfile);
   void makeFVUncMap(int nmcmcpts, int nselection, const char* outfile, int fvbintype=1);
 
   void makeCombinedUncertainty(int nmcmcpts);

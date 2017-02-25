@@ -30,6 +30,15 @@
 #define PRINTSUMMARY
 #define NFOMBINSMAX 100
 
+
+
+double EnuBinningMuon[] = {0.,500.,1000,2000.};
+int    EnuNBinsMuon = 3;
+
+
+double EnuBinningElectron[] = {0.,1250.};
+int    EnuNBinsElectron = 1;
+
 ////////////////////////////////////////
 // Class to choose FV optimal point
 class optimusPrime{
@@ -49,6 +58,12 @@ class optimusPrime{
   randomList* eventlist; //< random sampling of events if we don't want to use all
   mcLargeArray* fastevents; //< very large array for all T2K FC events
   moreUncertainties* uncertaintyCalculator; //< can calculate addtional uncertainties from entering bg, ect.
+
+  // separate for each:
+  moreUncertainties* uncNuE;
+  moreUncertainties* uncNuE1RPi;
+  moreUncertainties* uncNuMu;
+
   mcmcApply* modifier; //< applies atm fit pars to a given event
   fqcutparams cutPars; //< cut parameters structure defined in eventSelectors.h
   TString mcmcParFileName;
@@ -118,18 +133,17 @@ class optimusPrime{
   TH2FV* hMaskOne;
   float smallVariation; 
 
-  
-  // use toy-mc to calculate FOM
-//  float calcFOMToyMC(float towallmin, float wallmin, int oscpar, int flgselection, int nmcmcpts);
-
 
   void fillFVHistoFast(); 
+
+  float calcFOMBinned(int nselection, float twcut, float wcut, int oscpar, int iplt = 1);
+
   float calcNuMuFOM(float towallmin, float wallmin, int oscpar);
-  float calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscpar, int iplt = 1);
-  float calcFOMSpectrumNuE(float towallmin, float wallmin, int oscpar, int iplt = 1);
+//  float calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscpar, int iplt = 1);
+//  float calcFOMSpectrumNuE(float towallmin, float wallmin, int oscpar, int iplt = 1);
   float calcFOM(float* pow, float* nev, float* sys, int nbin);
-  void calcFOMMap(float towallmax, float wallmax,int oscpar, int npts=15, int flgnumu=1);
-  void calcFOMMapE(float towallmax, float wallmax,int oscpar, int npts=15);
+  void calcFOMMap(float towallmax, float wallmax,int oscpar, int npts, int nselection);
+//  void calcFOMMapE(float towallmax, float wallmax,int oscpar, int npts=15);
   float getOscPower(int nutype, int oscpar);
   float getEventWeight(int iev);
   float getOscPowerFast(int nutype, int ievent, int oscpar);
@@ -142,21 +156,25 @@ class optimusPrime{
   void calcDeltaMapNuMu(float twbest, float wbest, float twmax, float wmax, int npts=15);
   double calcDeltaNuE(float tw1, float w1, float tw2, float w2);
   void calcDeltaMapNuE(float twbest, float wbest, float twmax, float wmax, int npts=15);
-//  double calcDeltaNuE(float tw1, float w1, float tw2, float w2, int oscpar);
 
-  int isSmallDifference(float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu);
+  int isSmallDifference(float tw1, float w1, float tw2, float w2, int oscpar, int nselection);
 
   // superseeds previous methods for applying numu or nue cuts to a modified event
   int applyCutsToModifiedEvent(int iev);
   /////////////////////////////////////////////////////////////////////////////////
  
-  void makeAllPlots(float twmax, float wmax, int oscpar, int npts=30,int flgnumu=1);
+  void makeAllPlots(float twmax, float wmax, int oscpar, int npts,int nselection);
 
-  void compareCuts(float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu);
-  void compareFOM(float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu);
+  void compareCuts(float tw1, float w1, float tw2, float w2, int oscpar, int nselection);
+  void compareFOM(float tw1, float w1, float tw2, float w2, int oscpar, int nselection);
   void showBreakdown();
-  void printCutDiff(int flgnumu);
-  void printCompare(const char* dir,float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu);
+  void printCutDiff(int nselection);
+  void printCompare(const char* dir,float tw1, float w1, float tw2, float w2, int oscpar, int nselection);
+
+  void deleteHistos();
+  void initHistos(int nselection);
+
+
 
   private:
 

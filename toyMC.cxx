@@ -26,19 +26,19 @@ int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
 
   // modify tmp array by applying the histogram shape parameters
   if (flgmod){
+    // modify these cut values by the shape parameters
     modifier->applyPars(fastevents->vbin[iev],
                         fastevents->vcomponent[iev],
                         attributesTmp,
                         natt);
-  }
 
-  // fill cut parameter structure using modified attributes
-  if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
-  if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
-  if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
-  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
-//  cutPars.fqrcpar = fastevents->vfqrcpar[iev];
-  cutPars.fqnring = fastevents->vfqnring[iev];
+   // fill cut parameter structure using modified attributes
+   if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
+   if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
+   if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
+   if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
+
+  }
 
   // other cut pars that are not modified
   cutPars.fqmome = fastevents->vfqmumom[iev];
@@ -52,14 +52,15 @@ int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
   // see if it passes cuts
   int passnue = selectNuE(cutPars);
   int passnumu = selectNuMu(cutPars);
-  
+  int passnue1rpi = selectNuE1Rpi(cutPars);
+
   //
   if (passnue>0) return 1;
   if (passnumu>0) return 2;
+  if (passnue1rpi>0) return 3;
 
   //
   return 0;
-   
   
 }
 
@@ -199,11 +200,6 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
 /////////////////////////////////////////////////////////////////
 toyMC::toyMC(){
 
-//  indexPIDPar = 0;
-//  indexPi0Par = 1;
-//  indexPiPPar = 2;
-//  indexRCPar  = 3;
-//  indexMom    = 4;
 
 }
 
@@ -416,7 +412,7 @@ void toyMC::fillSKErrors(int ntoys){
 }
 
 
-
+/*
 ////////////////////////////////////////////////////////////////
 // make map of uncertainties for nu mu events
 void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
@@ -494,6 +490,7 @@ void toyMC::makeFVMapNuE(int nmcmcpts, const char* outfile){
   return;
 
 }
+*/
 
 
 ////////////////////////////////////////////////////////////////
@@ -507,15 +504,22 @@ int toyMC::getEventCatagory(int iev, int inutype){
       
 
       // is NC?
-      if (fastevents->vmode[iev]>=30){return 4;}
+      if (fastevents->vmode[iev]>=30){
+        return 4;
+      }
 
       //  CC?
       
       // mid-IDed
-      if (fastevents->vnutype[iev]!=inutype){return 3;}
+      if (fastevents->vnutype[iev]!=inutype){
+        return 3;
+      }
       
       // ccqe
-      else if (fastevents->vmode[iev]==1) {return 1;}
+      else if (fastevents->vmode[iev]==1) {
+        return 1;
+      }
+
       else {
         return 2;
       }
@@ -534,33 +538,37 @@ void toyMC::makeFVUncMap(int nmcmcpts, int nselection, const char* outfile, int 
   TString selection_name;
   int selection_nutype;
   if (nselection==1){
-    selection_name = "NuE";
+    selection_name = Form("NuE_Bintype%d",fvbintype);
     selection_nutype = 12;
   }
   else if (nselection==3){
-    selection_name = "NuE_1Pi";
+    selection_name = Form("NuE_1Pi_Bintype%d",fvbintype);
     selection_nutype = 12;
   }
   else if (nselection==2){
-    selection_name = "NuMu";
+    selection_name = Form("NuMu_Bintype%d",fvbintype);
     selection_nutype = 14;
   }
 
   // make array of histos
-  cout<<"Initializing array of histograms..."<<endl;
+  cout<<"makeFVUncMap: Initializing array of histograms..."<<endl;
   TH1D* hE; //< nu energy binning...this is passed on optimusPrime
   if (nselection==2){
      hE = new TH1D(selection_name.Data(),selection_name.Data(),EnuNBins,EnuBinning);
   }
-  else if (nselection==1){
+  else if (nselection==1 || nselection==3){
      hE = new TH1D(selection_name.Data(),selection_name.Data(),EnuNBinsElectron,EnuBinningElectron);
   }
 
-  // make FV histogram for binning
-  TH2FV* hfv = new TH2FV("hfv",fvbintype);
+  // make FV histogram for finding bins
+  // can use different bin type flags
+  cout<<"makeFVUncMap: Initializing seed for FV histogram arrays..."<<endl;
+  TH2FV* hfv = new TH2FV(Form("hfv_bintype%d",fvbintype),fvbintype);
+  hfv->Draw();
 
   // array of nu energy and FV histograms to be filled
-  hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
+  cout<<"makeFVUncMap: Initializing histogram arrays"<<endl;
+  modHistoArrayFV* hArrFV = new modHistoArrayFV(hE,hfv,nmcmcpts);
 
   // get list of mc events
   int nevmax = chMC->GetEntries();
@@ -625,14 +633,13 @@ void toyMC::makeFVUncMap(int nmcmcpts, int nselection, const char* outfile, int 
   hArrFV->calcSummary();
   hArrFV->saveSummary(outfile);
   hArrFV->saveClose();
-
   return;
 
 
 
 }
 
-
+/*
 ////////////////////////////////////////////////////////////////
 // make map of uncertainties for nu mu events
 void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
@@ -709,7 +716,7 @@ void toyMC::makeFVMapNuMu(int nmcmcpts, const char* outfile){
   return;
 
 }
-
+*/
 
 /*
 /////////////////////////////////////////////////////////////////

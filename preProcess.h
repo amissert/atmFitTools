@@ -114,6 +114,7 @@ class preProcess{
   int best2RID;
   int passmucut;
   int passecut;
+  int passe1rpicut;
   
   /////////////////////
   //methods

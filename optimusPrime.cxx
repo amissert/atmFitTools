@@ -235,7 +235,7 @@ void optimusPrime::printCutDiff(int flgnumu){
 // make Delta plots
 // apply Delta plots as mask
 // save all histograms
-void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, int flgnumu){
+void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, int nselection){
 
 
   // name setup///////////////////////////////////
@@ -255,23 +255,32 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
 
   // get map of figure of merit and calc best bin//
   cout<<"Calculating FOM Map: "<<endl;
-  if (flgnumu) calcFOMMap(twmax,wmax,oscpar,npts,1);
-  else calcFOMMap(twmax,wmax,oscpar,npts,0);
+  calcFOMMap(twmax,wmax,oscpar,npts,nselection);
+
+//  if (flgnumu) calcFOMMap(twmax,wmax,oscpar,npts,1);
+//  else calcFOMMap(twmax,wmax,oscpar,npts,0);
 
   // print figure of merit and save ///////////////
   hFV->SetStats(0);
   hFV->SetTitle(0);
   hFV->Draw("colz");
   pltname = prefix.Data();
-  if (flgnumu) pltname.Append("hFV_NuMu_FOM.png");
-  else{
+
+  if (nselection==2) pltname.Append("hFV_NuMu_FOM.png");
+  else if (nselection==1){
     pltname.Append("hFV_NuE_FOM.png");
+  }
+  else if (nselection==3){
+    pltname.Append("hFV_NuE1Rpi_FOM.png");
   }
   cc->Print(pltname.Data());
   pltfile = outDir.Data();
-  if (flgnumu) pltfile.Append("hFV_Nu_Mu_FOM.root");
-  else{
+  if (nselection == 2) pltfile.Append("hFV_Nu_Mu_FOM.root");
+  else if (nselection==1) {
     pltfile.Append("hFV_NuE_FOM.root");
+  }
+  else if (nselection==3){
+    pltfile.Append("hFV_NuE1Rpi_FOM.root");
   }
   hFV->SaveAs(pltfile.Data());
 
@@ -280,10 +289,11 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
   double besttowall = hFV->GetBinCenterX(bestFOMbin);
   double bestwall = hFV->GetBinCenterY(bestFOMbin);
   flgPrintSummary = 1;
-  if (flgnumu) calcFOMSpectrumNuMu(besttowall,bestwall,oscpar);
-  else{
-    calcFOMSpectrumNuE(besttowall,bestwall,oscpar);
-  }
+  calcFOMBinned(nselection,besttowall,bestwall,oscpar,1);
+//  if (flgnumu) calcFOMSpectrumNuMu(besttowall,bestwall,oscpar);
+//  else{
+//    calcFOMSpectrumNuE(besttowall,bestwall,oscpar);
+//  }
   cout<<"Small Varation: "<<smallVariation<<endl;
   flgPrintSummary = 0;
 
@@ -293,30 +303,6 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
   hMask->SetMinimum(maskThresh);
   hMask->SetMaximum(bestFOMvalue);
   flgUseMask = 1.;
-
-  // make a plot of the statistical error fraction
-//  FOMType = 3;
-//  if (flgnumu) calcFOMMap(twmax,wmax,oscpar,npts,1);
-//  else{
-//    calcFOMMap(twmax,wmax,oscpar,npts,0);
-//  }
-
-  // print figure of merit and save
-//  hFV->SetStats(0);
-//  hFV->SetTitle(0);
-//  hFV->Draw("colz");
-//  pltname = prefix.Data();
-//  if (flgnumu) pltname.Append("hFV_NuMu_sysfrac.png");
-//  else{
-//    pltname.Append("hFV_NuE_sysfrac.png");
-//  }
-//  cc->Print(pltname.Data());
-//  pltfile = outDir.Data();
-//  if (flgnumu) pltfile.Append("hFV_NuMu_sysfrac.root");
-//  else{
-//    pltfile.Append("hFV_NuE_sysfrac.root");
-//  }
-//  hFV->SaveAs(pltfile.Data());
 
   // now print out the mask:
   for (int i=0; i<hMask->GetNumberOfBins(); i++){
@@ -334,19 +320,107 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
   hMask->SetTitle(0);
   hMask->Draw("col");
   pltname = prefix.Data();
-  if (flgnumu) pltname.Append("Optimal_Region_NuMU.png");
-  else{
+  if (nselection==2) pltname.Append("Optimal_Region_NuMU.png");
+  else if (nselection==1){
     pltname.Append("Optimal_Region_NuE.png");
+  }
+  else if (nselection==3){
+    pltname.Append("Optimal_Region_NuE1Rpi.png");
   }
   cc->Print(pltname.Data());
   pltfile = outDir.Data();
-  if (flgnumu) pltfile.Append("Optimal_Region_NuMu.root");
-  else{
+  if (nselection==2) pltfile.Append("Optimal_Region_NuMu.root");
+  else if (nselection==1){
     pltfile.Append("Optimal_Region_NuE.root");
+  }
+  else if (nselection==3){
+    pltfile.Append("Optimal_Region_NuE1Rpi.root");
   }
   hMask->SaveAs(pltfile.Data());
   
+  flgUseMask = 0;
+
   return;
+}
+
+
+
+
+///////////////////////////////////////////////////////////////////////
+// create clones of the erec histograms for calculting binned FOM
+void optimusPrime::deleteHistos(){
+
+  for (int i=0; i<10; i++){
+    cout<<"optimusPrime::deleteHistos: Deleting histogram "<<i<<endl;
+    hErec[i]->Delete();
+  }
+
+  //
+  return;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////
+// create clones of the erec histograms for calculting binned FOM
+void optimusPrime::initHistos(int nselection){
+
+ // get seed based on selection
+ TH1D* hseed;
+ if (nselection==2){
+   hseed = new TH1D("hseed","hseed",EnuNBinsMuon,EnuBinningMuon);
+ }
+ else if (nselection==1){
+   hseed = new TH1D("hseed","hseed",EnuNBinsElectron,EnuBinningElectron);
+ }
+ else if (nselection==3){
+   hseed = new TH1D("hseed","hseed",EnuNBinsElectron,EnuBinningElectron);
+ }
+ hseed->Reset();
+
+ // clone from seed
+ hseed->SetStats(0);
+ hseed->SetBit(TH1::kNoTitle,0);
+ //
+ hErec[0] = (TH1D*)hseed->Clone("herec_power");
+ hErec[0]->SetTitle("Oscillation Power");
+ //
+ hErec[1] = (TH1D*)hseed->Clone("herec_N");
+ hErec[1]->SetTitle("# of Events");
+ //
+ hErec[2] = (TH1D*)hseed->Clone("herec_syst");
+ hErec[2]->SetTitle("Systematic Estimate");
+ //
+ hErec[3] = (TH1D*)hseed->Clone("herec_fom");
+ hErec[3]->SetTitle("Figure of Merit");
+ //
+ hErec[4] = (TH1D*)hseed->Clone("herec_bg");
+ hErec[4]->SetTitle("# BG");
+ //
+ hErec[5] = (TH1D*)hseed->Clone("herec_sig");
+ hErec[5]->SetTitle("F.O.M.");
+ //
+ hErec[6] = (TH1D*)hseed->Clone("herec_ccqe");
+ hErec[6]->SetTitle("CCQE");
+ //
+ hErec[7] = (TH1D*)hseed->Clone("herec_ccnqe");
+ hErec[7]->SetTitle("CCnQE");
+ //
+ hErec[8] = (TH1D*)hseed->Clone("herec_ccwrong");
+ hErec[8]->SetTitle("CCWrong");
+ //
+ hErec[9] = (TH1D*)hseed->Clone("herec_nc");
+ hErec[9]->SetTitle("NC");
+
+ // reset all bin contents
+ for (int ih=0; ih<6; ih++){
+    hErec[ih]->Reset();
+ }
+ 
+ hseed->Delete();
+
+ //
+ return;
 }
 
 
@@ -393,6 +467,9 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
 
  // set up object to read uncertainties for each event
  uncertaintyCalculator = new moreUncertainties(datadir, mapfile);
+ uncNuE = new moreUncertainties(datadir,"FVUncMapNuE.root");
+// uncNuE1RPi = new moreUncertainties(datadir,"FVUncMapNuE1Rpi.root");
+ uncNuMu = new moreUncertainties(datadir,"FVUncMapNuMu.root");
 
  // overall scaling factors
  Scale = 1.;
@@ -401,40 +478,11 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
  // fill large MC array for faster reading later
  fillArray();
 
- // setup recon energy histos
- // seed from histogram binning in uncertainty map file
-// TH1D* hseed = uncertaintyCalculator->hERecUnc[0];
- double xbins[] = {0.,600,1500.,30000.};
- TH1D* hseed = new TH1D("hseed","hseed",3,xbins);
- hseed->SetStats(0);
- hseed->SetBit(TH1::kNoTitle,0);
- hErec[0] = (TH1D*)hseed->Clone("herec_power");
- hErec[0]->SetTitle("Oscillation Power");
- hErec[1] = (TH1D*)hseed->Clone("herec_N");
- hErec[1]->SetTitle("# of Events");
- hErec[2] = (TH1D*)hseed->Clone("herec_syst");
- hErec[2]->SetTitle("Systematic Uncertainty");
- hErec[3] = (TH1D*)hseed->Clone("herec_fom");
- hErec[3]->SetTitle("Figure of Merit");
- hErec[4] = (TH1D*)hseed->Clone("herec_bg");
- hErec[4]->SetTitle("# BG");
- hErec[5] = (TH1D*)hseed->Clone("herec_sig");
- hErec[5]->SetTitle("F.O.M.");
- hErec[6] = (TH1D*)hseed->Clone("herec_ccqe");
- hErec[6]->SetTitle("CCQE");
- hErec[7] = (TH1D*)hseed->Clone("herec_ccnqe");
- hErec[7]->SetTitle("CCnQE");
- hErec[8] = (TH1D*)hseed->Clone("herec_ccwrong");
- hErec[8]->SetTitle("CCWrong");
- hErec[9] = (TH1D*)hseed->Clone("herec_nc");
- hErec[9]->SetTitle("NC");
- // reset all bin contents
- for (int ih=0; ih<6; ih++){
-    hErec[ih]->Reset();
- }
-
  // use full spectrum
  flgUseSpectrum = 1;
+
+ // init histso
+ initHistos(1);
 
  // dont fill summary plots unless told to do so
  flgPrintSummary = 0;
@@ -442,7 +490,7 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
  // dont use a mask unless told to do so
  flgUseMask = 0;
 
- // initialize summary plots
+ // initialize summary plots (for comparisons, etc.)
  plots1 = new summaryPlots("plots_1");
  plots1->setLargeArray(fastevents);
  plots1->Init();
@@ -570,7 +618,6 @@ void optimusPrime::calcDeltaMapNuE(float twbest, float wbest, float twmax, float
 
    if (towallcut<=wallcut) continue;
    float value = calcDeltaNuE(twbest,wbest,towallcut,wallcut);
-
    hDelta->SetBinContent(ibin,TMath::Abs(DeltaSg)+TMath::Abs(DeltaBg));
    hDeltaSg->SetBinContent(ibin,DeltaSg);
    hDeltaBg->SetBinContent(ibin,DeltaBg);
@@ -646,36 +693,54 @@ void optimusPrime::calcDeltaMapNuMu(float twbest, float wbest, float twmax, floa
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // useful method to map out the figure of merit in each bin
-void optimusPrime::calcFOMMap(float towallmax, float wallmax,int oscpar, int npts, int flgnumu){
+void optimusPrime::calcFOMMap(float towallmax, float wallmax,int oscpar, int npts, int nselection){
 
  // initialize
  double fommax = -1.;
  int    maxbin = -1;
 
- // for finding FV 
+ // initialize FV bin map
  hFV = new TH2FV("h",-1,npts,0,towallmax,npts,0,wallmax);
  hFV->SetContour(50);
+
+ // delete histograms
+ deleteHistos();
+
+ // create erec histos depending on the sample you want
+ initHistos(nselection);
+
+ // loop over FV bins, for each bin calculate the figure of merit
  for (int ibin = 0; ibin<hFV->GetNumberOfBins(); ibin++){
+
+   // get the wall cuts from the center of the current bin
    float wallcut = (float)hFV->GetBinCenterY(ibin);
    float towallcut = (float)hFV->GetBinCenterX(ibin);
+
+   // reject the impossible
    if (towallcut<=wallcut) continue;
+
    // apply mask?
+   // can use another TH2FV to select only a few bins for FOM evaluation
    if (flgUseMask){
      int maskbin = hMask->FindBin(towallcut,wallcut);
      double maskval = hMask->GetBinContent(maskbin);
      if (maskval<maskThresh) continue;
    }
 
-   float value = 0.;
-   if (flgnumu) value = calcFOMSpectrumNuMu(towallcut,wallcut,oscpar);
-   else{ value = calcFOMSpectrumNuE(towallcut,wallcut,oscpar);}
+   // find the FOM value for this set of cuts
+   float value = calcFOMBinned(nselection, towallcut, wallcut, oscpar, 1);
+
+   // keep track of the best point
    if (value>fommax){
      fommax = value;
      maxbin = ibin;
    }
+
+   // fill the map
    hFV->SetBinContent(ibin,value);
  }
- 
+
+ // print some results
  cout<<"Max value: "<<fommax<<endl;
  cout<<"Max bin: "<<maxbin<<endl;
  bestFOMbin = maxbin;
@@ -684,13 +749,90 @@ void optimusPrime::calcFOMMap(float towallmax, float wallmax,int oscpar, int npt
  cout<<"Best Wall: "<<hFV->GetBinCenterY(maxbin)<<endl;
  hFV->SetMinimum(0.7*fommax);
  hFV->SetMaximum(1.01*fommax);
+ 
+ // draw result
  hFV->Draw("colz");
+
+ //
  return;
+
 }
+
+
+
+/*
+
+void optimusPrime::calcFOMMap(float towallmax, float wallmax,int oscpar, int npts, int nselction){
+
+ // initialize
+ double fommax = -1.;
+ int    maxbin = -1;
+
+ // initialize FV bin map
+ hFV = new TH2FV("h",-1,npts,0,towallmax,npts,0,wallmax);
+ hFV->SetContour(50);
+
+ // loop over FV bins, for each bin calculate the figure of merit
+ for (int ibin = 0; ibin<hFV->GetNumberOfBins(); ibin++){
+
+   // get the wall cuts from the center of the current bin
+   float wallcut = (float)hFV->GetBinCenterY(ibin);
+   float towallcut = (float)hFV->GetBinCenterX(ibin);
+
+   // reject the impossible
+   if (towallcut<=wallcut) continue;
+
+   // apply mask?
+   // can use another TH2FV to select only a few bins for FOM evaluation
+   if (flgUseMask){
+     int maskbin = hMask->FindBin(towallcut,wallcut);
+     double maskval = hMask->GetBinContent(maskbin);
+     if (maskval<maskThresh) continue;
+   }
+
+   // find the FOM value for this set of cuts
+   float value = 0.;
+
+   // calculate the FOM for this selection
+   if (flgnumu) value = calcFOMSpectrumNuMu(towallcut,wallcut,oscpar);
+   else{ value = calcFOMSpectrumNuE(towallcut,wallcut,oscpar);}
+
+   // keep track of the best point
+   if (value>fommax){
+     fommax = value;
+     maxbin = ibin;
+   }
+
+   // fill the map
+   hFV->SetBinContent(ibin,value);
+ }
+
+ // print some results
+ cout<<"Max value: "<<fommax<<endl;
+ cout<<"Max bin: "<<maxbin<<endl;
+ bestFOMbin = maxbin;
+ bestFOMvalue = fommax;
+ cout<<"Best Towall: "<<hFV->GetBinCenterX(maxbin)<<endl;
+ cout<<"Best Wall: "<<hFV->GetBinCenterY(maxbin)<<endl;
+ hFV->SetMinimum(0.7*fommax);
+ hFV->SetMaximum(1.01*fommax);
+ 
+ // draw result
+ hFV->Draw("colz");
+
+ //
+ return;
+
+}
+
+
+*/
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // useful method to map out the figure of merit in each bin
+/*
 void optimusPrime::calcFOMMapE(float towallmax, float wallmax,int oscpar, int npts){
 
  double fommax = -1.;
@@ -727,7 +869,7 @@ void optimusPrime::calcFOMMapE(float towallmax, float wallmax,int oscpar, int np
 
   return;
 }
-
+*/
 
 //////////////////////////////////////////
 //Read events into memory for fast looping
@@ -740,26 +882,125 @@ void optimusPrime::fillArray(){
 }
 
 
-//////////////////////////////////////////////////
-// get FOM using a spectrum for electron selection
-float optimusPrime::calcFOMSpectrumNuE(float towallmin, float wallmin, int oscpar, int iplt){
-
-
-  // the new way:
-  
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+float optimusPrime::calcFOMBinned(int nselection, float towallmin, float wallmin, int oscpar, int iplt){
 
   // summarize?
   if (flgPrintSummary){
     if (iplt==1){
-//      plots1 = new summaryPlots("nue");
-//      plots1->setLargeArray(fastevents);
-//      plots1->Init();
       plots1->clearHistos();
     }
     if (iplt==2){
-//      plots2 = new summaryPlots("nue");
-//      plots2->setLargeArray(fastevents);
-//      plots2->Init();
+      plots2->clearHistos();
+    }
+  }
+
+  // towall must be smaller than wall
+  if (towallmin<wallmin){
+    return 0.;
+  }
+
+  // reset values
+  Nevents = 0.;
+  NB = 0.; 
+  NS = 0.; 
+  Power = 0.;
+  Syst = 0.;
+ 
+  // clear previous histos
+  hErec[0]->Reset();
+  hErec[1]->Reset();
+  hErec[2]->Reset();
+  hErec[3]->Reset();
+  hErec[4]->Reset();
+
+  // make arrays
+  const int nn = hErec[0]->GetNbinsX()+1;
+  float Pow[nn];
+  float Nev[nn];
+  float Sys[nn];
+  for (int i=0; i<nn; i++){
+    Pow[i]=0.;
+    Nev[i]=0.;
+    Sys[i]=0.;
+  }
+
+  // neutrino type of the selection you desire
+  int nu_type = 0;
+  if (nselection==1 || nselection==3){
+    nu_type = 12;
+  }
+  else{
+    nu_type = 14;
+  }
+
+  // loop over events
+  for (int i=0; i<nevents; i++){
+
+     // see if event passes your selection cuts
+     int ipass = 0.;
+     if (nselection==1){
+       ipass = fastevents->vpassnue[i];
+     }
+     else if (nselection==2){
+       ipass = fastevents->vpassnumu[i];
+     }
+
+     // if it passes, add to spectrum
+     if (ipass){
+
+      // ..as long as it passes the FV cuts
+      if ((fastevents->vfqwall[i] >= wallmin)&&(fastevents->vfqtowall[i]>=towallmin)){
+       
+        // get erec bin of this event and 
+        int erecbin = 0.;
+        if (nselection==1 || nselection==3){
+          erecbin = hErec[0]->FindBin(fastevents->vfqenue[i]);
+        }
+        else if (nselection==2){
+          erecbin = hErec[0]->FindBin(fastevents->vfqenumu[i]);
+        }
+       
+        // get oscillation power (derivative w.r.t. oscillation parameter)
+        float opow = getOscPowerFast(nu_type,i,oscpar)*Scale;
+        Pow[erecbin] += opow;
+       
+        // keep track of all events
+        float ww = getEventWeight(i)*Scale;
+        Nev[erecbin] += ww;
+       
+        // keep track of systematic uncertainty
+        float syserr =  getSystUncertainty(i,nu_type)*Scale*SysScale;
+        Sys[erecbin] += syserr;
+
+        // plots for the details
+        if (flgPrintSummary){
+          if (iplt==1) plots1->fillAllFromArray(i,opow,syserr);
+          if (iplt==2) plots2->fillAllFromArray(i,opow,syserr);
+        }
+
+      }
+    }
+  }
+
+  // add up figure of merit in each bin
+  return calcFOM(Pow,Nev,Sys,nn);
+
+
+}
+
+
+//////////////////////////////////////////////////
+// get FOM using a spectrum for electron selection
+/*
+float optimusPrime::calcFOMSpectrumNuE(float towallmin, float wallmin, int oscpar, int iplt){
+
+  // summarize?
+  if (flgPrintSummary){
+    if (iplt==1){
+      plots1->clearHistos();
+    }
+    if (iplt==2){
       plots2->clearHistos();
     }
   }
@@ -840,7 +1081,7 @@ float optimusPrime::calcFOMSpectrumNuE(float towallmin, float wallmin, int oscpa
   return calcFOM(Pow,Nev,Sys,nn);
  
 }
-
+*/
 
 /////////////////////////////////////////////
 // draw stacked histogram of events
@@ -868,6 +1109,7 @@ void optimusPrime::showBreakdown(){
 
 //////////////////////////////////////////
 // get FOM using some erec binning 
+/*
 float optimusPrime::calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscpar, int iplt){
 
   // summarize?
@@ -951,6 +1193,9 @@ float optimusPrime::calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscp
   return calcFOM(Pow,Nev,Sys,nn);
 
 }
+*/
+
+
 
 ///////////////////////////////////////////////////////
 // get the weight for this event (can increase norm of
@@ -1064,7 +1309,7 @@ double optimusPrime::calcDeltaNuMu(float tw1, float w1, float tw2, float w2){
 
 
 /////////////////////////////////////////////////////
-int optimusPrime::isSmallDifference(float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu){
+int optimusPrime::isSmallDifference(float tw1, float w1, float tw2, float w2, int oscpar, int nselection){
 
   // make sure to record histograms
   flgPrintSummary = 1;
@@ -1073,24 +1318,25 @@ int optimusPrime::isSmallDifference(float tw1, float w1, float tw2, float w2, in
   float fom1 = 0.;
   float fom2 = 0.;
 
-  if (flgnumu) fom1 = calcFOMSpectrumNuMu(tw1,w1,oscpar,1);
-  else{
-    fom1 = calcFOMSpectrumNuE(tw1,w1,oscpar, 1);
-  }
+  fom1 = calcFOMBinned(nselection,tw1,w1,oscpar,1);
+  fom1 = calcFOMBinned(nselection,tw2,w2,oscpar,2);
 
-  if (flgnumu) fom2 = calcFOMSpectrumNuMu(tw2,w2,oscpar, 2);
-  else{
-    fom2 = calcFOMSpectrumNuE(tw2,w2,oscpar,2);
-  }
+//  if (flgnumu) fom1 = calcFOMSpectrumNuMu(tw1,w1,oscpar,1);
+//  else{
+//    fom1 = calcFOMSpectrumNuE(tw1,w1,oscpar, 1);
+//  }
+
+//  if (flgnumu) fom2 = calcFOMSpectrumNuMu(tw2,w2,oscpar, 2);
+//  else{
+//    fom2 = calcFOMSpectrumNuE(tw2,w2,oscpar,2);
+//  }
 
   double chi2=0.;
   double ksP=0.;
   double absdiff=0.;
 
-  if (flgnumu){
+  if (nselection==2){
     plots1->pltEnuMu->SetLineColor(kBlue);
-//    plots1->setPoissonErrors(plots1->pltEnuMu);
-//    plots2->setPoissonErrors(plots2->pltEnuMu);
     plots2->pltEnuMu->SetLineColor(kRed);
     plots1->pltEnuMu->Draw("e");
     plots2->pltEnuMu->Draw("same");
@@ -1098,11 +1344,9 @@ int optimusPrime::isSmallDifference(float tw1, float w1, float tw2, float w2, in
     ksP = plots1->pltEnuMu->KolmogorovTest(plots2->pltEnuMu,"N");
     absdiff = getAbsDifference(plots1->pltEnuMu,plots2->pltEnuMu );
   }
-  else{
+  else if (nselection==3){
     plots1->pltEnuE->SetLineColor(kBlue);
     plots2->pltEnuE->SetLineColor(kRed);
-//    plots2->setPoissonErrors(plots2->pltEnuE);
-//    plots1->setPoissonErrors(plots2->pltEnuE);
     plots1->pltEnuE->Draw("e");
     plots2->pltEnuE->Draw("same");
     chi2 = plots1->pltEnuE->Chi2Test(plots2->pltEnuE,"WW");
@@ -1110,9 +1354,9 @@ int optimusPrime::isSmallDifference(float tw1, float w1, float tw2, float w2, in
   }
 
 
-  cout<<"chi2: "<<chi2<<endl;
-  cout<<"absdif: "<<absdiff<<endl;
-  cout<<"ksP: "<<ksP<<endl;
+//  cout<<"chi2: "<<chi2<<endl;
+//  cout<<"absdif: "<<absdiff<<endl;
+//  cout<<"ksP: "<<ksP<<endl;
 
   return 1;
 }
@@ -1121,7 +1365,7 @@ int optimusPrime::isSmallDifference(float tw1, float w1, float tw2, float w2, in
 
 /////////////////////////////////////////////////////
 // compare tow sets of FV cuts
-void optimusPrime::compareFOM(float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu){
+void optimusPrime::compareFOM(float tw1, float w1, float tw2, float w2, int oscpar, int nselection){
   
   // make sure to record histograms
   flgPrintSummary = 1;
@@ -1133,13 +1377,18 @@ void optimusPrime::compareFOM(float tw1, float w1, float tw2, float w2, int oscp
   // colerz
   int colerz[5] = {4,7,2,15,6};
 
+  // set erec binning
+  deleteHistos();
+  initHistos(nselection);
+
   // do the calculations and fill plots1
   float fom1 = 0.;
+  fom1 = calcFOMBinned(nselection,tw1,w1,oscpar,1);
 
-  if (flgnumu) fom1 = calcFOMSpectrumNuMu(tw1,w1,oscpar, 1);
-  else{
-    fom1 = calcFOMSpectrumNuE(tw1,w1,oscpar, 1);
-  }
+//  if (flgnumu) fom1 = calcFOMSpectrumNuMu(tw1,w1,oscpar, 1);
+//  else{
+//    fom1 = calcFOMSpectrumNuE(tw1,w1,oscpar, 1);
+//  }
 
   TH1D* htmp[4];
   htmp[0]  = (TH1D*)hErec[0]->Clone("htmp1");
@@ -1173,10 +1422,11 @@ void optimusPrime::compareFOM(float tw1, float w1, float tw2, float w2, int oscp
 
   // do the calculations and fill plots2
   float fom2 = 0.;
-  if (flgnumu) fom2 = calcFOMSpectrumNuMu(tw2,w2,oscpar, 2);
-  else{
-    fom2 = calcFOMSpectrumNuE(tw2,w2,oscpar,2);
-  }
+  fom1 = calcFOMBinned(nselection,tw2,w2,oscpar,2);
+//  if (flgnumu) fom2 = calcFOMSpectrumNuMu(tw2,w2,oscpar, 2);
+//  else{
+//    fom2 = calcFOMSpectrumNuE(tw2,w2,oscpar,2);
+//  }
 
   // old cut (2)
   multiPad->cd(1);
@@ -1217,7 +1467,7 @@ void optimusPrime::compareFOM(float tw1, float w1, float tw2, float w2, int oscp
 
 /////////////////////////////////////////////////////
 // compare tow sets of FV cuts
-void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu){
+void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int oscpar, int nselection){
   
   // make sure to record histograms
   flgPrintSummary = 1;
@@ -1226,28 +1476,25 @@ void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int osc
   multiPad = new TCanvas("multiPad","multiPad",700,800);
   multiPad->Divide(2,3);
 
+  // set erec binning
+  deleteHistos();
+  initHistos(nselection);
+
   // colerz
   int colerz[5] = {4,7,2,15,6};
 
   // do the calculations and fill plots1
   float fom1 = 0.;
 
-  if (flgnumu) fom1 = calcFOMSpectrumNuMu(tw1,w1,oscpar, 1);
-  else{
-    fom1 = calcFOMSpectrumNuE(tw1,w1,oscpar);
-  }
+  fom1 = calcFOMBinned(nselection,tw1,w1,oscpar,1);
 
   // do the calculations and fill plots2
-  float fom2 = 0.;
-  if (flgnumu) fom2 = calcFOMSpectrumNuMu(tw2,w2,oscpar, 2);
-  else{
-    fom2 = calcFOMSpectrumNuE(tw2,w2,oscpar,2);
-  }
+  float fom2= calcFOMBinned(nselection,tw2,w2,oscpar,2);
 
   // draw that shizz
   // set colors (loop of # of catagories in summaryPlots::GetCatagory() )
 
-  if (flgnumu){ 
+  if (nselection==2){ 
     multiPad->cd(1);
     plots1->pltEnuMu->Draw();
     plots1->pltEnuMu->SetLineWidth(3);
@@ -1271,7 +1518,7 @@ void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int osc
 
     }
   }
-  else{
+  else if (nselection==1){
     multiPad->cd(1);
     plots1->pltEnuE->Draw();
     plots1->pltEnuE->SetLineWidth(3);
@@ -1330,9 +1577,15 @@ float optimusPrime::calcFOM(float* pow, float* nev, float* sys, int nbin){
   
     // figure of merit in this spectrum bin
     float fom_thisbin = 0.;
+
     // if there are events in this bin, it contributes to total
     if (nev[i]>0.){
-      fom_thisbin = (pow[i]*pow[i])/((sys[i]*sys[i])+nev[i]);
+      if (FOMType==0) fom_thisbin = (pow[i]*pow[i])/((sys[i]*sys[i])+nev[i]);
+      if (FOMType==4) fom_thisbin = (pow[i]*pow[i])/(nev[i]);
+      if (FOMType==5) fom_thisbin = (pow[i]*pow[i])/(nev[i]);
+      if (FOMType==6) fom_thisbin = (pow[i]*pow[i])/(nev[i]);
+      if (FOMType==7) fom_thisbin = (pow[i]*pow[i])/(nev[i]+(2.*sys[i]));
+      if (FOMType==8) fom_thisbin = (pow[i]*pow[i])/(nev[i]+(1.*sys[i]));
     }
    
     if (flgPrintSummary){
@@ -1362,6 +1615,11 @@ float optimusPrime::calcFOM(float* pow, float* nev, float* sys, int nbin){
 
  //
  if (FOMType==3) return syst_total/TMath::Sqrt(nev_total);
+ if (FOMType==4) return fom_total/(syst_total*syst_total);
+ if (FOMType==5) return fom_total/(syst_total);
+ if (FOMType==6) return fom_total;
+ if (FOMType==7) return fom_total;
+ if (FOMType==8) return fom_total;
  return fom_total;
 
 }

@@ -17,7 +17,7 @@
 using namespace std;
 
 
-#define ARRAYMAX 200
+#define ARRAYMAX 500
 #define FVBINSMAX 10
 
 /////////////////////////////////////////////////////////////

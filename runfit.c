@@ -1,12 +1,17 @@
 {
  gROOT->ProcessLine(".L histoManager.cxx+");
  gROOT->ProcessLine(".L hSplines.cxx+");
- gROOT->ProcessLine(".L histoCompare.cxx+");
+ gROOT->ProcessLine(".L histoCompare.cxx++");
  gROOT->ProcessLine(".L atmFitPars.cxx+");
  gROOT->ProcessLine(".x ~/style.c");
 
 //  histoCompare* hc= new histoCompare("dryrun.dat");
   histoCompare* hc= new histoCompare("wetrun.dat");
+
+// hc->thePars->fixAllAttPars(0);
+// hc->thePars->fixAllAttPars(1);
+// hc->thePars->fixAllAttPars(2);
+
 //  hc->hManager->setLoBound(3,0);
 
 
@@ -52,7 +57,7 @@
 
 // hc->hManager->useSplineFlg = 0;
 // hc->LnLFit();
-// hc->saveFitPars("./pars/fullpars_dryrun_LnLfit.root");
+// hc->saveFitPars("./pars/fullpars_wetrun_LnLfit_logrcpar.root");
 // hc->tunePar = 0.033;
 // hc->runMCMC(2000000);
 

@@ -35,6 +35,7 @@ class mcLargeArray{
   Short_t vbin[LARGE];
   Short_t vsample[LARGE];
   Short_t vpassnumu[LARGE];
+  Short_t vpassnue1rpi[LARGE];
   Short_t vpassnue[LARGE];
   Short_t vcomponent[LARGE];
   float vfqpi0par[LARGE];

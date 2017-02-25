@@ -127,6 +127,7 @@ public :
    Float_t         evtweight;
    Int_t           best2RID;
    Int_t           passecut;
+   Int_t           passe1rpicut;
    Int_t           passmucut;
    Float_t         fq1rperim[10][7];
    Float_t         fq1rmincone[10][7];

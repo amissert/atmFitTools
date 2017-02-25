@@ -4,7 +4,6 @@
 #include "TMath.h"
 #include <iostream>
 
-//#define VERBOSE
 
 #define USELOGRC
 
@@ -177,6 +176,11 @@ int selectNuMu( int nhitac,
 }
 */              
 
+
+
+
+
+//////////////////////////////////////////
 int selectNuE(fqcutparams fq){
 
   // neutrino energy cut
@@ -195,10 +199,7 @@ int selectNuE(fqcutparams fq){
   // e/mu pid cut
   if (fq.fqpid<0.2*fq.fqmome) return 0;
 
-  // ring-counting cut
-//  if (fq.fqnring!=1) return 0;
-//  if (fq.fqrcpar>120.) return 0;
-
+  // RC cut
   #ifndef USELOGRC
   if (fq.fqnring!=1){
     return 0;
@@ -207,18 +208,57 @@ int selectNuE(fqcutparams fq){
   if (fq.fqrcpar>0.){
     return 0;
   }
-
   #endif 
+
   // pi0 cut
   if (fq.fqpi0par>0) return 0;
 
+  
   return 1;
 
+}
+
+
+//////////////////////////////////////////
+int selectNuE1Rpi(fqcutparams fq){
+
+  // neutrino energy cut
+  if (fq.fqenue>1250.) return 0.;
+  if (fq.fqenue<0.) return 0.;
+
+  // subevent cut
+  if (fq.fqnsubev!=2) return 0;
+
+  // FC cut
+  if (fq.nhitac>16) return 0;
+
+  // Evis cut
+  if (fq.fqmome<100) return 0;
+
+  // e/mu pid cut
+  if (fq.fqpid<0.2*fq.fqmome) return 0;
+
+  // RC cut
+  #ifndef USELOGRC
+  if (fq.fqnring!=1){
+    return 0;
+  }
+  #else
+  if (fq.fqrcpar>0.){
+    return 0;
+  }
+  #endif 
+
+  // pi0 cut
+  if (fq.fqpi0par>0) return 0;
+  
+  return 1;
 
 }
 
 
 
+///////////////////////////////////////////////
 void printCutPars(fqcutparams fq){
   
  cout<<"-----------------------"<<endl;

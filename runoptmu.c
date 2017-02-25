@@ -7,13 +7,15 @@ gROOT->ProcessLine(".L mcLargeArray.cxx+");
 gROOT->ProcessLine(".L TH2FV.cxx+");
 gROOT->ProcessLine(".L summaryPlots.cxx+");
 gROOT->ProcessLine(".L moreUncertainties.cxx+");
+gROOT->ProcessLine(".x ~/style.c");
 
 ///////////////////////////////////////////////////////////////////////////
 // parameters /////////////////////////////////////////////////////////////
 
 // file names of processed T2K MC
 //TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan19/*.root";
-TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan30fixed/*.root";
+//TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan30fixed/*.root";
+TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/feb20pass/*.root";
 
 // card file name for other settings
 TString CardFileName = "wetrun.dat";
@@ -53,7 +55,7 @@ opt->indexPiPPar = IndexPiPPar;
 opt->indexRCPar = IndexRCPar;
 //opt->calcFOMMap(200,200,0,20,1);
 //opt->calcDeltaMapNuMu(50,50,200,200);
-//opt->makeAllPlots(220,220,0,45,1);
+//opt->makeAllPlots(300,300,0,30,2);
 
 //opt->compareCuts(110,30,250,30,0,1);
 

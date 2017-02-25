@@ -844,7 +844,7 @@ int preProcess::preProcessIt(){
       // see if event passes T2K selection
       applyT2KSelection();
       // don't bother if it doesn't pass the cuts
-      if ( (!passecut) && (!passmucut) ) continue;
+      if ( (!passecut) && (!passmucut) && (!passe1rpicut) ) continue;
     }
 
     // find which sample the event belongs to   
@@ -881,6 +881,7 @@ void preProcess::applyT2KSelection(){
   // 1R selections
   passecut = selectNuE(fqpars);
   passmucut = selectNuMu(fqpars);
+  passe1rpicut = selectNuE1Rpi(fqpars);
 
   return;
 
@@ -1155,6 +1156,7 @@ void preProcess::setupNewTree(){
   trout->Branch("nsample",&nsample,"nsample/I");
   trout->Branch("nbin",&nbin,"nbin/I");
   trout->Branch("passecut",&passecut,"passecut/I");
+  trout->Branch("passe1rpicut",&passe1rpicut,"passe1rpicut/I");
   trout->Branch("passmucut",&passmucut,"passmucut/I");
 
   // visible ring counting

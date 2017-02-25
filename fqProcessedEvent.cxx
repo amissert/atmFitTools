@@ -170,6 +170,7 @@ void fqProcessedEvent::Init(TTree *tree)
    fChain->SetBranchAddress("fq1rpos", fq1rpos, &b_fq1rpos);
    fChain->SetBranchAddress("fq1renu", fq1renu);
    fChain->SetBranchAddress("passecut", &passecut);
+   fChain->SetBranchAddress("passe1rpicut", &passe1rpicut);
    fChain->SetBranchAddress("passmucut", &passmucut);
    fChain->SetBranchAddress("fq1rdir", fq1rdir, &b_fq1rdir);
    fChain->SetBranchAddress("fq1rdconv", fq1rdconv, &b_fq1rdconv);

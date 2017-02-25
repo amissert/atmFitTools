@@ -18,6 +18,8 @@ void modHistoArrayFV::saveSummary(const char* fname){
   cout<<"Writing summary file: "<<outfile->GetName()<<endl;
 
   // write histograms
+  
+  // uncertainty maps
   FVUncMap->Write();
   FVShiftMap->Write();
   FVFitMap->Write();
@@ -36,7 +38,22 @@ void modHistoArrayFV::saveSummary(const char* fname){
   FVFitMapCCnQE->Write();
   FVFitMapCCWrong->Write();
   FVFitMapNC->Write();
+  // nominal values
+  hFV[0]->Write();
+  hFVCCQE[0]->Write();
+  hFVCCnQE[0]->Write();
+  hFVCCWrong[0]->Write();
+  hFVNC[0]->Write();
+  // throw histograms
+  for (int fvbin=0; fvbin<hFV[0]->GetNumberOfBins(); fvbin++){
+   hNevents[fvbin]->Write();
+   hNeventsCCQE[fvbin]->Write();
+   hNeventsCCnQE[fvbin]->Write();
+   hNeventsCCWrong[fvbin]->Write();
+   hNeventsNC[fvbin]->Write();
+  }
 
+  /*
   for (int ibin=0; ibin<hFV[0]->GetNumberOfBins(); ibin++){
     for (int ebin=0; ebin<binUnc[ibin]->GetNbinsX(); ebin++){
       float binc =  binUnc[ibin]->GetBinContent(ebin);
@@ -51,10 +68,11 @@ void modHistoArrayFV::saveSummary(const char* fname){
     binUnc[ibin]->Write();
 //    histos[0][ibin]->Write();
   }
-
+  */
  
   cout<<"Closing summary file: "<<outfile->GetName()<<endl;
   outfile->Close();
+  cout<<"Closed!: "<<outfile->GetName()<<endl;
   
   //
   return;
@@ -66,9 +84,9 @@ void modHistoArrayFV::saveSummary(const char* fname){
 // save histograms and quit
 void modHistoArrayFV::saveClose(){
 
-  cout<<"Opening array file: "<<fout->GetName()<<endl;
-  fout->Write();
-  cout<<"Closing array file: "<<fout->GetName()<<endl;
+//  cout<<"Opening array file: "<<fout->GetName()<<endl;
+//  fout->Write();
+//  cout<<"Closing array file: "<<fout->GetName()<<endl;
   fout->Close();
 
   return;
@@ -541,11 +559,14 @@ void modHistoArrayFV::printUncMap(const char* plotdir){
 modHistoArrayFV::modHistoArrayFV(TH1D* hseed, TH2FV* hfv, int ninit){
 
   // get base name tag
+  cout<<"modHistoArrayFV: Called constructor"<<nameTag.Data()<<endl;
   nameTag = hseed->GetName();
+  cout<<"modHistoArrayFV: Constructing with name"<<nameTag.Data()<<endl;
  
   // output file
   TString fname = nameTag.Data();
   fname.Append("_histogram_array.root");
+  cout<<"modHistoArrayFV: Opening file: "<<nameTag.Data()<<endl;
   fout = new TFile(fname.Data(),"RECREATE");
 
   // setup histogram seeds

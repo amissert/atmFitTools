@@ -9,7 +9,8 @@
 
   //run spline factory form parameter file
 //  splineFactory *sfact = new splineFactory("dryrun.dat"); //< atmospheric pars
-  splineFactory *sfact = new splineFactory("wetrunrc.dat"); //< atmospheric pars
+//  splineFactory *sfact = new splineFactory("wetrunrc.dat"); //< atmospheric pars
+  splineFactory *sfact = new splineFactory("wetrun.dat"); //< atmospheric pars
   sfact->runSplineFactory();
 
 
