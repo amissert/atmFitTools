@@ -40,17 +40,6 @@ int    EnuNBinsMuondM2 = 2;
 double EnuBinningElectron[] = {0.,1250.};
 int    EnuNBinsElectron = 1;
 
-TString UncMapFileNameNuE = "FVUncMapNuE.root";
-TString UncMapFileNameNuMu = "FVUncMapNuMu.root";
-TString UncMapFileNameNuE1RPi = "FVUncMapNuE1RPi.root";
-
-/*
-double EnuBinningMuon[] = {0.,200.,400.,600.,800.,1000.,1200.,1400.,1600.,1800.,2000.,2200.,2400.,2600.,2800.,3000.};
-int    EnuNBinsMuon = 15;
-
-double EnuBinningElectron[] = {0.,200.,400.,600.,800.,1000.,1250.};
-int    EnuNBinsElectron = 6;
-*/
 
 ////////////////////////////////////////
 // Class to choose FV optimal point
@@ -62,7 +51,9 @@ class optimusPrime{
   optimusPrime(TChain* t2kmc,
                int nevents, 
                const char* datadir,
-               const char* mapfile);
+               const char* nuefile,
+               const char* numufil,
+               const char* nue1rpifile);
  
   // vars
   TChain* chmc; //< T2K MC events
@@ -73,13 +64,16 @@ class optimusPrime{
   moreUncertainties* uncertaintyCalculator; //< can calculate addtional uncertainties from entering bg, ect.
 
   // separate for each:
+  TString UncMapFileNameNuE;
+  TString UncMapFileNameNuMu;
+  TString UncMapFileNameNuE1RPi;
   moreUncertainties* uncNuE;
   moreUncertainties* uncNuE1RPi;
   moreUncertainties* uncNuMu;
 
   mcmcApply* modifier; //< applies atm fit pars to a given event
   fqcutparams cutPars; //< cut parameters structure defined in eventSelectors.h
-  TString mcmcParFileName;
+//  TString mcmcParFileName;
   TString cardFileName;
   TString pltTag;
   TString outDir;
@@ -151,12 +145,8 @@ class optimusPrime{
 
   float calcFOMBinned(int nselection, float twcut, float wcut, int oscpar, int iplt = 1);
 
-  float calcNuMuFOM(float towallmin, float wallmin, int oscpar);
-//  float calcFOMSpectrumNuMu(float towallmin, float wallmin, int oscpar, int iplt = 1);
-//  float calcFOMSpectrumNuE(float towallmin, float wallmin, int oscpar, int iplt = 1);
   float calcFOM(float* pow, float* nev, float* sys, int nbin);
   void calcFOMMap(float towallmax, float wallmax,int oscpar, int npts, int nselection);
-//  void calcFOMMapE(float towallmax, float wallmax,int oscpar, int npts=15);
   float getOscPower(int nutype, int oscpar);
   float getEventWeight(int iev);
   float getOscPowerFast(int nutype, int ievent, int oscpar);

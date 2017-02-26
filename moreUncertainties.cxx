@@ -102,6 +102,7 @@ void moreUncertainties::init(){
   fmapname.Append(mapFileName.Data());
   TFile *filefvmap = new TFile(fmapname.Data());
   hfvmap = (TH2FV*)filefvmap->Get("FVUncMapNC");
+//  hfvmap = new TH2FV("hfvmap",2);
   hfvmapccqe = (TH2FV*)filefvmap->Get("FVUncMapCCQE");
   hfvmapccnqe = (TH2FV*)filefvmap->Get("FVUncMapCCnQE");
   hfvmapccwrong = (TH2FV*)filefvmap->Get("FVUncMapCCWrong");
