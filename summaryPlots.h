@@ -21,22 +21,38 @@ class summaryPlots{
 
   // vars
   TString nameTag; 
-  TH1D* pltToySpectrum[NTOYPOINTS];
-  TH1D* pltToyPower[NTOYPOINTS];
-  TH1D* pltToySyst[NTOYPOINTS];
+
+
+//  TH1D* pltToySpectrum[NTOYPOINTS];
+//  TH1D* pltToyPower[NTOYPOINTS];
+//  TH1D* pltToySyst[NTOYPOINTS];
+
+  // nuMu hisots
   TH1D* pltEnuMu; //< rc spectrum
   TH1D* pltEnuMuCat[NCATS]; //< rc spectrum
-  TH1D* pltEnuE; //< rc spectrum
   TH1D* pltEnuMuSg;
   TH1D* pltEnuMuBg;
+  TH1D* pltPowerMu; //< oscillation power
+  TH1D* pltPassMu; //< passed nominal cuts?
+
+  // nuE histos
+  TH1D* pltEnuE; //< rc spectrum
   TH1D* pltEnuESg;
   TH1D* pltEnuEBg;
   TH1D* pltEnuECat[NCATS]; //< rc spectrum
-  TH1D* pltPowerMu; //< oscillation power
   TH1D* pltPowerE; //< oscillation power
-  TH1D* pltSyst; //< additional systematic uncertainty
   TH1D* pltPassE; //< passed nominal cuts?
-  TH1D* pltPassMu; //< passed nominal cuts?
+
+  // nuE 1RPi histos
+  TH1D* pltEnuE1RPi; //< rc spectrum
+  TH1D* pltEnuE1RPiSg;
+  TH1D* pltEnuE1RPiBg;
+  TH1D* pltEnuE1RPiCat[NCATS]; //< rc spectrum
+  TH1D* pltPowerE1RPi; //< oscillation power
+  TH1D* pltPassE1RPi; //< passed nominal cuts?
+
+  // other histos
+  TH1D* pltSyst; //< additional systematic uncertainty
   TH1D* pltAtt[NATTS]; //< fq cut attributes
   TH2D* pltPower2D; //< osc power vs. true energy;
   mcLargeArray* fastevents;
@@ -45,7 +61,7 @@ class summaryPlots{
   void Init();
 
   // initialize toy array
-  void InitToys(TH1D* hseed);
+//  void InitToys(TH1D* hseed);
 
   // set pointer to large mc array
   void setLargeArray(mcLargeArray* lgarr);

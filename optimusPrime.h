@@ -31,13 +31,26 @@
 #define NFOMBINSMAX 100
 
 
+double EnuBinningMuonTh23[] = {0.,2000.};
+int    EnuNBinsMuonTh23 = 1;
 
-double EnuBinningMuon[] = {0.,500.,1000,2000.};
-int    EnuNBinsMuon = 3;
-
+double EnuBinningMuondM2[] = {0.,600.,2000.};
+int    EnuNBinsMuondM2 = 2;
 
 double EnuBinningElectron[] = {0.,1250.};
 int    EnuNBinsElectron = 1;
+
+TString UncMapFileNameNuE = "FVUncMapNuE.root";
+TString UncMapFileNameNuMu = "FVUncMapNuMu.root";
+TString UncMapFileNameNuE1RPi = "FVUncMapNuE1RPi.root";
+
+/*
+double EnuBinningMuon[] = {0.,200.,400.,600.,800.,1000.,1200.,1400.,1600.,1800.,2000.,2200.,2400.,2600.,2800.,3000.};
+int    EnuNBinsMuon = 15;
+
+double EnuBinningElectron[] = {0.,200.,400.,600.,800.,1000.,1250.};
+int    EnuNBinsElectron = 6;
+*/
 
 ////////////////////////////////////////
 // Class to choose FV optimal point
@@ -87,6 +100,9 @@ class optimusPrime{
   TGraph2D* grDelta;
   TH2FV* hFVAvg;
   TH2FV* hFVAll;
+  TH1D*  hErecSeedNuMudM2;
+  TH1D*  hErecSeedNuMuTh23;
+  TH1D*  hErecSeedNuE;
   TH1D*  hErec[10];
   TH2FV* hFVSummary[8];
   TH1D*  hSummary[20];
@@ -107,11 +123,6 @@ class optimusPrime{
   float DeltaBg;
   float Delta;
 
-  // for calculating figure of merit
-//  float Power[NFOMBINSMAX];
-//  float Systematic[NFOMBINSMAX];
-//  float Nevents[NFOMBINSMAX];
-
   float Nevents;
   float Power;
   float Syst;
@@ -123,6 +134,8 @@ class optimusPrime{
   int AvgType;
   int flgUseSpectrum;
   int bestFOMbin;
+  int flgUseFloor;
+  int flgUseCCnQE;
   float bestFOMvalue;
   // methods
  
@@ -172,9 +185,9 @@ class optimusPrime{
   void printCompare(const char* dir,float tw1, float w1, float tw2, float w2, int oscpar, int nselection);
 
   void deleteHistos();
-  void initHistos(int nselection);
+  void initHistos(int nselection, int oscpar=0);
 
-
+  void setSeedHisogram(int nselection, TH1D* hseed, int oscpar=0);
 
   private:
 

@@ -77,23 +77,9 @@ int summaryPlots::GetCatagory(int iev, int wantnutype){
 
 /////////////////////////////////////////////////////////////////////////
 // Initialize from seed
+/*
 void summaryPlots::InitToys(TH1D* hseed){
   TString hname;
-
-  // set up toys
-//  for (int ih=0; ih<NTOYPOINTS; ih++){
-//    hname = nameTag.Data();
-//    hname.Append(Form("_spectrum_toy%d",ih));
-//    pltToySpectrum[ih] = (TH1D*)pltEnuMu->Clone(hname.Data());
-    //
-//    hname = nameTag.Data();
-//    hname.Append(Form("_power_toy%d",ih));
-//    pltToyPower[ih] = (TH1D*)pltPower->Clone(hname.Data());
-    //
-//    hname = nameTag.Data();
-//    hname.Append(Form("_syst_toy%d",ih));
-//    pltToySyst[ih] = (TH1D*)pltSyst->Clone(hname.Data());
-//  }
 
   // set up toys
   for (int ih=0; ih<NTOYPOINTS; ih++){
@@ -112,37 +98,17 @@ void summaryPlots::InitToys(TH1D* hseed){
 
   return;
 }
-
+*/
 
 /////////////////////////////////////////////////////////////////////////
 // Set up histos
 void summaryPlots::Init(){
-  
+
   //
-  TString hname = nameTag.Data();
-  hname.Append("_enuE");
-  pltEnuE = new TH1D(hname.Data(),hname.Data(),20,0,2000);
-  pltEnuE->Sumw2(kTRUE);
-  pltEnuE->GetXaxis()->SetTitle("E_{rec} [MeV]");
-  pltEnuE->SetStats(0);
-  pltEnuE->SetTitle(0);
-  //
-  hname = nameTag.Data();
-  hname.Append("_enuEBg");
-  pltEnuEBg = new TH1D(hname.Data(),hname.Data(),30,0,2000);
-  pltEnuEBg->Sumw2(kTRUE);
-  pltEnuEBg->GetXaxis()->SetTitle("E_{rec} [MeV]");
-  pltEnuEBg->SetStats(0);
-  pltEnuEBg->SetTitle(0);
-  //
-  hname = nameTag.Data();
-  hname.Append("_enuESg");
-  pltEnuESg = new TH1D(hname.Data(),hname.Data(),50,0,2000);
-  pltEnuESg->Sumw2(kTRUE);
-  pltEnuESg->GetXaxis()->SetTitle("E_{rec} [MeV]");
-  pltEnuESg->SetStats(0);
-  pltEnuESg->SetTitle(0);
-  //
+  TString hname;
+
+
+  // NuMu histos //////////////////////////////////////////////
   hname = nameTag.Data();
   hname.Append("_enuMuBg");
   pltEnuMuBg = new TH1D(hname.Data(),hname.Data(),50,0,2000);
@@ -167,35 +133,90 @@ void summaryPlots::Init(){
   pltEnuMu->SetTitle(0);
   //
   hname = nameTag.Data();
-  hname.Append("_PowerE");
-  pltPowerE= new TH1D(hname.Data(),hname.Data(),50,0,3000);
-  //
-  hname = nameTag.Data();
   hname.Append("_PowerMu");
   pltPowerMu= new TH1D(hname.Data(),hname.Data(),50,0,3000);
+  //
+  hname = nameTag.Data();
+  hname.Append("_PassNu");
+  pltPassMu = new TH1D(hname.Data(),hname.Data(),100,0,3000);
+
+
+  // nuE histos //////////////////////////////////////////////
+  hname = nameTag.Data();
+  hname.Append("_enuE");
+  pltEnuE = new TH1D(hname.Data(),hname.Data(),20,0,2000);
+  pltEnuE->Sumw2(kTRUE);
+  pltEnuE->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuE->SetStats(0);
+  pltEnuE->SetTitle(0);
+  //
+  hname = nameTag.Data();
+  hname.Append("_enuEBg");
+  pltEnuEBg = new TH1D(hname.Data(),hname.Data(),30,0,2000);
+  pltEnuEBg->Sumw2(kTRUE);
+  pltEnuEBg->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuEBg->SetStats(0);
+  pltEnuEBg->SetTitle(0);
+  //
+  hname = nameTag.Data();
+  hname.Append("_enuESg");
+  pltEnuESg = new TH1D(hname.Data(),hname.Data(),50,0,2000);
+  pltEnuESg->Sumw2(kTRUE);
+  pltEnuESg->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuESg->SetStats(0);
+  pltEnuESg->SetTitle(0);
+  //
+  hname = nameTag.Data();
+  hname.Append("_PowerE");
+  pltPowerE= new TH1D(hname.Data(),hname.Data(),50,0,3000);
   //
   hname = nameTag.Data();
   hname.Append("_Syst");
   pltSyst = new TH1D(hname.Data(),hname.Data(),10,0,2000);
   //
   hname = nameTag.Data();
-  hname.Append("_PassNu");
-  pltPassMu = new TH1D(hname.Data(),hname.Data(),100,0,3000);
-  //
-  hname = nameTag.Data();
   hname.Append("_PassE");
   pltPassE = new TH1D(hname.Data(),hname.Data(),100,0,3000);
-  //
-  for (int iatt=0; iatt<NATTS; iatt++){
-    hname = nameTag.Data();
-    hname.Append(Form("_att%d",iatt));
-    pltAtt[iatt] = new TH1D(hname.Data(),hname.Data(),5,-1,3);
-  }
+
+  // nuE1RPi 1RPi histos //////////////////////////////////////////////
+  hname = nameTag.Data();
+  hname.Append("_enuE1RPi");
+  pltEnuE1RPi = new TH1D(hname.Data(),hname.Data(),20,0,2000);
+  pltEnuE1RPi->Sumw2(kTRUE);
+  pltEnuE1RPi->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuE1RPi->SetStats(0);
+  pltEnuE1RPi->SetTitle(0);
   //
   hname = nameTag.Data();
-  hname.Append("_pow2D");
-  pltPower2D = new TH2D(hname.Data(),hname.Data(),50,0,1000,50,0,1);
+  hname.Append("_enuE1RPiBg");
+  pltEnuE1RPiBg = new TH1D(hname.Data(),hname.Data(),30,0,2000);
+  pltEnuE1RPiBg->Sumw2(kTRUE);
+  pltEnuE1RPiBg->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuE1RPiBg->SetStats(0);
+  pltEnuE1RPiBg->SetTitle(0);
+  //
+  hname = nameTag.Data();
+  hname.Append("_enuE1RPiSg");
+  pltEnuE1RPiSg = new TH1D(hname.Data(),hname.Data(),50,0,2000);
+  pltEnuE1RPiSg->Sumw2(kTRUE);
+  pltEnuE1RPiSg->GetXaxis()->SetTitle("E_{rec} [MeV]");
+  pltEnuE1RPiSg->SetStats(0);
+  pltEnuE1RPiSg->SetTitle(0);
+  //
+  hname = nameTag.Data();
+  hname.Append("_PowerE1RPi");
+  pltPowerE1RPi= new TH1D(hname.Data(),hname.Data(),50,0,3000);
+  //
+  hname = nameTag.Data();
+  hname.Append("_Syst");
+  pltSyst = new TH1D(hname.Data(),hname.Data(),10,0,2000);
+  //
+  hname = nameTag.Data();
+  hname.Append("_PassE1RPi");
+  pltPassE1RPi = new TH1D(hname.Data(),hname.Data(),100,0,3000);
 
+
+  // for each catagory
   for (int i=0; i<NCATS; i++){
     hname = nameTag.Data();
     hname.Append(Form("_enuMu_cat%d",i));
@@ -210,25 +231,27 @@ void summaryPlots::Init(){
     pltEnuECat[i]->GetXaxis()->SetTitle("E_{rec} [MeV]");
     pltEnuECat[i]->SetStats(0);
     pltEnuECat[i]->SetTitle(0);
-  }
-  
-  // set up toys
-  /*
-  for (int ih=0; ih<NTOYPOINTS; ih++){
-    hname = nameTag.Data();
-    hname.Append(Form("_spectrum_toy%d",ih));
-    pltToySpectrum[ih] = (TH1D*)pltEnuMu->Clone(hname.Data());
     //
     hname = nameTag.Data();
-    hname.Append(Form("_power_toy%d",ih));
-    pltToyPower[ih] = (TH1D*)pltPower->Clone(hname.Data());
-    //
-    hname = nameTag.Data();
-    hname.Append(Form("_syst_toy%d",ih));
-    pltToySyst[ih] = (TH1D*)pltSyst->Clone(hname.Data());
+    hname.Append(Form("_enuE1RPi_cat%d",i));
+    pltEnuE1RPiCat[i] = new TH1D(hname.Data(),hname.Data(),20,0,3000);
+    pltEnuE1RPiCat[i]->GetXaxis()->SetTitle("E_{rec} [MeV]");
+    pltEnuE1RPiCat[i]->SetStats(0);
+    pltEnuE1RPiCat[i]->SetTitle(0);
   }
-  */
+ 
+  // other histos
+  for (int iatt=0; iatt<NATTS; iatt++){
+    hname = nameTag.Data();
+    hname.Append(Form("_att%d",iatt));
+    pltAtt[iatt] = new TH1D(hname.Data(),hname.Data(),5,-1,3);
+  }
+  //
+  hname = nameTag.Data();
+  hname.Append("_pow2D");
+  pltPower2D = new TH2D(hname.Data(),hname.Data(),50,0,1000,50,0,1);
 
+  //
   return;
   
 }
@@ -238,25 +261,40 @@ void summaryPlots::Init(){
 /////////////////////////////////////////////////////////////////////////
 // Set up histos
 void summaryPlots::clearHistos(){
- 
-  pltEnuE->Reset();
+
+  // clear nuMu
   pltEnuMu->Reset();
-  pltEnuEBg->Reset();
-  pltEnuMuBg->Reset();
-  pltEnuESg->Reset();
-  pltEnuMuSg->Reset();
-  pltPowerE->Reset();
   pltPowerMu->Reset();
-  pltSyst->Reset(); 
+  pltEnuMuSg->Reset();
+  pltEnuMuBg->Reset();
   pltPassMu->Reset(); 
+
+  // clear nuE
+  pltEnuE->Reset();
+  pltEnuEBg->Reset();
+  pltEnuESg->Reset();
+  pltPowerE->Reset();
+  pltSyst->Reset(); 
   pltPassE->Reset(); 
+
+
+  // clear nuE1RPi
+  pltEnuE1RPi->Reset();
+  pltEnuE1RPiBg->Reset();
+  pltEnuE1RPiSg->Reset();
+  pltPowerE1RPi->Reset();
+  pltPassE1RPi->Reset(); 
+
+  // other
   pltPower2D->Reset();
+  pltSyst->Reset(); 
   for (int iatt=0; iatt<NATTS; iatt++){
     pltAtt[iatt]->Reset();
   }
   for (int i=0; i<NCATS; i++){
     pltEnuMuCat[i]->Reset(); 
     pltEnuECat[i]->Reset(); 
+    pltEnuE1RPiCat[i]->Reset(); 
   }
 
   return;
@@ -302,6 +340,30 @@ void summaryPlots::fillAllFromArray(int iev, float pow, float sys){
     }
   }
 
+
+  // for nue 1R pi
+  if (fastevents->vpassnue1rpi[iev]){
+    int wantnutype = 12;
+    // get interaction catagory
+    // 0 -> CCQE
+    // 1 -> CCnQE
+    // 2 -> CCMisID
+    // 3 -> NC
+    // 4 -> Dead Region
+    int icat = GetCatagory(iev, wantnutype);
+    pltEnuE1RPi->Fill(fastevents->vfqenue[iev],ww);
+    pltEnuE1RPiCat[icat]->Fill(fastevents->vfqenue[iev],ww);
+    pltPassE1RPi->Fill(fastevents->vpassnue1rpi[iev],ww);
+    pltPowerE1RPi->Fill(fastevents->vfqenue[iev],pow);
+    if (icat==0){
+      pltEnuE1RPiSg->Fill(fastevents->vfqenue[iev],ww);
+    }
+    else{
+      pltEnuE1RPiBg->Fill(fastevents->vfqenue[iev],ww);
+    }
+  }
+
+
   // for numu
   if (fastevents->vpassnumu[iev]){
     int wantnutype = 14;
@@ -325,17 +387,6 @@ void summaryPlots::fillAllFromArray(int iev, float pow, float sys){
   for (int i=0; i<NATTS; i++){
     pltAtt[i]->Fill(fastevents->vattribute[iev][i],ww);
   }
-
-//  if (pow>=0){
-//    pltPower->Fill(pow);
-//  }
-
-//  else{
-//    pltPower->Fill(fastevents->voscpower[iev][0],ww);
-//  }
-
-//  if (sys>=0){
-//  }
 
   return;
 }

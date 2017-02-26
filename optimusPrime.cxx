@@ -5,6 +5,27 @@
 #include "optimusPrime.h"
 
 
+////////////////////////////////////////////////////////////////////
+void optimusPrime::setSeedHisogram(int nselection, TH1D* histo, int oscpar){
+
+  if (nselection==2){
+    if (oscpar==0){
+      hErecSeedNuMuTh23 = histo;
+    }
+    if (oscpar==1){
+      hErecSeedNuMudM2 = histo;
+    }
+  }
+  if (nselection==1){
+    hErecSeedNuE = histo;
+  }
+  if (nselection==3){
+    hErecSeedNuE = histo;
+  }
+
+  return;
+}
+
 
 ////////////////////////////////////////////////////////////////////
 void optimusPrime::printCompare(const char* dir,float tw1, float w1, float tw2, float w2, int oscpar, int flgnumu){
@@ -242,9 +263,18 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
   if (!outDir.CompareTo("")){
     outDir = "~/transfer/";
   }
-  if (!pltTag.CompareTo("")){
-    pltTag = "plots_";
+  pltTag = "plot_";
+  if (nselection==1){
+    pltTag.Append("nuE");
   }
+  else if (nselection==2){
+    pltTag.Append("nuMu");
+  }
+  else if (nselection==3){
+    pltTag.Append("nuE1Rpi");
+  }
+
+
   TString prefix = outDir.Data();
   prefix.Append(pltTag.Data());
   TString pltname;
@@ -257,43 +287,24 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
   cout<<"Calculating FOM Map: "<<endl;
   calcFOMMap(twmax,wmax,oscpar,npts,nselection);
 
-//  if (flgnumu) calcFOMMap(twmax,wmax,oscpar,npts,1);
-//  else calcFOMMap(twmax,wmax,oscpar,npts,0);
-
   // print figure of merit and save ///////////////
   hFV->SetStats(0);
   hFV->SetTitle(0);
   hFV->Draw("colz");
   pltname = prefix.Data();
-
-  if (nselection==2) pltname.Append("hFV_NuMu_FOM.png");
-  else if (nselection==1){
-    pltname.Append("hFV_NuE_FOM.png");
-  }
-  else if (nselection==3){
-    pltname.Append("hFV_NuE1Rpi_FOM.png");
-  }
+  pltname.Append("_FOM.png");
+  // plot names
   cc->Print(pltname.Data());
-  pltfile = outDir.Data();
-  if (nselection == 2) pltfile.Append("hFV_Nu_Mu_FOM.root");
-  else if (nselection==1) {
-    pltfile.Append("hFV_NuE_FOM.root");
-  }
-  else if (nselection==3){
-    pltfile.Append("hFV_NuE1Rpi_FOM.root");
-  }
+  pltfile = prefix.Data();
+  pltfile.Append("_FOM.root");
   hFV->SaveAs(pltfile.Data());
 
-  // get 10% variation in systematic estimat
+  // get 5% variation in systematic estimat
   cout<<"Defining small variation: "<<endl;
   double besttowall = hFV->GetBinCenterX(bestFOMbin);
   double bestwall = hFV->GetBinCenterY(bestFOMbin);
   flgPrintSummary = 1;
   calcFOMBinned(nselection,besttowall,bestwall,oscpar,1);
-//  if (flgnumu) calcFOMSpectrumNuMu(besttowall,bestwall,oscpar);
-//  else{
-//    calcFOMSpectrumNuE(besttowall,bestwall,oscpar);
-//  }
   cout<<"Small Varation: "<<smallVariation<<endl;
   flgPrintSummary = 0;
 
@@ -315,29 +326,17 @@ void optimusPrime::makeAllPlots(float twmax, float wmax, int oscpar, int npts, i
   maskThresh = 0.8;
   hMask->SetMinimum(0.9);
   hMask->SetMaximum(1.2);
-
   hMask->SetStats(0);
   hMask->SetTitle(0);
   hMask->Draw("col");
   pltname = prefix.Data();
-  if (nselection==2) pltname.Append("Optimal_Region_NuMU.png");
-  else if (nselection==1){
-    pltname.Append("Optimal_Region_NuE.png");
-  }
-  else if (nselection==3){
-    pltname.Append("Optimal_Region_NuE1Rpi.png");
-  }
+  pltname.Append("_Preferred_Region.png");
   cc->Print(pltname.Data());
-  pltfile = outDir.Data();
-  if (nselection==2) pltfile.Append("Optimal_Region_NuMu.root");
-  else if (nselection==1){
-    pltfile.Append("Optimal_Region_NuE.root");
-  }
-  else if (nselection==3){
-    pltfile.Append("Optimal_Region_NuE1Rpi.root");
-  }
+  pltfile = prefix.Data();
+  pltfile.Append("_Preferred_Region.root");  
   hMask->SaveAs(pltfile.Data());
-  
+ 
+  // turn mask back off
   flgUseMask = 0;
 
   return;
@@ -363,18 +362,19 @@ void optimusPrime::deleteHistos(){
 
 ///////////////////////////////////////////////////////////////////////
 // create clones of the erec histograms for calculting binned FOM
-void optimusPrime::initHistos(int nselection){
+void optimusPrime::initHistos(int nselection,int oscpar){
 
  // get seed based on selection
  TH1D* hseed;
  if (nselection==2){
-   hseed = new TH1D("hseed","hseed",EnuNBinsMuon,EnuBinningMuon);
+   if (oscpar==0) hseed = (TH1D*)hErecSeedNuMuTh23->Clone("hseed");
+   if (oscpar==1) hseed = (TH1D*)hErecSeedNuMudM2->Clone("hseed");
  }
  else if (nselection==1){
-   hseed = new TH1D("hseed","hseed",EnuNBinsElectron,EnuBinningElectron);
+   hseed = (TH1D*)hErecSeedNuE->Clone("hseed");
  }
  else if (nselection==3){
-   hseed = new TH1D("hseed","hseed",EnuNBinsElectron,EnuBinningElectron);
+   hseed = (TH1D*)hErecSeedNuE->Clone("hseed");
  }
  hseed->Reset();
 
@@ -383,7 +383,7 @@ void optimusPrime::initHistos(int nselection){
  hseed->SetBit(TH1::kNoTitle,0);
  //
  hErec[0] = (TH1D*)hseed->Clone("herec_power");
- hErec[0]->SetTitle("Oscillation Power");
+ hErec[0]->SetTitle("(dN/d#theta)^{2}");
  //
  hErec[1] = (TH1D*)hseed->Clone("herec_N");
  hErec[1]->SetTitle("# of Events");
@@ -395,7 +395,7 @@ void optimusPrime::initHistos(int nselection){
  hErec[3]->SetTitle("Figure of Merit");
  //
  hErec[4] = (TH1D*)hseed->Clone("herec_bg");
- hErec[4]->SetTitle("# BG");
+ hErec[4]->SetTitle("|dN/d#theta|");
  //
  hErec[5] = (TH1D*)hseed->Clone("herec_sig");
  hErec[5]->SetTitle("F.O.M.");
@@ -464,12 +464,14 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
  // initialze some histos
  hFVAll = new TH2FV("hall",-1,30,0,800,30,0,800);
  hFVAvg = new TH2FV("havg",-1,30,0,800,30,0,800);
+ hErecSeedNuMuTh23 = new TH1D("hErecSeedNuMuTh23","hErecSeedNuMuTh23",EnuNBinsMuonTh23,EnuBinningMuonTh23);
+ hErecSeedNuMudM2 = new TH1D("hErecSeedNuMudM2","hErecSeedNuMudM2",EnuNBinsMuondM2,EnuBinningMuondM2);
+ hErecSeedNuE  = new TH1D("hErecSeedNuE","hErecSeedNuE",EnuNBinsElectron,EnuBinningElectron);
 
  // set up object to read uncertainties for each event
- uncertaintyCalculator = new moreUncertainties(datadir, mapfile);
- uncNuE = new moreUncertainties(datadir,"FVUncMapNuE.root");
-// uncNuE1RPi = new moreUncertainties(datadir,"FVUncMapNuE1Rpi.root");
- uncNuMu = new moreUncertainties(datadir,"FVUncMapNuMu.root");
+ uncNuE = new moreUncertainties(datadir,UncMapFileNameNuE.Data());
+ uncNuE1RPi = new moreUncertainties(datadir,UncMapFileNameNuE1RPi.Data());
+ uncNuMu = new moreUncertainties(datadir,UncMapFileNameNuMu.Data());
 
  // overall scaling factors
  Scale = 1.;
@@ -489,6 +491,12 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts, const char* datadir, const 
 
  // dont use a mask unless told to do so
  flgUseMask = 0;
+
+ // dont use floor unless told
+ flgUseFloor = 0;
+
+ // count ccnqe as signal?
+ flgUseCCnQE = 1;
 
  // initialize summary plots (for comparisons, etc.)
  plots1 = new summaryPlots("plots_1");
@@ -527,23 +535,6 @@ float optimusPrime::getOscPower(int nutype, int oscpar){
 // get the oscillation power for this event
 float optimusPrime::getOscPowerFast(int nutype, int ientry, int oscpar){
 
-/*
- // NC events do not contribute 
- // Non-CCQE do not contribute
- if (TMath::Abs(fastevents->vmode[ientry])>=10) return 0.;
- 
- // other nu do not contribute
- if (TMath::Abs(fastevents->vnutype[ientry]) != nutype) return 0.;
-
- // outside FV do not contribute
- if (fastevents->vwallv[ientry] <=0.) return 0.;
-
- // return power multiplied by weight
- float oscpow = fastevents->vweight[ientry]*fastevents->voscpower[ientry][oscpar]; 
-
- if (FOMType==2) oscpow = fastevents->vweight[ientry];
-
-*/
 
     // is dead region?
     if (fastevents->vwallv[ientry] < 0.) { return 0.;}
@@ -562,8 +553,16 @@ float optimusPrime::getOscPowerFast(int nutype, int ientry, int oscpar){
     }
 
     // CCnQE 
-    if (TMath::Abs(fastevents->vmode[ientry])<30) {return 0.;}
+    if (TMath::Abs(fastevents->vmode[ientry])<30) {
+      if (!flgUseCCnQE) return 0.;
+      else{
+        float opow = getEventWeight(ientry)*fastevents->voscpower[ientry][oscpar];
+        if (FOMType==2) opow = getEventWeight(ientry);
+        return opow;   
+      }
+    }
 
+    // CCnQE 
     return 0.;
 }
 
@@ -707,7 +706,7 @@ void optimusPrime::calcFOMMap(float towallmax, float wallmax,int oscpar, int npt
  deleteHistos();
 
  // create erec histos depending on the sample you want
- initHistos(nselection);
+ initHistos(nselection,oscpar);
 
  // loop over FV bins, for each bin calculate the figure of merit
  for (int ibin = 0; ibin<hFV->GetNumberOfBins(); ibin++){
@@ -900,6 +899,16 @@ float optimusPrime::calcFOMBinned(int nselection, float towallmin, float wallmin
     return 0.;
   }
 
+  // reject if below floor
+  if (flgUseFloor){
+    if (towallmin<150.){
+      return 0.;
+    }
+    if (wallmin<50.){
+      return 0.;
+    }
+  }
+
   // reset values
   Nevents = 0.;
   NB = 0.; 
@@ -927,11 +936,17 @@ float optimusPrime::calcFOMBinned(int nselection, float towallmin, float wallmin
 
   // neutrino type of the selection you desire
   int nu_type = 0;
-  if (nselection==1 || nselection==3){
+  if (nselection==1){
     nu_type = 12;
+    uncertaintyCalculator = uncNuE;
   }
-  else{
+  else if (nselection==2){
     nu_type = 14;
+    uncertaintyCalculator = uncNuMu;
+  }
+  else if (nselection==3){
+    nu_type = 12;
+    uncertaintyCalculator = uncNuE1RPi;
   }
 
   // loop over events
@@ -944,6 +959,9 @@ float optimusPrime::calcFOMBinned(int nselection, float towallmin, float wallmin
      }
      else if (nselection==2){
        ipass = fastevents->vpassnumu[i];
+     }
+     else if (nselection==3){
+       ipass = fastevents->vpassnue1rpi[i];
      }
 
      // if it passes, add to spectrum
@@ -1321,16 +1339,6 @@ int optimusPrime::isSmallDifference(float tw1, float w1, float tw2, float w2, in
   fom1 = calcFOMBinned(nselection,tw1,w1,oscpar,1);
   fom1 = calcFOMBinned(nselection,tw2,w2,oscpar,2);
 
-//  if (flgnumu) fom1 = calcFOMSpectrumNuMu(tw1,w1,oscpar,1);
-//  else{
-//    fom1 = calcFOMSpectrumNuE(tw1,w1,oscpar, 1);
-//  }
-
-//  if (flgnumu) fom2 = calcFOMSpectrumNuMu(tw2,w2,oscpar, 2);
-//  else{
-//    fom2 = calcFOMSpectrumNuE(tw2,w2,oscpar,2);
-//  }
-
   double chi2=0.;
   double ksP=0.;
   double absdiff=0.;
@@ -1344,7 +1352,7 @@ int optimusPrime::isSmallDifference(float tw1, float w1, float tw2, float w2, in
     ksP = plots1->pltEnuMu->KolmogorovTest(plots2->pltEnuMu,"N");
     absdiff = getAbsDifference(plots1->pltEnuMu,plots2->pltEnuMu );
   }
-  else if (nselection==3){
+  else if (nselection==1 || nselection==3){
     plots1->pltEnuE->SetLineColor(kBlue);
     plots2->pltEnuE->SetLineColor(kRed);
     plots1->pltEnuE->Draw("e");
@@ -1379,7 +1387,7 @@ void optimusPrime::compareFOM(float tw1, float w1, float tw2, float w2, int oscp
 
   // set erec binning
   deleteHistos();
-  initHistos(nselection);
+  initHistos(nselection,oscpar);
 
   // do the calculations and fill plots1
   float fom1 = 0.;
@@ -1478,7 +1486,7 @@ void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int osc
 
   // set erec binning
   deleteHistos();
-  initHistos(nselection);
+  initHistos(nselection,oscpar);
 
   // colerz
   int colerz[5] = {4,7,2,15,6};
@@ -1518,7 +1526,7 @@ void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int osc
 
     }
   }
-  else if (nselection==1){
+  else if (nselection==1 || nselection==3){
     multiPad->cd(1);
     plots1->pltEnuE->Draw();
     plots1->pltEnuE->SetLineWidth(3);
@@ -1724,8 +1732,6 @@ float optimusPrime::getSystUncertainty(int i, int nutype){
    int wronglepton = 0;
    if (TMath::Abs(fastevents->vnutype[i])!=nutype) wronglepton = 1;
 
-//   float lmom = fastevents->vfqenumu[i];
-//   if (nutype!=14) lmom = fastevents->vfqenue[i];
    float sys = uncertaintyCalculator->getTotalUncertainty(fastevents->vwallv[i],
                                                           fastevents->vfqwall[i],
                                                           fastevents->vfqtowall[i],
