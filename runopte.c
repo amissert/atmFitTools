@@ -12,7 +12,6 @@ gROOT->ProcessLine(".L moreUncertainties.cxx+");
 // parameters /////////////////////////////////////////////////////////////
 
 // file names of processed T2K MC
-//TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan30fixed/*.root";
 TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/feb20pass/*.root";
 
 // card file name for other settings

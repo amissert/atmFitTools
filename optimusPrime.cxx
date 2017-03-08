@@ -594,7 +594,7 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts,
  flgUseFloor = 0;
 
  // count ccnqe as signal?
- flgUseCCnQE = 1;
+ flgUseCCnQE = 0;
 
  // initialize summary plots (for comparisons, etc.)
  plots1 = new summaryPlots("plots_1");
@@ -851,6 +851,7 @@ void optimusPrime::fillArray(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 float optimusPrime::calcFOMBinned(int nselection, float towallmin, float wallmin, int oscpar, int iplt){
 
+
   // summarize?
   if (flgPrintSummary){
     if (iplt==1){
@@ -906,14 +907,17 @@ float optimusPrime::calcFOMBinned(int nselection, float towallmin, float wallmin
   if (nselection==1){
     nu_type = 12;
     uncertaintyCalculator = uncNuE;
+    flgUseCCnQE = 0;
   }
   else if (nselection==2){
     nu_type = 14;
     uncertaintyCalculator = uncNuMu;
+    flgUseCCnQE = 0;
   }
   else if (nselection==3){
     nu_type = 12;
     uncertaintyCalculator = uncNuE1RPi;
+    flgUseCCnQE = 1;
   }
 
   // loop over events

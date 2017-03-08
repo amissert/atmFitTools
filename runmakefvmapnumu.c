@@ -12,7 +12,7 @@ gROOT->ProcessLine(".L toyMC.cxx+");
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parameters //
 TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/feb19full_logrc/*.root";
-TString MCMCFiles = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun_logrc/mcmc_run0_summary.root";
+TString MCMCFiles = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun_logrc/mcmc_run2_summary.root";
 int   NMCEvents = 1e9;
 int   NMCMCPoints = 499;
 int   index_of_pidpar = 0;
@@ -47,8 +47,8 @@ toy->setAtmFitPars("wetrun.dat");
 
 mcfiles->GetEntry(500); // initialize some parameters
 parfiles->GetEntry(500); // initialize some parameters
-toy->makeFVUncMap(NMCMCPoints,selection_code,"./data/FVUncMapNuMu.root",1);
+//toy->makeFVUncMap(NMCMCPoints,selection_code,"./data/FVUncMapNuMu.root",1);
 toy->makeFVUncMap(NMCMCPoints,selection_code,"./data/FVUncMapNuMuBinning2.root",2);
-toy->makeFVUncMap(NMCMCPoints,selection_code,"./data/FVUncMapNuMuBinning3.root",3);
+//toy->makeFVUncMap(NMCMCPoints,selection_code,"./data/FVUncMapNuMuBinning3.root",3);
 
 }
