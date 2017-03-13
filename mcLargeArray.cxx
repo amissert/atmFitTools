@@ -149,6 +149,7 @@ void mcLargeArray::printEvent(int iev){
   cout<<" component:   "<<vcomponent[iev]<<endl;
   cout<<" mu momentum: "<<vfqmumom[iev]<<endl;
   cout<<" e momentum:  "<<vfqemom[iev]<<endl;
+  cout<<" nu momentum:  "<<vpmomv[iev]<<endl;
   cout<<" PID:         "<<vfqpid[iev]<<endl;
   cout<<" Pi0:         "<<vfqpi0par[iev]<<endl;
   cout<<" PiP:         "<<vattribute[iev][2]<<endl;

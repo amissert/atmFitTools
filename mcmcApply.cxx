@@ -17,6 +17,17 @@ mcmcApply::mcmcApply(atmFitPars* fitpars, mcmcReader* mcmcpars){
   indexPiPPar = 2;
   indexRCPar  = 3;
 
+  // flags
+  flgApplyXSecPar=false;
+  flgApplyFluxPar=false;
+  flgApplyNormPar=true;
+  flgApplyTest=false;
+  for (int iatt=0; iatt<NATTMAX; iatt++){
+    flgApplyAttSmearPar[iatt] = true;
+    flgApplyAttBiasPar[iatt]  = true;
+  }
+
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -41,17 +52,21 @@ void mcmcApply::setFromMCMC(){
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-// apply parameters to temporary array
+// apply parameters in temporary array
 void mcmcApply::applyPars(int nbin, int ncomponent, float attributeTmp[], int natt){
 
-  float smear;
-  float bias;
+  float smear=1.0;
+  float bias=0.0;
   
   for (int iatt=0; iatt<natt; iatt++){
 
     // get parameters
-    smear = (float)fitPars->getAttModParameter(nbin, ncomponent, iatt, 0);
-    bias = (float)fitPars->getAttModParameter(nbin, ncomponent, iatt, 1);
+    if (flgApplyAttSmearPar[iatt]){
+      smear = (float)fitPars->getAttModParameter(nbin, ncomponent, iatt, 0);
+    }
+    if (flgApplyAttBiasPar[iatt]){
+      bias = (float)fitPars->getAttModParameter(nbin, ncomponent, iatt, 1);
+    }
 
     attributeTmp[iatt] = smear*attributeTmp[iatt] + bias;
 
@@ -60,7 +75,7 @@ void mcmcApply::applyPars(int nbin, int ncomponent, float attributeTmp[], int na
 //      cout<<"-------"<<smear<<endl;
 //      cout<<"smear: "<<smear<<endl;
 //      cout<<"bias: "<<bias<<endl;
-//      attributeTmp[iatt] = smear*attributeTmp[iatt] + bias;
+//      attributeTmp[iatt] = smear*attributeTmp[iatt] + bias;;
 //    }
 
 
@@ -72,6 +87,31 @@ void mcmcApply::applyPars(int nbin, int ncomponent, float attributeTmp[], int na
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// get total weight from atm flux pars
+float mcmcApply::getFluxWeight(float enu, int nutype){
+
+  float ww = 1.0;
+  
+  if (enu<1000.){
+    ww*= fitPars->getSysParameter(14);
+  }
+
+  else if (enu>=1000.){
+    ww*= fitPars->getSysParameter(15);
+  }
+
+  if (nutype==14){
+    ww*=fitPars->getSysParameter(18);
+  }
+ 
+//  cout<<"enu: "<<enu;
+//  cout<<" nutype: "<<nutype;
+//  cout<<" flxweight: "<<ww<<endl;;
+
+  return ww;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // get total weight from xsec pars
@@ -108,20 +148,39 @@ float mcmcApply::getXsecWeight(int mode, float Enu){
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////
+// can apply a test custom weight here
+float mcmcApply::getTestWeight(int nbin, int nsamp, int nmode, float enutrue, int nutype){
+
+  // start fresh
+  float ww = 1.0;
+
+  if (nutype==14){
+    ww*= fitPars->getSysParameter(14);
+  }
+
+  return ww;
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // apply parameters to temporary array
-float mcmcApply::getEvtWeight(int nbin, int nsamp, int nmode, float enutrue){
+float mcmcApply::getEvtWeight(int nbin, int nsamp, int nmode, float enutrue, int nutype){
 
   // start fresh
   float ww = 1.0;
 
   // apply normalization
-  ww *= (float)fitPars->getNormParameter(nsamp,nbin);
+  if (flgApplyNormPar) ww *= (float)fitPars->getNormParameter(nsamp,nbin);
 
   // apply xsec
-//  ww *= getXsecWeight(nmode, enutrue);
+  if (flgApplyXSecPar) ww *= getXsecWeight(nmode, enutrue);
 
+  // apply flux
+  if (flgApplyFluxPar) ww *= getFluxWeight(enutrue,nutype);
+
+  if (flgApplyTest) ww *= getTestWeight(nbin,nsamp,nmode,enutrue,nutype);
   return ww;
 }
 

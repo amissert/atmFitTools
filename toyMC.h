@@ -85,7 +85,7 @@ class toyMC{
 
   void makeCombinedUncertainty(int nmcmcpts);
   void setAtmFitPars(const char* parfile);
-  void fillSKErrors(int ntoys);
+  void fillSKErrors(int ntoys, int nbinning=1, int flgcustom=0);
   int applyCutsToModifiedEvent(int iev,bool flgmod=true);
   int applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod=true);
   int getEventCatagory(int iev, int nutype);

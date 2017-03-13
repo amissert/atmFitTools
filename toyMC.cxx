@@ -82,6 +82,7 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
   for (int iatt=0; iatt<natt; iatt++){
     attributesTmp[iatt] = fastevents->vattribute[iev][iatt];   
   }
+
   // also set cut parameters structure
   if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
   if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
@@ -112,80 +113,63 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
   cutPars.fqenumu = fastevents->vfqenumu[iev];
   cutPars.fqnring = fastevents->vfqnring[iev];
 
-  // see if it passes cuts
+  // see if it passes core cuts
   // classes: 1 -> nu e CCQE
   //          2 -> nu mu CCQE
   //          3 -> nu e CCOth
   //          4 -> nu mu CCOth
   //          5 -> NC pi0
-  // electron CCQE
-  if (nclass==1){
-    if (cutPars.fqnsubev==1 && cutPars.fqmome > 100.){
-      if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){
-        return 1;
-      }
-      else{
-        return 0.;
-      }
+
+  if (nclass==1){ //< require single ring electron and CCQE
+    if (cutPars.fqpid>=0. && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){//< e-like, not pi0, 1R-like
+      return 1;
     }
     else{
-      return -1;
+      return 0;
     }
   }
+
+
   // muon CCQE
   if (nclass==2){
-    if (cutPars.fqnsubev<=2 && cutPars.fqmome > 100.){
-      if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
-        return 1;
-      }
-      else{
-        return 0.;
-      }
+    if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+      return 1; // mu-lik and not pip and 1R-like so is core
     }
     else{
-      return -1;
+      return 0;
     }
   }
+
+
   // electron CCOth
   if (nclass==3){
-    if (cutPars.fqnsubev>=2 && cutPars.fqmome > 100.){
-      if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){
-        return 1;
-      }
-      else{
-        return 0.;
-      }
+    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){
+      return 1; // e-like and not pi0 and 1R-like
     }
     else{
-      return -1;
+      return 0;
     }
   }
+
+
   // muon CCOth
   if (nclass==4){
-    if (cutPars.fqnsubev>=3 && cutPars.fqmome > 100.){
-      if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
-        return 1;
-      }
-      else{
-        return 0.;
-      }
+    if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+      return 1; //< mu-lik and not pip and 1R-like
     }
     else{
-      return -1;
+      return 0.;
     }
   }
+
+
   // NC
   if (nclass==5){
-    if (cutPars.fqnsubev==1){
-      if (cutPars.fqpid>=0 && cutPars.fqpi0par>=0.){
-        return 1;
-      }
-      else{
-        return 0.;
-      }
+    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){
+      return 1; //< e-like and not pi0-like
     }
     else{
-      return -1;
+      return 0.;
     }
   }
 
@@ -346,27 +330,39 @@ void toyMC::makeCombinedUncertainty(int nmcmcpts){
 
 ////////////////////////////////////////////////////////////////
 // fill the SKError class
-void toyMC::fillSKErrors(int ntoys){
+void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom){
 
   // make error container
   skErr = new SKError(ntoys);
+  skErr->initHistos(nbinning);
 
-  // get list of random MCMC points
-  cout<<"Making list of MCMC points"<<endl;
-  randomList* mcmclist = new randomList(ntoys,chPars->GetEntries(),ntoys);
+
+  if (!flgcustom){
+    modifier->flgApplyXSecPar = true;
+    modifier->flgApplyFluxPar = true;
+    modifier->flgApplyNormPar= true;
+  }
+
+  // get list of random MCMC points from the MCMC point file
+//  cout<<"Making list of MCMC points"<<endl;
+//  randomList* mcmclist = new randomList(ntoys,chPars->GetEntries(),ntoys);
+  // sample uniforly instead
+  int nmcmcmax = chPars->GetEntries();
+  int nskip = nmcmcmax/ntoys;
 
   // determine max events
   int nevmax = chMC->GetEntries();
   if (nMCevents>nevmax) nMCevents = nevmax;
 
-
-
   // loop over mcmc points
-  for (int i=0; i<ntoys; i++){
+  int i=0;
+  while (true){
 
-    // read in MCMC parameters
-    cout<<"getting event"<<mcmclist->getAt(i)<<endl;
-    chPars->GetEntry(mcmclist->getAt(i));
+    // read in fit parameters
+    int ientry = nskip*i;
+    cout<<"getting event"<<ientry<<endl;
+    if (ientry>=nmcmcmax) break; 
+    chPars->GetEntry(ientry);
 
     // modify attributes using thes parameters
     if (i>0) modifier->setFromMCMC();
@@ -377,36 +373,48 @@ void toyMC::fillSKErrors(int ntoys){
     // loop over T2K MC events
     for (int iev=0; iev<nMCevents; iev++){
 
-      // get class
+      // get true MC event class for event "iev"
       int nclass = skErr->getClassMC(fastevents->vnutype[iev],
                                      fastevents->vmode[iev],
                                      fastevents->vcomponent[iev],
-                                     fastevents->vfqemom[iev]);
+                                     fastevents->vfqemom[iev],
+                                     fastevents->vfqnsubev[iev],
+                                     fastevents->vfqtowall[iev],
+                                     fastevents->vfqwall[iev]);
     
       // passes core selection?
       int iscore = applyCoreCutsToModifiedEvent(iev,nclass,true);
 
-      // if it passes fill histos
-      if (iscore<0) continue;
+      // if its core or tail fill histos
+      if (iscore<0) continue; //< skip unclassified events
 
       // get the new event weight
       float   ww = fastevents->vweight[iev]
-                   *modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev], fastevents->vmode[iev], fastevents->vpmomv[iev] );
+                   *modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev]
+                                           ,fastevents->vmode[iev], fastevents->vpmomv[iev]
+                                           ,fastevents->vnutype[iev]);
      
+
       // fill total histos
+      // the "true" flag means we add it to the "total" evis histogram for this class
       skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,true);
 
       if (iscore==1){
         // fill core histos
+      // the "true" flag means we add it to the "core" evis histogram for this class
         skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,false);
       }
-
+     
     }
 
     // save toy histo contents
     skErr->addToy(i);
+    i++;;
   }
 
+  skErr->calcCovEff();
+  skErr->calcErrors();
+  cout<<"filled "<<i<<" toys!"<<endl;
   //
   return;
 }
@@ -837,6 +845,8 @@ void toyMC::testToy(int nmcmcpts){
 */
 
 
+
+
 void toyMC::setAtmFitPars(const char* parfile){
   
   fitPars = new atmFitPars(parfile); 
@@ -844,6 +854,7 @@ void toyMC::setAtmFitPars(const char* parfile){
   modifier = new mcmcApply(fitPars, mcmcPars);
 
 }
+
 
 ////////////////////////////////////////////////////////////////
 void toyMC::setCompare(histoCompare* hc){
@@ -854,6 +865,8 @@ void toyMC::setCompare(histoCompare* hc){
 
  return;
 }
+
+
 
 ////////////////////////////////////////////////////////////////
 /*

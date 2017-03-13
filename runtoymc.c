@@ -1,26 +1,17 @@
 {
-gROOT->ProcessLine(".L histoCompare.cxx+");
-gROOT->ProcessLine(".L atmFitPars.cxx+");
-gROOT->ProcessLine(".L histoManager.cxx+");
-gROOT->ProcessLine(".L modHistoArray.cxx+");
-gROOT->ProcessLine(".L modHistoArrayFV.cxx+");
-gROOT->ProcessLine(".L mcmcApply.cxx+");
-gROOT->ProcessLine(".L TH2FV.cxx+");
-gROOT->ProcessLine(".L SKError.cxx+");
-gROOT->ProcessLine(".L toyMC.cxx+");
+
+gStyle->SetPalette(kLightTemperature);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parameters //
-//TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/jan30full//*.root";
-//TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/feb6full/*.root";
-TString T2KMCFiles = "/nfs/data41/t2k/amissert/t2kmc/processed/feb19full_logrc/*.root";
-//TString MCMCFiles = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun/demcmc_summary_sample.root";
-//TString MCMCFiles = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun/demcmc_run5_summary_sample.root";
-TString MCMCFiles = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun_logrc/mcmc_run2_summary.root";
-//TString MCMCFiles = "/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun/mcmcfit_run1_summary_sample.root";
-//int   NMCEvents = 1e9;
-int   NMCEvents = 200000;
-int   NMCMCPoints = 100;
+//TString T2KMCFiles = "/Users/andy/t2k/t2kmc/processed/feb19full/*.root";
+//TString T2KMCFiles = "/Users/andy/t2k/skdata/atmospheric/processed/wetrun_final/*.root";
+TString T2KMCFiles = "/Users/andy/t2k/skdata/atmospheric/processed/wetrun_allevis/*.root";
+TString MCMCFiles = "./results/demcmc_run2_summary.root ";
+int   NMCEvents = 1e9;
+//int   NMCEvents = 200000;
+
+int   NMCMCPoints = 10;
 int   index_of_pidpar = 0;
 int   index_of_pi0par = 1;
 int   index_of_pippar = 2;
@@ -35,7 +26,7 @@ toy->indexPIDPar = index_of_pidpar;
 toy->indexPi0Par = index_of_pi0par;
 toy->indexPiPPar = index_of_pippar;
 toy->indexRCPar  = index_of_rcpar;
-toy->indexMom    = index_of_pmom;
+//toy->indexMom    = index_of_pmom;
 
 // mc files
 TChain* mcfiles = new TChain("h1");
@@ -50,11 +41,13 @@ toy->setAtmFitPars("wetrun.dat");
 
 mcfiles->GetEntry(500); // initialize some parameters
 parfiles->GetEntry(500); // initialize some parameters
-toy->makeFVMapNuMu(NMCMCPoints,"./data/FVUncMapNuMu.root");
-//toy->makeFVMapNuE(NMCMCPoints,"./data/FVUncMapNuE.root");
-//toy->makeFVMapNuE(NMCMCPoints);
-//toy->hArrFV->saveClose();
-
-toy->fillSKErrors(100);
+//toy->modifier->flgApplyXSecPar = true;
+//toy->modifier->flgApplyNormPar = false;
+//toy->modifier->flgApplyFluxPar = false;
+//toy->modifier->setAttFlgs(0,false);
+//toy->modifier->setAttFlgs(1,false);
+//toy->modifier->setAttFlgs(2,false);
+//toy->modifier->setAttFlgs(3,false);
+toy->fillSKErrors(NMCMCPoints,1);
 
 }

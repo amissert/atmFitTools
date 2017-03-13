@@ -13,11 +13,16 @@
 #include "TMath.h"
 #include "TString.h"
 #include "stats.C"
+#include "TLine.h"
+#include "TVectorD.h"
+#include "TCanvas.h"
 #include "TGraph.h"
+#include "TLatex.h"
 
 
-const int NCLASSES = 20;
-const int NTOYS    = 500;
+const int NCLASSES = 50;
+const int NTOYS    = 2000;
+const int NLINES= 3;
 
 using namespace std;
 
@@ -36,9 +41,14 @@ class SKError{
   // arrays for numbers of events
   float Nevents[NCLASSES][NTOYS];
   float NeventsTotal[NCLASSES][NTOYS];
-  float Efficiency[NCLASSES][NTOYS];
+//  float Efficiency[NCLASSES][NTOYS];
+  float DelEfficiency[NCLASSES][NTOYS];
+  float DelEffShiftError[NCLASSES];
+  float absDelEffShiftError[NCLASSES];
+  float DelEffFitError[NCLASSES];
 
-  // energy binning
+
+  // evis binning
   TH1D* hEvisNuECCQE;
   TH1D* hEvisNuECCOth;
   TH1D* hEvisNuMuCCQE;
@@ -49,30 +59,50 @@ class SKError{
   TH1D* hEvisNuMuCCQETot;
   TH1D* hEvisNuMuCCOthTot;
 
+  // for drawing lines
+  TLine* lineHorz[NLINES];
+  TLine* lineVert[NLINES];
+  TLatex* labelVert[NCLASSES];
+  TLatex* labelHorz[NCLASSES];
+  TLatex* sectorLabelHorz[4];
+  TLatex* sectorLabelVert[4];
+  TLatex* nuLabelVert[4];
+  TLatex* nuLabelHorz[4];
+  int    lineVal[NLINES];  
+
   TH2D* hCor;
   TH2D* hCov;
+  TVectorF* vShiftErrors;
 
   // histogram of all numbers of events
   TH1D* hSlice;
   TGraph* gScat;
-//  TH1D* hTmp[NTOYS];
+  TH1D* hdist;
+  TLine* distMean;
+  TLine* zeroValue;
+
 
   // initialize histograms
-  void initHistos();
+  void initHistos(int ibinning=0);
   void zeroArrays();
   void resetHistos();
 
   // draw a particular toy
   void drawSlice(int ntoy);
+  void drawSliceTot(int ntoy);
   void drawSliceEff(int ntoy);
   void drawAll();
   void drawAllEff();
+  void drawDist(int nclass);
+  void drawEffDist(int nclass);
+  void drawCor();
+  void drawCov();
+
 
   // for classifying and filling
-  int getClassMC(int nutype, int mode, int component, float evis);
+  int getClassMC(int nutype, int mode, int component, float evis, int nsubev, float towall, float wall);
 
   // fill an event in the histograms
-//  void addEvent(int nutype, int mode, int component, float evis, float weight); 
   void addEvent(int nclass, float evis, float weight, bool flgtotal); 
 
   // save histo contents into arrays
@@ -84,14 +114,82 @@ class SKError{
   // calculate correlation and covariance using epsilon
   void calcCovEff();
 
+  // calculate correlation and covariance using epsilon
+  void calcCovDelEff();
+
   // calculate efficiency based on index of total event numbers
-  float calcEff(int nclass, int ntoy, int nomindex=0);
+  float calcEff(int nclass, int ntoy);
+
+  // calculate efficiency based on index of total event numbers
+  float calcDelEff(int nclass, int ntoy);
 
   // calculate all effeciencies
   void calcAllEff(int ntoy);;
 
+  // calculate all effeciencies
+  void calcAllDelEff(int ntoy);;
+
   // draw scatterplot
   void drawScatter(int iclass, int jclass);
+
+  //
+  float calcShiftError(int iclass){
+    cout<<"Shift error for class: "<<iclass<<endl;
+    return arraymean(DelEfficiency[iclass],Ntoys);
+  }
+
+  //
+  float calcFitError(int iclass){
+    cout<<"Fit error for class: "<<iclass<<endl;
+    return TMath::Sqrt(arrayvar(DelEfficiency[iclass],Ntoys));
+  }
+
+  void calcErrors(){
+    for (int iclass=0; iclass<Nclass; iclass++){
+      DelEffShiftError[iclass] = calcShiftError(iclass);
+      absDelEffShiftError[iclass] = TMath::Abs(calcShiftError(iclass));
+      DelEffFitError[iclass] = calcFitError(iclass);
+    }
+    vShiftErrors = new TVectorF(Nclass,DelEffShiftError);
+    return;
+  }
+
+  // 
+  void printErrors(){
+    for (int iclass=0; iclass<Nclass; iclass++){
+      cout<<"--- Class "<<iclass<<"  ---"<<endl;
+      cout<<"  Fit: "<<DelEffFitError[iclass]*100.<<"%";
+      cout<<"  Shift: "<<DelEffShiftError[iclass]*100.<<"%";
+      float toterr = TMath::Sqrt(DelEffFitError[iclass]*DelEffFitError[iclass]
+                                 +DelEffShiftError[iclass]*DelEffShiftError[iclass]);
+      cout<<"  Total: "<<toterr*100.<<"%"<<endl;
+    }
+  }
+
+  void saveErrors(const char* filename){
+    TFile* fout = new TFile(filename,"RECREATE");
+    hCov->Write();
+    hCor->Write();
+    vShiftErrors->Write("vshift");
+    cout<<"writing: "<<filename<<endl;
+    fout->Close();
+    return;
+  }
+
+  void printEffDist(const char* plotdir){
+     TCanvas* cc = new TCanvas("cc","cc",700,600);
+     cc->GetPad(0)->SetLeftMargin(0.12);
+     cc->GetPad(0)->SetRightMargin(0.12);
+     cc->GetPad(0)->SetBottomMargin(0.15);
+     TString pdir = plotdir;
+     for (int i=0; i<Nclass; i++){
+       TString pname = pdir.Data();
+       pname.Append(Form("throw_dist_class_%d",i));
+       drawEffDist(i);
+       cc->Print(pname.Data());
+     }
+     return;
+  }
 
 };
 

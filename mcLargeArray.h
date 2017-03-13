@@ -55,7 +55,6 @@ class mcLargeArray{
 
   void fillArray(TChain *ch);
   void printEvent(int iev);
-
 //  void fillThinArray(TChain *ch, int nthinning);
 
 };

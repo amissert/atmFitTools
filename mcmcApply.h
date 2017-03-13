@@ -35,18 +35,42 @@ class mcmcApply{
   int indexPiPPar;
   int indexRCPar;
 
+  // flags
+  bool flgApplyXSecPar;
+  bool flgApplyFluxPar;
+  bool flgApplyNormPar;
+  bool flgApplyTest;
+  bool flgApplyAttSmearPar[NATTMAX];
+  bool flgApplyAttBiasPar[NATTMAX];
+  void setAttFlgs(int iatt, bool value){
+     flgApplyAttSmearPar[iatt]=value;
+     flgApplyAttBiasPar[iatt]=value;
+  }
+  void setAllAlphaFlags(bool value){
+    flgApplyXSecPar = value;
+    flgApplyFluxPar = value;
+    flgApplyNormPar = value;
+    return;
+  }
+
+
   // methods
   void setFromMCMC();
 
   // modify the reconstructed fiTQun attributes
   void applyPars(int nbin, int ncomponent, float attributeTmp[], int natt);
 
-
   // get additional weights from xsec parameters, normalization, etc
   float getXsecWeight(int mode, float enutrue);
 
   // get additional weights from xsec parameters, normalization, etc
-  float getEvtWeight(int nbin, int nsamp, int mode, float enutrue);
+  float getFluxWeight(float enutrue, int nutype);
+
+  // test weight for debugging etc
+  float getTestWeight(int nbin, int nsamp, int mode, float enutrue, int nutype=12);
+
+  // get additional weights from xsec parameters, normalization, etc
+  float getEvtWeight(int nbin, int nsamp, int mode, float enutrue, int nutype=12);
   
   // reads in attributes from large array of MC points, then applies
   // the mcmc shape parameters and re-evaluates the event selection cuts

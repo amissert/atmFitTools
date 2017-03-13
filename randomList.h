@@ -4,6 +4,7 @@
 #include "TRandom2.h"
 #include "TMath.h"
 #include <vector>
+#include <algorithm>
 
 #define LISTMAX 100000
 

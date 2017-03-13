@@ -26,6 +26,9 @@ void randomList::init(){
     vlist.push_back(randgen->Integer(nMax));
   }
 
+  // sort
+  sort(vlist.begin(),vlist.end());
+
   return;
 }
 
