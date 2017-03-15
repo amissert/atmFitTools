@@ -55,10 +55,11 @@ void mcmcApply::setFromMCMC(){
 // apply parameters in temporary array
 void mcmcApply::applyPars(int nbin, int ncomponent, float attributeTmp[], int natt){
 
-  float smear=1.0;
-  float bias=0.0;
   
   for (int iatt=0; iatt<natt; iatt++){
+
+    float smear=1.0;
+    float bias=0.0;
 
     // get parameters
     if (flgApplyAttSmearPar[iatt]){

@@ -39,13 +39,13 @@ class SKError{
   int Ntoys;
  
   // arrays for numbers of events
-  float Nevents[NCLASSES][NTOYS];
-  float NeventsTotal[NCLASSES][NTOYS];
-//  float Efficiency[NCLASSES][NTOYS];
-  float DelEfficiency[NCLASSES][NTOYS];
-  float DelEffShiftError[NCLASSES];
-  float absDelEffShiftError[NCLASSES];
-  float DelEffFitError[NCLASSES];
+  double Nevents[NCLASSES][NTOYS];
+  double NeventsTotal[NCLASSES][NTOYS];
+//  double Efficiency[NCLASSES][NTOYS];
+  double DelEfficiency[NCLASSES][NTOYS];
+  double DelEffShiftError[NCLASSES];
+  double absDelEffShiftError[NCLASSES];
+  double DelEffFitError[NCLASSES];
 
 
   // evis binning
@@ -53,6 +53,7 @@ class SKError{
   TH1D* hEvisNuECCOth;
   TH1D* hEvisNuMuCCQE;
   TH1D* hEvisNuMuCCOth;
+
   // totals
   TH1D* hEvisNuECCQETot;
   TH1D* hEvisNuECCOthTot;
@@ -72,7 +73,8 @@ class SKError{
 
   TH2D* hCor;
   TH2D* hCov;
-  TVectorF* vShiftErrors;
+  TVectorD* vShiftErrors;
+  TH1D* hDiagonalErrors;
 
   // histogram of all numbers of events
   TH1D* hSlice;
@@ -100,10 +102,10 @@ class SKError{
 
 
   // for classifying and filling
-  int getClassMC(int nutype, int mode, int component, float evis, int nsubev, float towall, float wall);
+  int getClassMC(int nutype, int mode, int component, double evis, int nsubev, double towall, double wall);
 
   // fill an event in the histograms
-  void addEvent(int nclass, float evis, float weight, bool flgtotal); 
+  void addEvent(int nclass, double evis, double weight, bool flgtotal); 
 
   // save histo contents into arrays
   void addToy(int ntoy);
@@ -118,10 +120,10 @@ class SKError{
   void calcCovDelEff();
 
   // calculate efficiency based on index of total event numbers
-  float calcEff(int nclass, int ntoy);
+  double calcEff(int nclass, int ntoy);
 
   // calculate efficiency based on index of total event numbers
-  float calcDelEff(int nclass, int ntoy);
+  double calcDelEff(int nclass, int ntoy);
 
   // calculate all effeciencies
   void calcAllEff(int ntoy);;
@@ -133,15 +135,15 @@ class SKError{
   void drawScatter(int iclass, int jclass);
 
   //
-  float calcShiftError(int iclass){
+  double calcShiftError(int iclass){
     cout<<"Shift error for class: "<<iclass<<endl;
-    return arraymean(DelEfficiency[iclass],Ntoys);
+    return arraymeanD(DelEfficiency[iclass],Ntoys);
   }
 
   //
-  float calcFitError(int iclass){
+  double calcFitError(int iclass){
     cout<<"Fit error for class: "<<iclass<<endl;
-    return TMath::Sqrt(arrayvar(DelEfficiency[iclass],Ntoys));
+    return TMath::Sqrt(arrayvarD(DelEfficiency[iclass],Ntoys));
   }
 
   void calcErrors(){
@@ -150,7 +152,7 @@ class SKError{
       absDelEffShiftError[iclass] = TMath::Abs(calcShiftError(iclass));
       DelEffFitError[iclass] = calcFitError(iclass);
     }
-    vShiftErrors = new TVectorF(Nclass,DelEffShiftError);
+    vShiftErrors = new TVectorD(Nclass,DelEffShiftError);
     return;
   }
 
@@ -160,7 +162,7 @@ class SKError{
       cout<<"--- Class "<<iclass<<"  ---"<<endl;
       cout<<"  Fit: "<<DelEffFitError[iclass]*100.<<"%";
       cout<<"  Shift: "<<DelEffShiftError[iclass]*100.<<"%";
-      float toterr = TMath::Sqrt(DelEffFitError[iclass]*DelEffFitError[iclass]
+      double toterr = TMath::Sqrt(DelEffFitError[iclass]*DelEffFitError[iclass]
                                  +DelEffShiftError[iclass]*DelEffShiftError[iclass]);
       cout<<"  Total: "<<toterr*100.<<"%"<<endl;
     }
@@ -184,7 +186,7 @@ class SKError{
      TString pdir = plotdir;
      for (int i=0; i<Nclass; i++){
        TString pname = pdir.Data();
-       pname.Append(Form("throw_dist_class_%d",i));
+       pname.Append(Form("throw_dist_class_%d.png",i));
        drawEffDist(i);
        cc->Print(pname.Data());
      }

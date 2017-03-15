@@ -83,12 +83,6 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
     attributesTmp[iatt] = fastevents->vattribute[iev][iatt];   
   }
 
-  // also set cut parameters structure
-  if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
-  if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
-  if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
-  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
-
   // modify tmp array by applying the histogram shape parameters
   if (flgmod){
     modifier->applyPars(fastevents->vbin[iev],
@@ -97,12 +91,10 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
                         natt);
   }
 
-  // re-fill cut parameter structure using modified attributes
-  if (indexPIDPar>=0) cutPars.fqpid = attributesTmp[indexPIDPar];
-  if (indexPi0Par>=0) cutPars.fqpi0par = attributesTmp[indexPi0Par];
-  if (indexPiPPar>=0) cutPars.fqpippar = attributesTmp[indexPiPPar];
-  if (indexRCPar>=0) cutPars.fqrcpar = attributesTmp[indexRCPar];
-  cutPars.fqnring = fastevents->vfqnring[iev];
+  cutPars.fqpid = attributesTmp[indexPIDPar];
+  cutPars.fqpi0par = attributesTmp[indexPi0Par];
+  cutPars.fqpippar = attributesTmp[indexPiPPar];
+  cutPars.fqrcpar = attributesTmp[indexRCPar];
 
   // other cut pars that are not modified
   cutPars.fqmome = fastevents->vfqmumom[iev];
@@ -133,6 +125,7 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
   // muon CCQE
   if (nclass==2){
     if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+//    if (cutPars.fqpid<=0 && cutPars.fqrcpar<=0.){
       return 1; // mu-lik and not pip and 1R-like so is core
     }
     else{
@@ -155,6 +148,7 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
   // muon CCOth
   if (nclass==4){
     if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+//    if (cutPars.fqpid<=0 && cutPars.fqrcpar<=0.){
       return 1; //< mu-lik and not pip and 1R-like
     }
     else{

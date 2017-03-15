@@ -106,15 +106,15 @@ void SKError::drawCov(){
 ///////////////////////////////////////////////////////////////
 // calcutlate efficiency
 // here this is the ratio of modified to original eff
-float SKError::calcEff(int nclass, int ntoy){
+double SKError::calcEff(int nclass, int ntoy){
 
   // don't divide by zero
   if (NeventsTotal[nclass][0]==0) return 0.;
 
   // get this efficiency  
-  float eff = Nevents[nclass][ntoy] / NeventsTotal[nclass][ntoy];
+  double eff = Nevents[nclass][ntoy] / NeventsTotal[nclass][ntoy];
   cout<<"eff: "<<eff<<endl;
-  float eff0 = Nevents[nclass][0] / NeventsTotal[nclass][0];
+  double eff0 = Nevents[nclass][0] / NeventsTotal[nclass][0];
   cout<<"eff0: "<<eff0<<endl;
   
   if (eff0 == 0) return 0.;
@@ -128,16 +128,16 @@ float SKError::calcEff(int nclass, int ntoy){
 ///////////////////////////////////////////////////////////////
 // calcutlate efficiency
 // here the modified eff. is calc w.r.t. modified total
-float SKError::calcDelEff(int nclass, int ntoy){
+double SKError::calcDelEff(int nclass, int ntoy){
 
   // don't divide by zero
   if (NeventsTotal[nclass][0]==0) return 0.;
   if (NeventsTotal[nclass][ntoy]==0) return 0.;
 
   // get this efficiency  
-  float eff = Nevents[nclass][ntoy] / NeventsTotal[nclass][ntoy];
+  double eff = Nevents[nclass][ntoy] / NeventsTotal[nclass][ntoy];
   cout<<"eff: "<<eff<<endl;
-  float eff0 = Nevents[nclass][0] / NeventsTotal[nclass][0];
+  double eff0 = Nevents[nclass][0] / NeventsTotal[nclass][0];
   cout<<"eff0: "<<eff0<<endl;
   
   if (eff0 == 0) return 0.;
@@ -175,6 +175,7 @@ void SKError::calcCovDelEff(){
   // histogram setup
   hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
   hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
+  hDiagonalErrors = new TH1D("hdiag","hdiag",Nclass,0,Nclass);
 
   // loops
   for (int i=0; i<Nclass; i++){
@@ -183,8 +184,8 @@ void SKError::calcCovDelEff(){
       // symmetry
       if (j<i) continue;
       cout<<"finding covariance: "<<i<<","<<j<<endl;
-      float cov = arraycov(DelEfficiency[i],DelEfficiency[j],Ntoys);
-      float cor = arraycor(DelEfficiency[i],DelEfficiency[j],Ntoys);
+      double cov = arraycovD(DelEfficiency[i],DelEfficiency[j],Ntoys);
+      double cor = arraycorD(DelEfficiency[i],DelEfficiency[j],Ntoys);
       cout<<"cor: "<<i<<","<<j<<" = "<<cor<<endl;
       hCov->SetBinContent(i+1,j+1,cov);
       hCor->SetBinContent(i+1,j+1,cor);
@@ -195,11 +196,18 @@ void SKError::calcCovDelEff(){
         hCor->SetBinContent(j+1,i+1,cor);
       }
 
+      // fill diagonal errors
+      if (i==j){
+        hDiagonalErrors->SetBinContent(i+1,arraymeanD(DelEfficiency[i],Ntoys));
+        hDiagonalErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(DelEfficiency[i],Ntoys)));
+      }
+
     }
   }
 
   hCor->SetMinimum(-1.11);
   hCor->SetMaximum(1.11);
+
 
 //  hCor->Draw("colz");
   drawCor();
@@ -214,7 +222,11 @@ void SKError::calcCovEff(){
 
   // histogram setup
   hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
+ 
+  // histogram setup
+  hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
   hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
+  hDiagonalErrors = new TH1D("hdiag","hdiag",Nclass,0,Nclass); hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
 
   // loops
   for (int i=0; i<Nclass; i++){
@@ -223,8 +235,8 @@ void SKError::calcCovEff(){
       // symmetry
       if (j<i) continue;
       cout<<"finding covariance: "<<i<<","<<j<<endl;
-      float cov = arraycov(DelEfficiency[i],DelEfficiency[j],Ntoys);
-      float cor = arraycor(DelEfficiency[i],DelEfficiency[j],Ntoys);
+      double cov = arraycovD(DelEfficiency[i],DelEfficiency[j],Ntoys);
+      double cor = arraycorD(DelEfficiency[i],DelEfficiency[j],Ntoys);
       cout<<"cor: "<<i<<","<<j<<" = "<<cor<<endl;
       hCov->SetBinContent(i+1,j+1,cov);
       hCor->SetBinContent(i+1,j+1,cor);
@@ -234,6 +246,13 @@ void SKError::calcCovEff(){
         hCov->SetBinContent(j+1,i+1,cov);
         hCor->SetBinContent(j+1,i+1,cor);
       }
+
+      // fill diagonal errors
+      if (i==j){
+        hDiagonalErrors->SetBinContent(i+1,arraymeanD(DelEfficiency[i],Ntoys));
+        hDiagonalErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(DelEfficiency[i],Ntoys)));
+      }
+
 //      else{ 
 //        hCov->SetBinContent(j+1,i+1,cov);
 //        hCor->SetBinContent(j+1,i+1,0);
@@ -258,7 +277,11 @@ void SKError::calcCov(){
 
   // histogram setup
   hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
+ 
+  // histogram setup
+  hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
   hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
+  hDiagonalErrors = new TH1D("hdiag","hdiag",Nclass,0,Nclass); hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
 
   // loops
   for (int i=0; i<Nclass; i++){
@@ -268,8 +291,8 @@ void SKError::calcCov(){
       if (j<i) continue;
 
       cout<<"finding covariance: "<<i<<","<<j<<endl;
-      float cov = arraycov(Nevents[i],Nevents[j],Ntoys);
-      float cor = arraycor(Nevents[i],Nevents[j],Ntoys);
+      double cov = arraycovD(Nevents[i],Nevents[j],Ntoys);
+      double cor = arraycorD(Nevents[i],Nevents[j],Ntoys);
       cout<<"cor: "<<i<<","<<j<<" = "<<cor<<endl;
      
       hCov->SetBinContent(i+1,j+1,cov);
@@ -278,6 +301,12 @@ void SKError::calcCov(){
       if (i!=j){
         hCov->SetBinContent(j+1,i+1,cov);
         hCor->SetBinContent(j+1,i+1,cor);
+      }
+
+      // fill diagonal errors
+      if (i==j){
+        hDiagonalErrors->SetBinContent(i+1,arraymeanD(Nevents[i],Ntoys));
+        hDiagonalErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(Nevents[i],Ntoys)));
       }
     }
   }
@@ -299,7 +328,7 @@ void SKError::calcAllEff(int ntoy){
   for (int iclass=0; iclass<Nclass; iclass++){
 
     // 0th index is nominal
-    float eff = calcEff(iclass,ntoy,0); 
+    double eff = calcEff(iclass,ntoy,0); 
     cout<<"eff calc: "<<iclass<<","<<ntoy<<": "<<eff<<endl;
     Efficiency[iclass][ntoy] = eff;
   }
@@ -315,7 +344,7 @@ void SKError::calcAllDelEff(int ntoy){
   for (int iclass=0; iclass<Nclass; iclass++){
 
     // 0th index is nominal
-    float eff = calcDelEff(iclass,ntoy); 
+    double eff = calcDelEff(iclass,ntoy); 
     cout<<"eff calc: "<<iclass<<","<<ntoy<<": "<<eff<<endl;
     DelEfficiency[iclass][ntoy] = eff;
   }
@@ -403,7 +432,7 @@ void SKError::resetHistos(){
 
 
 ///////////////////////////////////////////////////////////////
-void SKError::addEvent(int nclass, float evis, float weight, bool flgtot){
+void SKError::addEvent(int nclass, double evis, double weight, bool flgtot){
 
 
   // passes core
@@ -446,7 +475,7 @@ void SKError::addEvent(int nclass, float evis, float weight, bool flgtot){
 
 ///////////////////////////////////////////////////////////////
 int SKError::getClassMC(int nutype, int mode, int component,
-                        float evis, int nsubev, float towall, float wall){
+                        double evis, int nsubev, double towall, double wall){
   
   // class code: 
   //
@@ -457,10 +486,10 @@ int SKError::getClassMC(int nutype, int mode, int component,
   //  4 -> CCOth Nu Mu
   //  5 -> NC pi0
 
-  float towall_nuecut = 170.;
-  float towall_numucut = 250.;
-  float wall_nuecut = 80.;
-  float wall_numucut = 50.;
+  double towall_nuecut = 170.;
+  double towall_numucut = 250.;
+  double wall_nuecut = 80.;
+  double wall_numucut = 50.;
 
   
   // CC and single electron
@@ -557,9 +586,9 @@ void SKError::drawAllEff(){
 void SKError::drawDist(int iclass){
 
    // setup histogram range
-   double xmin = arraymin(Nevents[iclass],Ntoys);
+   double xmin = arrayminD(Nevents[iclass],Ntoys);
    cout<<"xmin: "<<xmin<<endl;
-   double xmax = arraymax(Nevents[iclass],Ntoys);
+   double xmax = arraymaxD(Nevents[iclass],Ntoys);
    cout<<"xmax: "<<xmax<<endl;
    double width = (xmax-xmin);
    xmin = xmin-(width/2.);
@@ -585,9 +614,9 @@ void SKError::drawDist(int iclass){
 void SKError::drawEffDist(int iclass){
  
    // setup histogram range
-   double xmin = arraymin(DelEfficiency[iclass],Ntoys);
+   double xmin = arrayminD(DelEfficiency[iclass],Ntoys);
    cout<<"xmin: "<<xmin<<endl;
-   double xmax = arraymax(DelEfficiency[iclass],Ntoys);
+   double xmax = arraymaxD(DelEfficiency[iclass],Ntoys);
    cout<<"xmax: "<<xmax<<endl;
    double width = (xmax-xmin);
    xmin = xmin-(width/2.);
