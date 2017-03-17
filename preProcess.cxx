@@ -844,7 +844,7 @@ int preProcess::preProcessIt(){
       // see if event passes T2K selection
       applyT2KSelection();
       // don't bother if it doesn't pass the cuts
-      if ( (!passecut) && (!passmucut) && (!passe1rpicut) ) continue;
+//      if ( (!passecut) && (!passmucut) && (!passe1rpicut) ) continue;
     }
 
     // find which sample the event belongs to   

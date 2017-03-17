@@ -126,72 +126,27 @@ class SKError{
   double calcDelEff(int nclass, int ntoy);
 
   // calculate all effeciencies
-  void calcAllEff(int ntoy);;
-
-  // calculate all effeciencies
-  void calcAllDelEff(int ntoy);;
+  void calcAllDelEff(int ntoy);
 
   // draw scatterplot
   void drawScatter(int iclass, int jclass);
 
   //
-  double calcShiftError(int iclass){
-    cout<<"Shift error for class: "<<iclass<<endl;
-    return arraymeanD(DelEfficiency[iclass],Ntoys);
-  }
+  double calcShiftError(int iclass);
 
   //
-  double calcFitError(int iclass){
-    cout<<"Fit error for class: "<<iclass<<endl;
-    return TMath::Sqrt(arrayvarD(DelEfficiency[iclass],Ntoys));
-  }
+  double calcFitError(int iclass);
 
-  void calcErrors(){
-    for (int iclass=0; iclass<Nclass; iclass++){
-      DelEffShiftError[iclass] = calcShiftError(iclass);
-      absDelEffShiftError[iclass] = TMath::Abs(calcShiftError(iclass));
-      DelEffFitError[iclass] = calcFitError(iclass);
-    }
-    vShiftErrors = new TVectorD(Nclass,DelEffShiftError);
-    return;
-  }
+  //
+  void calcErrors();
 
   // 
-  void printErrors(){
-    for (int iclass=0; iclass<Nclass; iclass++){
-      cout<<"--- Class "<<iclass<<"  ---"<<endl;
-      cout<<"  Fit: "<<DelEffFitError[iclass]*100.<<"%";
-      cout<<"  Shift: "<<DelEffShiftError[iclass]*100.<<"%";
-      double toterr = TMath::Sqrt(DelEffFitError[iclass]*DelEffFitError[iclass]
-                                 +DelEffShiftError[iclass]*DelEffShiftError[iclass]);
-      cout<<"  Total: "<<toterr*100.<<"%"<<endl;
-    }
-  }
+  void printErrors();
 
-  void saveErrors(const char* filename){
-    TFile* fout = new TFile(filename,"RECREATE");
-    hCov->Write();
-    hCor->Write();
-    vShiftErrors->Write("vshift");
-    cout<<"writing: "<<filename<<endl;
-    fout->Close();
-    return;
-  }
+  void saveErrors(const char* filename);
+  
 
-  void printEffDist(const char* plotdir){
-     TCanvas* cc = new TCanvas("cc","cc",700,600);
-     cc->GetPad(0)->SetLeftMargin(0.12);
-     cc->GetPad(0)->SetRightMargin(0.12);
-     cc->GetPad(0)->SetBottomMargin(0.15);
-     TString pdir = plotdir;
-     for (int i=0; i<Nclass; i++){
-       TString pname = pdir.Data();
-       pname.Append(Form("throw_dist_class_%d.png",i));
-       drawEffDist(i);
-       cc->Print(pname.Data());
-     }
-     return;
-  }
+  void printEffDist(const char* plotdir);
 
 };
 
