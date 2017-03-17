@@ -2,23 +2,107 @@
 #define STATS_C
 
 #include "TMath.h"
+#include "shared.h"
+
 #include <iostream>
 
+/*
+//////////////////////////////////////////////
+void fillnormal(float arr[], int n, float  mean, float sig){
+   for (int i=0; i<n; i++){
+      arr[i] = randy->Gaus(mean,sig);
+   }
+   return;
+}
+
+
+//////////////////////////////////////////////
+void fillnormal(float arrx[], float arry[], int n
+                ,float  mean, float sig){
+   for (int i=0; i<n; i++){
+      float val = randy->Gaus(mean,sig);
+      arrx[i] = val;
+      arry[i] = val;
+   }
+   return;
+}
+*/
 
 //////////////////////////////////////////////
 float arraymean(float arr[], int n){
   
   float mean = 0.;
-  float N = 0.;
+  float N = (float)n;
 
   for (int i=0; i<n; i++){
     mean += arr[i];
-    N++;
   }
 
   return mean/N;
 }
 
+
+
+//////////////////////////////////////////////
+float arraymin(float arr[], int n){
+  
+  float arrmin = 1e9;
+
+  for (int i=0; i<n; i++){
+    if (arr[i]<arrmin){
+      arrmin = arr[i];
+    }
+  }
+
+  return arrmin;
+}
+
+
+//////////////////////////////////////////////
+double arrayminD(double arr[], int n){
+  
+  double arrmin = 1e9;
+
+  for (int i=0; i<n; i++){
+    if (arr[i]<arrmin){
+      arrmin = arr[i];
+    }
+  }
+
+  return arrmin;
+}
+
+
+
+//////////////////////////////////////////////
+float arraymax(float arr[], int n){
+  
+  float arrmax = -1e9;
+
+  for (int i=0; i<n; i++){
+    if (arr[i]>arrmax){
+      arrmax = arr[i];
+    }
+  }
+
+  return arrmax;
+}
+
+
+
+//////////////////////////////////////////////
+double arraymaxD(double arr[], int n){
+  
+  double arrmax = -1e9;
+
+  for (int i=0; i<n; i++){
+    if (arr[i]>arrmax){
+      arrmax = arr[i];
+    }
+  }
+
+  return arrmax;
+}
 
 
 ///////////////////////////////////////////////
@@ -108,6 +192,47 @@ double arrayvarD(double arr[], int n){
   }
 
   return var/N;
+}
+
+///////////////////////////////////////////////
+double arraycovD(double arrx[], double arry[], int n){
+
+  // intermediate vars 
+  double meanx = arraymeanD(arrx,n);
+  double meany = arraymeanD(arry,n);
+  double N = (double)n;
+  double cov=0.;
+
+  if ((N-1) <= 0.) return 0.;
+  for (int i=0; i<n; i++){
+    cov += (arrx[i]-meanx)*(arry[i]-meany)/(N-1.); 
+  }
+
+  return cov;
+}
+
+
+///////////////////////////////////////////////
+double arraycorD(double arrx[], double arry[], int n){
+
+  // intermediate vars 
+  double meanx = arraymeanD(arrx,n);
+  double meany = arraymeanD(arry,n);
+  double varx = TMath::Sqrt(arrayvarD(arrx,n));
+  double vary = TMath::Sqrt(arrayvarD(arry,n));
+  
+  // checks
+  if (varx*vary == 0) return 0.;
+  double N = (double)n;
+  if ((N-1) <= 0.) return 0.;
+
+  // calc
+  double cov=0.;
+  for (int i=0; i<n; i++){
+    cov += (arrx[i]-meanx)*(arry[i]-meany)/(N-1.); 
+  }
+
+  return cov/(varx*vary);
 }
 
 
