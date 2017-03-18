@@ -355,7 +355,7 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom){
     // read in fit parameters
     int ientry = nskip*i;
     cout<<"getting event"<<ientry<<endl;
-    if (ientry>=nmcmcmax) break; 
+    if (ientry>nmcmcmax) break; 
     chPars->GetEntry(ientry);
 
     // modify attributes using thes parameters
@@ -403,10 +403,10 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom){
 
     // save toy histo contents
     skErr->addToy(i);
-    i++;;
+    i++;
   }
 
-  skErr->calcCovEff();
+  skErr->calcCov();
   skErr->calcErrors();
   cout<<"filled "<<i<<" toys!"<<endl;
   //

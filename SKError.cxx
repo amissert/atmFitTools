@@ -3,8 +3,238 @@
 
 #include "SKError.h"
 
-///////////////////////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////////////////
+void SKError::initTN186Errors(){
+
+  // from TN
+  double shifts[] = {0.555,1.381,-7.092,1.785,4.6263,11.940
+                    ,-7.123,5.891,-10.826
+                    ,0.87,1.227,0.094,0.136,-0.037,-0.102,-0.157
+                    ,6.406, 2.766, -5.67};
+  double fits[] = {1.517,2.045,4.380,2.428,7.912,9.272
+                  ,10.187,9.096,11.705
+                  ,0.376,0.449,0.582,1.194,0.781,1.334,2.485
+                  ,5.771,6.109,11.559};
+  int nclasses = 16;
+  
+  // set values
+  for ( int i=0; i<nclasses; i++ ) {
+    tn186ShiftError[i]=shifts[i];
+    tn186FitError[i]=fits[i];
+    tn186TotError[i]=TMath::Sqrt(fits[i]*fits[i] + shifts[i]*shifts[i]);
+  }
+
+  // make histos
+  hErrorTN186CCQE[0] = (TH1D*)hDiagonalErrorsCCQE[0]->Clone("tn186_nueccqe");
+  hErrorTN186CCQE[1] = (TH1D*)hDiagonalErrorsCCQE[1]->Clone("tn186_numccqe");
+  hErrorTN186CCOth[0] = (TH1D*)hDiagonalErrorsCCOth[0]->Clone("tn186_nueccoth");
+  hErrorTN186CCOth[1] = (TH1D*)hDiagonalErrorsCCOth[1]->Clone("tn186_numccoth");
+
+  // identify bins
+  int bins_nue_ccqe[] = {1,2,3,4,5,6};
+  int bins_nue_ccoth[] = {7,8,9};
+  int bins_num_ccqe[] = {10,11,12,13,14,15,16};
+  int bins_num_ccoth[] = {17,18,19};
+
+  // fill in histos
+
+  // ccqe nue
+  for (int i=2; i<=hErrorTN186CCQE[0]->GetNbinsX(); i++){
+    int index = bins_nue_ccqe[i-2];
+    hErrorTN186CCQE[0]->SetBinContent(i,tn186ShiftError[index]);
+    hErrorTN186CCQE[0]->SetBinError(i,tn186FitError[index]);
+  }
+  // ccqe nue
+  for (int i=1; i<=hErrorTN186CCQE[1]->GetNbinsX(); i++){
+    int index = bins_num_ccqe[i-1];
+    hErrorTN186CCQE[1]->SetBinContent(i,tn186ShiftError[index]);
+    hErrorTN186CCQE[1]->SetBinError(i,tn186FitError[index]);
+  }
+  for (int i=1; i<=hErrorTN186CCOth[0]->GetNbinsX(); i++){
+    int index = bins_nue_ccoth[i-1];
+    hErrorTN186CCOth[0]->SetBinContent(i,tn186ShiftError[index]);
+    hErrorTN186CCOth[0]->SetBinError(i,tn186FitError[index]);
+  }
+
+  //
+  return;
+}
+
+
+
+///////////////////////////////////////////////////////////////
+double SKError::getMaxError(TH1D* hh){
+  double errmax = 0.;
+  for ( int i=1; i<=hh->GetNbinsX(); i++ ) {
+    double err = hh->GetBinError(i);
+    if (err>errmax){
+      errmax = err;
+    }
+  }
+  cout<<"max err: "<<errmax<<endl;
+  return errmax;
+}
+
+
+
+///////////////////////////////////////////////////////////////
+std::vector<TLatex*> SKError::getBinLabels(TH1D*hh){
+
+  std::vector<TLatex*> vlabel;
+  double xstart = -0.5;
+  for (int ih=0; ih<4; ih++){
+    for (int i=1; i<=hh->GetNbinsX(); i++){
+      double xpos = xstart + i;
+      double offset = -0.5;
+      double evismin = hh->GetXaxis()->GetBinLowEdge(i)/1000.;
+      double evismax = hh->GetXaxis()->GetBinWidth(i)/1000. + evismin;
+      vlabel.push_back(new TLatex(offset,xpos,Form("[%1.1f - %1.1f]",evismin,evismax)));
+      vlabel.at(i-1)->SetTextAlign(32);
+      vlabel.at(i-1)->SetTextSize(0.08);
+    }
+  }
+
+  return vlabel;
+}
+
+
+
+///////////////////////////////////////////////////////////////
+void SKError::drawDiagonals(){
+
+  // calc first
+  calcDiagonals();
+
+  // canvas setup
+  TCanvas* cc = new TCanvas("cc","cc",800,600);
+  cc->Divide(1,2);
+
+  // histogram properties
+  hDiagonalErrorsCCQE[0]->SetLineColor(kBlue);
+  hDiagonalErrorsCCQE[0]->SetFillColor(kBlue);
+  hDiagonalErrorsCCQE[0]->SetLineWidth(3);
+  hDiagonalErrorsCCQE[0]->SetMarkerStyle(0);
+  hDiagonalErrorsCCQE[1]->SetLineColor(kRed);
+  hDiagonalErrorsCCQE[1]->SetFillColor(kRed);
+  hDiagonalErrorsCCQE[1]->SetLineWidth(3);
+  hDiagonalErrorsCCQE[1]->SetMarkerStyle(0);
+  hDiagonalErrorsCCOth[0]->SetLineColor(kBlue);
+  hDiagonalErrorsCCOth[0]->SetFillColor(kBlue);
+  hDiagonalErrorsCCOth[0]->SetLineWidth(3);
+  hDiagonalErrorsCCOth[0]->SetMarkerStyle(0);
+  hDiagonalErrorsCCOth[1]->SetLineColor(kRed);
+  hDiagonalErrorsCCOth[1]->SetFillColor(kRed);
+  hDiagonalErrorsCCOth[1]->SetLineWidth(3);
+  hDiagonalErrorsCCOth[1]->SetMarkerStyle(0);
+
+  // find ranges
+  double margin = 1.1;
+  double range_nue_ccqe = TMath::Max( TMath::Abs(hDiagonalErrorsCCQE[0]->GetMaximum()),
+                                      TMath::Abs(hDiagonalErrorsCCQE[0]->GetMinimum()));
+  double range_numu_ccqe = TMath::Max( TMath::Abs(hDiagonalErrorsCCQE[1]->GetMaximum()),
+                                      TMath::Abs(hDiagonalErrorsCCQE[1]->GetMinimum()));
+  double range_ccqe = margin*TMath::Max( range_nue_ccqe, range_numu_ccqe);
+  range_ccqe += getMaxError(hDiagonalErrorsCCQE[0]);
+
+  cout<<"range: "<<range_ccqe<<endl; 
+  //
+  double range_nue_ccoth = TMath::Max( TMath::Abs(hDiagonalErrorsCCOth[0]->GetMaximum()),
+                                      TMath::Abs(hDiagonalErrorsCCOth[0]->GetMinimum()));
+  double range_numu_ccoth = TMath::Max( TMath::Abs(hDiagonalErrorsCCOth[1]->GetMaximum()),
+                                      TMath::Abs(hDiagonalErrorsCCOth[1]->GetMinimum()));
+  double range_ccoth = margin*TMath::Max( range_nue_ccoth, range_numu_ccoth);
+  range_ccoth += getMaxError(hDiagonalErrorsCCOth[0]);
+
+  cout<<"range: "<<range_ccoth<<endl; 
+  //
+  hDiagonalErrorsCCQE[0]->SetMinimum(-1.*range_ccqe);
+  hDiagonalErrorsCCQE[0]->SetMaximum(1.*range_ccqe);
+  //
+  hDiagonalErrorsCCQE[1]->SetMinimum(-1.*range_ccqe);
+  hDiagonalErrorsCCQE[1]->SetMaximum(1.*range_ccqe);
+  //
+  hDiagonalErrorsCCOth[0]->SetMinimum(-1.*range_ccoth);
+  hDiagonalErrorsCCOth[0]->SetMaximum(1.*range_ccoth);
+  //
+  hDiagonalErrorsCCOth[1]->SetMinimum(-1.*range_ccoth);
+  hDiagonalErrorsCCOth[1]->SetMaximum(1.*range_ccoth);
+
+
+  // get bin labels
+  vector<TLatex*> vlabel_ccqe = getBinLabels(hEvisNuMuCCQE);
+  vector<TLatex*> vlabel_ccoth = getBinLabels(hEvisNuECCOth);
+
+  // draw
+  cc->cd(1);
+  for (int ibin=1; ibin<=hDiagonalErrorsCCQE[0]->GetNbinsX(); ibin++){
+    hDiagonalErrorsCCQE[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
+  }
+  hDiagonalErrorsCCQE[0]->GetXaxis()->SetLabelSize(0.08);
+  hDiagonalErrorsCCQE[0]->Draw("E");
+  hDiagonalErrorsCCQE[1]->Draw("sameE");
+  //
+  cc->cd(2);
+  for (int ibin=1; ibin<=hDiagonalErrorsCCOth[0]->GetNbinsX(); ibin++){
+    hDiagonalErrorsCCOth[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
+  }
+  hDiagonalErrorsCCOth[0]->GetXaxis()->SetLabelSize(0.08);
+  hDiagonalErrorsCCOth[0]->Draw("E");
+  hDiagonalErrorsCCOth[1]->Draw("sameE");
+
+  //
+  return;
+
+}
+
+
+///////////////////////////////////////////////////////////////
+void SKError::calcDiagonals(){
+
+  // identify bins
+  int bins_nue_ccqe[] = {1,2,3,4,5,6};
+  int bins_nue_ccoth[] = {7,8,9};
+  int bins_num_ccqe[] = {10,11,12,13,14,15,16};
+  int bins_num_ccoth[] = {17,18,19};
+
+  // ccqe nue
+  for (int i=hDiagonalErrorsCCQE[0]->GetNbinsX(); i>1; i--){
+    int nbin = bins_nue_ccqe[i-2];
+    hDiagonalErrorsCCQE[0]->SetBinContent(i,hDiagonalErrors->GetBinContent(nbin));
+    hDiagonalErrorsCCQE[0]->SetBinError(i,hDiagonalErrors->GetBinError(nbin));
+  }
+
+  // ccqe numu
+  for (int i=hDiagonalErrorsCCQE[1]->GetNbinsX(); i>0; i--){
+    // fill numu ccqe bins
+    int nbin = bins_num_ccqe[i-1];
+    hDiagonalErrorsCCQE[1]->SetBinContent(i,hDiagonalErrors->GetBinContent(nbin));
+    hDiagonalErrorsCCQE[1]->SetBinError(i,hDiagonalErrors->GetBinError(nbin));
+  }
+
+  // ccother nue
+  for (int i=hDiagonalErrorsCCOth[0]->GetNbinsX(); i>0; i--){
+    // fill numu ccqe bins
+    int nbin = bins_nue_ccoth[i-1];
+    hDiagonalErrorsCCOth[0]->SetBinContent(i,hDiagonalErrors->GetBinContent(nbin));
+    hDiagonalErrorsCCOth[0]->SetBinError(i,hDiagonalErrors->GetBinError(nbin));
+  }
+
+  // ccother numu
+  for (int i=hDiagonalErrorsCCOth[1]->GetNbinsX(); i>0; i--){
+    // fill numu ccqe bins
+    int nbin = bins_num_ccoth[i-1];
+    hDiagonalErrorsCCOth[1]->SetBinContent(i,hDiagonalErrors->GetBinContent(nbin));
+    hDiagonalErrorsCCOth[1]->SetBinError(i,hDiagonalErrors->GetBinError(nbin));
+  }
+
+  return;
+}
+
+
+
+///////////////////////////////////////////////////////////////
 double SKError::calcFitError(int iclass){
     cout<<"Fit error for class: "<<iclass<<endl;
     return TMath::Sqrt(arrayvarD(DelEfficiency[iclass],Ntoys));
@@ -22,6 +252,7 @@ void SKError::calcErrors(){
     vShiftErrors = new TVectorD(Nclass,DelEffShiftError);
     return;
 }
+
 
 
 ///////////////////////////////////////////////////////////////
@@ -78,6 +309,114 @@ double SKError::calcShiftError(int iclass){
 
 
 ///////////////////////////////////////////////////////////////
+void SKError::drawVertLines(){
+  
+  // line properties have been set in initHistos()
+  
+  int nlines = 3;
+
+  for ( int i=0; i<nlines; i++ ) {
+    lineVert[i]->Draw("same");
+  }
+
+}
+
+
+
+///////////////////////////////////////////////////////////////
+void SKError::drawHorizLines(){
+  
+  // line properties have been set in initHistos()
+  
+  int nlines = 3;
+
+  for ( int i=0; i<nlines; i++ ) {
+    lineHorz[i]->Draw("same");
+  }
+
+}
+
+
+
+///////////////////////////////////////////////////////////////
+void SKError::makeBinLabels(){
+
+  // bin labels
+  TH1D* histos[]={hEvisNuECCQE,hEvisNuECCOth,hEvisNuMuCCQE,hEvisNuMuCCOthTot};
+  double xstart = -0.5;
+  int iclass = 0;
+  for (int ih=0; ih<4; ih++){
+    for (int i=1; i<=histos[ih]->GetNbinsX(); i++){
+      double xpos = xstart + i;
+      double offset = -0.5;
+      double evismin = histos[ih]->GetXaxis()->GetBinLowEdge(i)/1000.;
+      double evismax = histos[ih]->GetXaxis()->GetBinWidth(i)/1000. + evismin;
+      labelHorz[iclass] = new TLatex(xpos,offset,Form("[%1.1f - %1.1f]",evismin,evismax));
+      labelVert[iclass] = new TLatex(offset,xpos,Form("[%1.1f - %1.1f]",evismin,evismax));
+      labelHorz[iclass]->SetTextAngle(90);
+      labelHorz[iclass]->SetTextAlign(32);
+      labelVert[iclass]->SetTextAlign(32);
+      labelHorz[iclass]->SetTextSize(0.020);
+      labelVert[iclass]->SetTextSize(0.020);
+      iclass++;
+    }
+    xstart += (double)histos[ih]->GetNbinsX();
+  }
+
+  // sector labels
+  TString sector[] = {"CCQE","CCOth.","CCQE","CCOth."};
+  TString nulabel[] = {"#nu_{e}","#nu_{e}","#nu_{#mu}","#nu_{#mu}"};
+  double labelpos[]= {3.,7.5,12.5,17.5};
+  double offset = -3.5;
+  double nuoffset = -4.5;
+  for (int i=0; i<4; i++){
+   sectorLabelHorz[i] = new TLatex(labelpos[i],offset,sector[i].Data()); 
+   nuLabelHorz[i] = new TLatex(labelpos[i],nuoffset,nulabel[i].Data());
+   sectorLabelVert[i] = new TLatex(offset,labelpos[i],sector[i].Data()); 
+   nuLabelVert[i] = new TLatex(nuoffset,labelpos[i],nulabel[i].Data());
+   sectorLabelVert[i]->SetTextAngle(90); 
+   sectorLabelHorz[i]->SetTextAlign(22); 
+   sectorLabelVert[i]->SetTextAlign(22); 
+   nuLabelHorz[i]->SetTextAlign(22); 
+   nuLabelVert[i]->SetTextAlign(22); 
+   sectorLabelVert[i]->SetTextSize(0.03); 
+   sectorLabelHorz[i]->SetTextSize(0.03); 
+  }
+
+  return;
+
+}
+
+
+
+///////////////////////////////////////////////////////////////
+void SKError::drawBinLabels(){
+
+  // bin labels
+  TH1D* histos[]={hEvisNuECCQE,hEvisNuECCOth,hEvisNuMuCCQE,hEvisNuMuCCOthTot};
+  int iclass = 0;
+  for (int ih=0; ih<4; ih++){
+    for (int i=1; i<=histos[ih]->GetNbinsX(); i++){
+      labelHorz[iclass]->Draw("same");
+      labelVert[iclass]->Draw("same");
+      iclass++;
+    }
+  }
+
+  // sector labels
+  for (int i=0; i<4; i++){
+   sectorLabelVert[i]->Draw("same"); 
+   sectorLabelHorz[i]->Draw("same"); 
+   nuLabelHorz[i]->Draw("same");
+   nuLabelVert[i]->Draw("same");
+  }
+
+  return;
+}
+
+
+
+///////////////////////////////////////////////////////////////
 void SKError::drawCor(){
   
   TCanvas *cc = new TCanvas("cc","cc",750,700);
@@ -95,62 +434,11 @@ void SKError::drawCor(){
   hCor->GetZaxis()->CenterTitle(1);
 
 
-
-  // bin labels
-  TH1D* histos[]={hEvisNuECCQE,hEvisNuECCOth,hEvisNuMuCCQE,hEvisNuMuCCOthTot};
-  double xstart = -0.5;
-  for (int ih=0; ih<4; ih++){
-    for (int i=1; i<=histos[ih]->GetNbinsX(); i++){
-
-      double xpos = xstart + i;
-      double offset = -0.5;
-      double evismin = histos[ih]->GetXaxis()->GetBinLowEdge(i)/1000.;
-      double evismax = histos[ih]->GetXaxis()->GetBinWidth(i)/1000. + evismin;
-
-      labelHorz[i] = new TLatex(xpos,offset,Form("[%1.1f - %1.1f]",evismin,evismax));
-      labelVert[i] = new TLatex(offset,xpos,Form("[%1.1f - %1.1f]",evismin,evismax));
-      labelHorz[i]->SetTextAngle(90);
-      labelHorz[i]->SetTextAlign(32);
-      labelVert[i]->SetTextAlign(32);
-      labelHorz[i]->SetTextSize(0.020);
-      labelVert[i]->SetTextSize(0.020);
-      labelHorz[i]->Draw("same");
-      labelVert[i]->Draw("same");
-    }
-    xstart += (double)histos[ih]->GetNbinsX();
-  }
-
-  // sector labels
-  TString sector[] = {"CCQE","CCOth.","CCQE","CCOth."};
-  TString nulabel[] = {"#nu_{e}","#nu_{e}","#nu_{#mu}","#nu_{#mu}"};
-  double labelpos[]= {3.,7.5,12.5,17.5};
-  double offset = -3.5;
-  double nuoffset = -4.5;
-
-  for (int i=0; i<4; i++){
-   sectorLabelHorz[i] = new TLatex(labelpos[i],offset,sector[i].Data()); 
-   nuLabelHorz[i] = new TLatex(labelpos[i],nuoffset,nulabel[i].Data());
-   sectorLabelVert[i] = new TLatex(offset,labelpos[i],sector[i].Data()); 
-   nuLabelVert[i] = new TLatex(nuoffset,labelpos[i],nulabel[i].Data());
-   sectorLabelVert[i]->SetTextAngle(90); 
-   sectorLabelHorz[i]->SetTextAlign(22); 
-   sectorLabelVert[i]->SetTextAlign(22); 
-   nuLabelHorz[i]->SetTextAlign(22); 
-   nuLabelVert[i]->SetTextAlign(22); 
-   sectorLabelVert[i]->SetTextSize(0.03); 
-   sectorLabelHorz[i]->SetTextSize(0.03); 
-   sectorLabelVert[i]->Draw("same"); 
-   sectorLabelHorz[i]->Draw("same"); 
-   nuLabelHorz[i]->Draw("same");
-   nuLabelVert[i]->Draw("same");
-
-  }
+  drawVertLines();
+  drawHorizLines();
+  drawBinLabels();
 
 
-  for (int i=0; i<NLINES; i++){
-    lineHorz[i]->Draw("same");
-    lineVert[i]->Draw("same");
-  }
   return;
 }
 
@@ -242,187 +530,96 @@ void SKError::drawScatter(int iclass, int jclass){
 
 
 ///////////////////////////////////////////////////////////////
-void SKError::calcCovDelEff(){
+void SKError::calcCov(int vartype){
 
-  // histogram setup
-  hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
-  hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
-  hDiagonalErrors = new TH1D("hdiag","hdiag",Nclass,0,Nclass);
 
   // loops
   for (int i=0; i<Nclass; i++){
+
+    // fill diagonal errors
+    
+    // efficiency errors
+    if ( vartype==0 ) {
+      hDiagonalErrors->SetBinContent(i+1,arraymeanD(DelEfficiency[i],Ntoys));
+      hDiagonalErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(DelEfficiency[i],Ntoys)));
+      double cov = arraycovD(DelEfficiency[i],DelEfficiency[i],Ntoys);
+      double cor = arraycorD(DelEfficiency[i],DelEfficiency[i],Ntoys);
+      hCov->SetBinContent(i+1,i+1,cov);
+      hCor->SetBinContent(i+1,i+1,cor);
+    }
+
+    // NSK errors
+    else if ( vartype==1 ){
+      hDiagonalErrors->SetBinContent(i+1,arraymeanD(Nevents[i],Ntoys));
+      hDiagonalErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(Nevents[i],Ntoys)));       
+      double cov = arraycovD(Nevents[i],Nevents[i],Ntoys);
+      double cor = arraycorD(Nevents[i],Nevents[i],Ntoys);
+      hCov->SetBinContent(i+1,i+1,cov);
+      hCor->SetBinContent(i+1,i+1,cor);
+    }
+
+    // fill off-diagonal errors
     for (int j=0; j<Nclass; j++){
      
       // symmetry
-      if (j<i) continue;
-      cout<<"finding covariance: "<<i<<","<<j<<endl;
-      double cov = arraycovD(DelEfficiency[i],DelEfficiency[j],Ntoys);
-      double cor = arraycorD(DelEfficiency[i],DelEfficiency[j],Ntoys);
-      cout<<"cor: "<<i<<","<<j<<" = "<<cor<<endl;
-      hCov->SetBinContent(i+1,j+1,cov);
-      hCor->SetBinContent(i+1,j+1,cor);
+      if (j<=i) continue;
 
-      //
-      if (i!=j){
+      // off-diagonal elements
+      if ( vartype==0 ) {
+        double cov = arraycovD(DelEfficiency[i],DelEfficiency[j],Ntoys);
+        double cor = arraycorD(DelEfficiency[i],DelEfficiency[j],Ntoys);
+        hCov->SetBinContent(i+1,j+1,cov);
+        hCor->SetBinContent(i+1,j+1,cor);
         hCov->SetBinContent(j+1,i+1,cov);
         hCor->SetBinContent(j+1,i+1,cor);
       }
-
-      // fill diagonal errors
-      if (i==j){
-        hDiagonalErrors->SetBinContent(i+1,arraymeanD(DelEfficiency[i],Ntoys));
-        hDiagonalErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(DelEfficiency[i],Ntoys)));
-      }
-
-    }
-  }
-
-  hCor->SetMinimum(-1.11);
-  hCor->SetMaximum(1.11);
-
-
-//  hCor->Draw("colz");
-  drawCor();
-
-  //
-  return;
-}
-
-
-///////////////////////////////////////////////////////////////
-void SKError::calcCovEff(){
-
-  // histogram setup
-  hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
- 
-  // histogram setup
-  hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
-  hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
-  hDiagonalErrors = new TH1D("hdiag","hdiag",Nclass,0,Nclass); hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
-
-  // loops
-  for (int i=0; i<Nclass; i++){
-    for (int j=0; j<Nclass; j++){
-     
-      // symmetry
-      if (j<i) continue;
-      cout<<"finding covariance: "<<i<<","<<j<<endl;
-      double cov = arraycovD(DelEfficiency[i],DelEfficiency[j],Ntoys);
-      double cor = arraycorD(DelEfficiency[i],DelEfficiency[j],Ntoys);
-      cout<<"cor: "<<i<<","<<j<<" = "<<cor<<endl;
-      hCov->SetBinContent(i+1,j+1,cov);
-      hCor->SetBinContent(i+1,j+1,cor);
-
-      //
-      if (i!=j){
+      else if ( vartype==1 ){
+        double cov = arraycovD(Nevents[i],Nevents[j],Ntoys);
+        double cor = arraycorD(Nevents[i],Nevents[j],Ntoys);
+        hCov->SetBinContent(i+1,j+1,cov);
+        hCor->SetBinContent(i+1,j+1,cor);
         hCov->SetBinContent(j+1,i+1,cov);
         hCor->SetBinContent(j+1,i+1,cor);
       }
-
-      // fill diagonal errors
-      if (i==j){
-        hDiagonalErrors->SetBinContent(i+1,arraymeanD(DelEfficiency[i],Ntoys));
-        hDiagonalErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(DelEfficiency[i],Ntoys)));
-      }
-
-//      else{ 
-//        hCov->SetBinContent(j+1,i+1,cov);
-//        hCor->SetBinContent(j+1,i+1,0);
-//      }
-
     }
   }
 
+  //scales
   hCor->SetMinimum(-1.11);
   hCor->SetMaximum(1.11);
 
-
+  // draw correlations
   drawCor();
-  //
+
   return;
 }
 
 
 
 ///////////////////////////////////////////////////////////////
-void SKError::calcCov(){
+void SKError::calcAllDelEff(int ntoy, int effdef){
 
-  // histogram setup
-  hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
- 
-  // histogram setup
-  hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
-  hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
-  hDiagonalErrors = new TH1D("hdiag","hdiag",Nclass,0,Nclass); hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
-
-  // loops
-  for (int i=0; i<Nclass; i++){
-    for (int j=0; j<Nclass; j++){
-     
-      // symmetry
-      if (j<i) continue;
-
-      cout<<"finding covariance: "<<i<<","<<j<<endl;
-      double cov = arraycovD(Nevents[i],Nevents[j],Ntoys);
-      double cor = arraycorD(Nevents[i],Nevents[j],Ntoys);
-      cout<<"cor: "<<i<<","<<j<<" = "<<cor<<endl;
-     
-      hCov->SetBinContent(i+1,j+1,cov);
-      hCor->SetBinContent(i+1,j+1,cor);
-      //
-      if (i!=j){
-        hCov->SetBinContent(j+1,i+1,cov);
-        hCor->SetBinContent(j+1,i+1,cor);
-      }
-
-      // fill diagonal errors
-      if (i==j){
-        hDiagonalErrors->SetBinContent(i+1,arraymeanD(Nevents[i],Ntoys));
-        hDiagonalErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(Nevents[i],Ntoys)));
-      }
-    }
-  }
-
-  hCor->SetMinimum(-1.11);
-  hCor->SetMaximum(1.11);
-
-  drawCor();
-  //
-  return;
-}
-
-
-
-///////////////////////////////////////////////////////////////
-/*
-void SKError::calcAllEff(int ntoy){
-
+  // find efficiency for each class
   for (int iclass=0; iclass<Nclass; iclass++){
 
-    // 0th index is nominal
-    double eff = calcEff(iclass,ntoy,0); 
-    cout<<"eff calc: "<<iclass<<","<<ntoy<<": "<<eff<<endl;
-    Efficiency[iclass][ntoy] = eff;
+    double eff = 0.;
+    if (effdef==0){
+      eff = calcDelEff(iclass,ntoy); 
+      DelEfficiency[iclass][ntoy] = eff;
+    }
+
+    // use nominal value (instead of alpha-modified, see TN-186)
+    // in the denominator:
+    else if (effdef==1){
+      eff = calcEff(iclass,ntoy); 
+      DelEfficiency[iclass][ntoy] = eff;
+    }
+
   }
 
   return;
 }
-*/
 
-
-///////////////////////////////////////////////////////////////
-void SKError::calcAllDelEff(int ntoy){
-
-  for (int iclass=0; iclass<Nclass; iclass++){
-
-    // 0th index is nominal
-    double eff = calcDelEff(iclass,ntoy); 
-    cout<<"eff calc: "<<iclass<<","<<ntoy<<": "<<eff<<endl;
-    DelEfficiency[iclass][ntoy] = eff;
-  }
-
-  return;
-}
 
 
 ///////////////////////////////////////////////////////////////
@@ -476,7 +673,6 @@ void SKError::addToy(int ntoy){
    }
 
    // calculate all of the epsilon values!
-//   calcAllEff(ntoy);
    calcAllDelEff(ntoy);
 
  // 
@@ -889,7 +1085,8 @@ void SKError::initHistos(int ibinning){
 
 
   // count all bins
-  Nclass = hEvisNuECCQE->GetNbinsX() + hEvisNuECCOth->GetNbinsX() +  hEvisNuMuCCQE->GetNbinsX() + hEvisNuMuCCOth->GetNbinsX();
+  Nclass = hEvisNuECCQE->GetNbinsX() + hEvisNuECCOth->GetNbinsX()
+           +  hEvisNuMuCCQE->GetNbinsX() + hEvisNuMuCCOth->GetNbinsX();
 
   // setup slice
   hSlice = new TH1D("hslice","hslice",Nclass,0,Nclass);
@@ -915,6 +1112,24 @@ void SKError::initHistos(int ibinning){
     }
   }
 
+
+  // output histogram setup
+  hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
+  hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
+  hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
+  hDiagonalErrors = new TH1D("hdiag","hdiag",Nclass,0,Nclass);
+  int nbins_ccqe = TMath::Max(hEvisNuECCQE->GetNbinsX(),hEvisNuMuCCQE->GetNbinsX());
+  int nbins_ccoth = TMath::Max(hEvisNuECCOth->GetNbinsX(),hEvisNuMuCCOth->GetNbinsX());
+  for ( int i=0; i<2; i++ ) {
+    hDiagonalErrorsCCQE[i] = new TH1D("hdiag_ccqe","hdiag_ccqe",nbins_ccqe,0,nbins_ccqe);
+    hDiagonalErrorsCCOth[i] = new TH1D("hdiag_ccoth","hdiag_ccoth",nbins_ccoth,0,nbins_ccoth);
+  }
+  hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
+
+
+
+  // make labels for bins, sections
+  makeBinLabels();
 
   //
   return;

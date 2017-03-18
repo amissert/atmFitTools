@@ -5,6 +5,8 @@
 
 
 #include <iostream>
+#include <vector>
+#include <cstdio>
 
 #include "TTree.h"
 #include "TH1D.h"
@@ -19,7 +21,6 @@
 #include "TGraph.h"
 #include "TLatex.h"
 
-
 const int NCLASSES = 50;
 const int NTOYS    = 2000;
 const int NLINES= 3;
@@ -28,7 +29,6 @@ using namespace std;
 
 
 ///////////////////////////////////////////////////////////////////
-//
 class SKError{
 
   public:
@@ -41,11 +41,17 @@ class SKError{
   // arrays for numbers of events
   double Nevents[NCLASSES][NTOYS];
   double NeventsTotal[NCLASSES][NTOYS];
-//  double Efficiency[NCLASSES][NTOYS];
   double DelEfficiency[NCLASSES][NTOYS];
   double DelEffShiftError[NCLASSES];
   double absDelEffShiftError[NCLASSES];
   double DelEffFitError[NCLASSES];
+
+  // compare to TN186 (Table 8)
+  double tn186ShiftError[NCLASSES];
+  double tn186FitError[NCLASSES];
+  double tn186TotError[NCLASSES];
+  TH1D* hErrorTN186CCQE[2];
+  TH1D* hErrorTN186CCOth[2];
 
 
   // evis binning
@@ -63,6 +69,7 @@ class SKError{
   // for drawing lines
   TLine* lineHorz[NLINES];
   TLine* lineVert[NLINES];
+  vector<TLatex*> vLabels;
   TLatex* labelVert[NCLASSES];
   TLatex* labelHorz[NCLASSES];
   TLatex* sectorLabelHorz[4];
@@ -75,6 +82,8 @@ class SKError{
   TH2D* hCov;
   TVectorD* vShiftErrors;
   TH1D* hDiagonalErrors;
+  TH1D* hDiagonalErrorsCCQE[2];
+  TH1D* hDiagonalErrorsCCOth[2];
 
   // histogram of all numbers of events
   TH1D* hSlice;
@@ -99,10 +108,13 @@ class SKError{
   void drawEffDist(int nclass);
   void drawCor();
   void drawCov();
+  void drawDiagonals();
+  void calcDiagonals();
 
 
   // for classifying and filling
-  int getClassMC(int nutype, int mode, int component, double evis, int nsubev, double towall, double wall);
+  int getClassMC(int nutype, int mode, int component,
+                 double evis, int nsubev, double towall, double wall);
 
   // fill an event in the histograms
   void addEvent(int nclass, double evis, double weight, bool flgtotal); 
@@ -111,13 +123,7 @@ class SKError{
   void addToy(int ntoy);
 
   // calculate correlation and covariance
-  void calcCov();
-
-  // calculate correlation and covariance using epsilon
-  void calcCovEff();
-
-  // calculate correlation and covariance using epsilon
-  void calcCovDelEff();
+  void calcCov(int vartype=0);
 
   // calculate efficiency based on index of total event numbers
   double calcEff(int nclass, int ntoy);
@@ -126,27 +132,37 @@ class SKError{
   double calcDelEff(int nclass, int ntoy);
 
   // calculate all effeciencies
-  void calcAllDelEff(int ntoy);
+  void calcAllDelEff(int ntoy, int effdef=0);
 
   // draw scatterplot
   void drawScatter(int iclass, int jclass);
 
-  //
   double calcShiftError(int iclass);
 
-  //
   double calcFitError(int iclass);
 
-  //
   void calcErrors();
 
-  // 
   void printErrors();
 
   void saveErrors(const char* filename);
-  
 
   void printEffDist(const char* plotdir);
+
+  void makeBinLabels();
+
+  void drawBinLabels();
+
+  void drawVertLines();
+
+  void drawHorizLines();
+
+  vector<TLatex*> getBinLabels(TH1D* hh);
+
+  double getMaxError(TH1D* hh);
+
+  void initTN186Errors();
+
 
 };
 
