@@ -63,6 +63,7 @@ class moreUncertainties{
  TH2FV* hfvmapnc;
  TH1D*  hERecUnc[10]; //< [number of fv bins]
  TH1D*  hCCQEUnc;
+ float muMisIDInflation; //< to artificially inflate muon mis-ID background
 
  // event info
  fqProcessedEvent* mcevent;
@@ -84,7 +85,6 @@ class moreUncertainties{
  TH2FV* hfv;
  TH1D* hwall;
  TH1D* hwallunc;
-// void fillFVHisto(TChain* ch);
 
 };
 

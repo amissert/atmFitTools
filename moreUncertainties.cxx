@@ -41,8 +41,7 @@ float moreUncertainties::getFVUncertainty(float towallrc, float wallrc, int mode
   }
   // is event Mis-ID?
   else if (wronglepton){
-    float KOterm = 2.0;
-    sys = hfvmapccwrong->GetBinContent(ibin) + KOterm;
+    sys = hfvmapccwrong->GetBinContent(ibin) + muMisIDInflation;
     return sys;
   }
   // now for ccqe
@@ -104,7 +103,6 @@ void moreUncertainties::init(){
   fmapname.Append(mapFileName.Data());
   TFile *filefvmap = new TFile(fmapname.Data());
   hfvmap = (TH2FV*)filefvmap->Get("FVUncMapNC");
-//  hfvmap = new TH2FV("hfvmap",2);
   hfvmapccqe = (TH2FV*)filefvmap->Get("FVUncMapCCQE");
   hfvmapccnqe = (TH2FV*)filefvmap->Get("FVUncMapCCnQE");
   hfvmapccwrong = (TH2FV*)filefvmap->Get("FVUncMapCCWrong");
@@ -121,37 +119,15 @@ void moreUncertainties::init(){
     hCCQEUnc->SetBinContent(i,CCQEUncertaintyValues[i-1]);
   }
 
+  // set artificial misID inflation to zero
+  muMisIDInflation = 0.;
+
   //
   return;
 
 }
 
-/////////////////////////////////////////////////////////
-// Fills a histogram of uncertaintes, can be useful for
-// debugging
-/*
-void moreUncertainties::fillFVHisto(TChain* ch){
 
-  hwall = new TH1D("hwall","hwall",50,0,200);
-  hwallunc = new TH1D("hwall","hwall",50,0,200);
-
- int nev = ch->GetEntries();
- for (int iev=0; iev<nev; iev++){
-   ch->GetEntry(iev);
-   double wall = mcevent->fqwall;
-   double towall = mcevent->fqtowall;
-   float totalunc = getTotalUncertainty(mcevent->wallv,wall,towall,mcevent->fq1renu[1]);
-   hwallunc->Fill(wall,mcevent->evtweight*totalunc);
-   if (mcevent->wallv<0.) hwall->Fill(wall,mcevent->evtweight);
- }
- 
- hwallunc->Divide(hwall);
- hwallunc->Draw("h");
-
- return;
-
-}
-*/
 
 //////////////////////////////////////////////////////
 // fractional uncertainty from not simulating all of dead region
@@ -161,12 +137,14 @@ float moreUncertainties::getEnteringWallNormUnc(float wallv){
 }
 
 
+
 //////////////////////////////////////////////////////
 // fractional uncertainty from not simulating all of dead region
 float moreUncertainties::getEnteringNormUnc(float wallv){
   if (wallv < 0.) return enteringNormUncertainty;
   return 0.;
 }
+
 
 
 ////////////////////////////////////////////////////////////////
@@ -198,9 +176,7 @@ float moreUncertainties::getXsecUnc(int mode, float enu){
 
   // NC
   return 0.2;
-//  return 1.0;
 }
-
 
 
 
@@ -236,6 +212,8 @@ float moreUncertainties::getTotalUncertainty(float wallv, float wallrc, float to
   return syst;
 }
 
+
+
 ///////////////////////////////////////////////////
 // fractional uncertainty from wall shape
 float moreUncertainties::getEnteringWallUnc(float wallv, float wallrc){
@@ -245,6 +223,8 @@ float moreUncertainties::getEnteringWallUnc(float wallv, float wallrc){
   return 0.;
 
 }
+
+
 
 #endif
 
