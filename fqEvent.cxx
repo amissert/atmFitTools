@@ -22,10 +22,6 @@ float fqEvent::calcEnu(){
   float V = 27.;
   float Enu = 0.;
   for (int ipid=1; ipid<=2; ipid++){
-    
-    // reconstructed direction
-    TVector3 rcdir;
-    rcdir.SetXYZ(fq1rdir[0][ipid][0],fq1rdir[0][ipid][1],fq1rdir[0][ipid][2]);
 
     // lepton mass
     if (ipid==1) Ml = Me;
@@ -40,19 +36,12 @@ float fqEvent::calcEnu(){
     // cosine to beam
     float costh = 0.669764*fq1rdir[0][ipid][0] + -0.742179*fq1rdir[0][ipid][1] + 0.024228*fq1rdir[0][ipid][2];
 
-    // RC neutrino energy
-//    Enu = ( (Mp*Mp) - ((Mn-V)*(Mn-V)) - (Ml*Ml) + (2.*(Mn-V)*El) )/
-//          ( 2.*( Mn - V - El + (Pl*costh) ) );
-
     Enu = (Mn -V)*El - ((Ml*Ml)/2.);
     Enu += Mn*V - (V*V/2.);
     Enu += ( Mp*Mp - Mn*Mn)/2.;
     Enu /= (Mn-V-El+(Pl*costh));
 
-
-
     fq1renu[ipid-1] = Enu; 
-
 
   }
 
