@@ -19,7 +19,6 @@
 // This class is useful for applying the parametesr in mcmcPars to the
 // attribute[] array of a fitqun event, and then seeing if the event 
 // still passes the event selection cuts defined by "eventSelectors.h"
-//
 class mcmcApply{
   public:
 
@@ -34,6 +33,10 @@ class mcmcApply{
   int indexPi0Par;
   int indexPiPPar;
   int indexRCPar;
+
+  // best fit pars
+  float bestFitPar[NMCMCPARS];
+
 
   // flags
   bool flgApplyXSecPar;
@@ -52,10 +55,15 @@ class mcmcApply{
     flgApplyNormPar = value;
     return;
   }
+  bool flgUseBestPar[NMCMCPARS];
+  bool flgGlobalUseBestPars;
 
 
   // methods
   void setFromMCMC();
+  void setAlphaFromMCMC();
+  void setBetaFromMCMC();
+  void setBestPars();
 
   // modify the reconstructed fiTQun attributes
   void applyPars(int nbin, int ncomponent, float attributeTmp[], int natt);
@@ -76,6 +84,11 @@ class mcmcApply{
   // the mcmc shape parameters and re-evaluates the event selection cuts
   // returns 1 for nue, 2 for numu, 0 for neither
   int applyCutsToModifiedEvent(int iev, mcLargeArray* fastevents,bool modflg=true);
+
+  // calculate what the best fit (mean) parameters are
+  void findBestFitPars();
+  void setUseBestFitSystPars(bool value);
+  void setUseBestFitNormPars(bool value);
 
 
 };

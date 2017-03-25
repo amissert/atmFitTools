@@ -79,6 +79,8 @@ class atmFitPars{
   void initPars(const char* systype=""); //< sets parameters to initial values
   // index management//////////////////////////////////////////////////////////////////////////////
   int getParIndex(int ibin, int icomp, int iatt, int imod){return parIndex[ibin][icomp][iatt][imod];}
+  int getSysParIndex(int ipar){return sysParIndex[ipar];}
+  int getNormParIndex(int isamp, int ibin){return normParIndex[isamp][ibin];}
   int getParBin(int ipar);
   int getParComp(int ipar);
   int getParAtt(int ipar);

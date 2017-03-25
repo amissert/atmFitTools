@@ -14,6 +14,7 @@
 //#include "eventSelector.h"
 //#include "calcEnu.h"
 #include "randomList.h"
+#include "uniformList.h"
 #include "mcLargeArray.h"
 #include <exception>
 #include "TH2FV.h"
@@ -85,7 +86,8 @@ class toyMC{
 
   void makeCombinedUncertainty(int nmcmcpts);
   void setAtmFitPars(const char* parfile);
-  void fillSKErrors(int ntoys, int nbinning=1, int flgcustom=0);
+  void fillSKErrors(int ntoys, int nbinning=1, int flgcustom=0, int effdef=0);
+  void fillMarginalizedSKErr(const int ntoys, const int nmarg, int nbinning=1, int flgcustom=0, int effdef=0);
   int applyCutsToModifiedEvent(int iev,bool flgmod=true);
   int applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod=true);
   int getEventCatagory(int iev, int nutype);

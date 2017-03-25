@@ -10,6 +10,7 @@
 
 #include "TTree.h"
 #include "TH1D.h"
+#include "TF1.h"
 #include "TH2D.h"
 #include "TChain.h"
 #include "TMath.h"
@@ -37,9 +38,12 @@ class SKError{
   SKError(int ntoy = 100);
   int Nclass;
   int Ntoys;
+  int Nmarginal;
  
   // arrays for numbers of events
   double Nevents[NCLASSES][NTOYS];
+  double NeventsNominal[NCLASSES];
+  double NeventsNominalCore[NCLASSES];
   double NeventsTotal[NCLASSES][NTOYS];
   double DelEfficiency[NCLASSES][NTOYS];
   double DelEffShiftError[NCLASSES];
@@ -52,7 +56,6 @@ class SKError{
   double tn186TotError[NCLASSES];
   TH1D* hErrorTN186CCQE[2];
   TH1D* hErrorTN186CCOth[2];
-
 
   // evis binning
   TH1D* hEvisNuECCQE;
@@ -81,17 +84,18 @@ class SKError{
   TH2D* hCor;
   TH2D* hCov;
   TVectorD* vShiftErrors;
-  TH1D* hDiagonalErrors;
-  TH1D* hDiagonalErrorsCCQE[2];
-  TH1D* hDiagonalErrorsCCOth[2];
+  TH1D* hErrors;
+  TH1D* hErrorsCCQE[2];
+  TH1D* hErrorsCCOth[2];
 
   // histogram of all numbers of events
   TH1D* hSlice;
   TGraph* gScat;
   TH1D* hdist;
   TLine* distMean;
-  TLine* zeroValue;
 
+  // flags etc.
+  int effDefinition;
 
   // initialize histograms
   void initHistos(int ibinning=0);
@@ -108,8 +112,8 @@ class SKError{
   void drawEffDist(int nclass);
   void drawCor();
   void drawCov();
-  void drawDiagonals();
-  void calcDiagonals();
+  void drawErrors1D(bool flgDrawTN186=false);
+  void calcErrors1D();
 
 
   // for classifying and filling
@@ -121,6 +125,9 @@ class SKError{
 
   // save histo contents into arrays
   void addToy(int ntoy);
+  
+  // save histo contents into arrays
+  void addNominal();
 
   // calculate correlation and covariance
   void calcCov(int vartype=0);
@@ -131,8 +138,13 @@ class SKError{
   // calculate efficiency based on index of total event numbers
   double calcDelEff(int nclass, int ntoy);
 
-  // calculate all effeciencies
-  void calcAllDelEff(int ntoy, int effdef=0);
+  // calculate efficiency based on index of total event numbers
+  double calcMargEff(int nclass);
+
+  // calculate efficiencies for all classes
+  void calcAllEff(int ntoy);
+
+  void fillNeventArrays(int ntoy);
 
   // draw scatterplot
   void drawScatter(int iclass, int jclass);
@@ -142,6 +154,10 @@ class SKError{
   double calcFitError(int iclass);
 
   void calcErrors();
+
+  // calcuate marginalized efficiency and set as ntoy-th 
+  // array value of DelEfficiency
+  void marginalize(int ntoy);
 
   void printErrors();
 

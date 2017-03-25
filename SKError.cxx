@@ -9,6 +9,7 @@
 void SKError::initTN186Errors(){
 
   // from TN
+  /*
   double shifts[] = {0.555,1.381,-7.092,1.785,4.6263,11.940
                     ,-7.123,5.891,-10.826
                     ,0.87,1.227,0.094,0.136,-0.037,-0.102,-0.157
@@ -17,45 +18,51 @@ void SKError::initTN186Errors(){
                   ,10.187,9.096,11.705
                   ,0.376,0.449,0.582,1.194,0.781,1.334,2.485
                   ,5.771,6.109,11.559};
-  int nclasses = 16;
+  */
+
+  double nue_ccqe_serr[] = {0.555,1.381,-7.092,1.785,4.6263,11.940};
+  double num_ccqe_serr[] = {0.87,1.227,0.094,0.136,-0.037,-0.102,-0.157};
+  double nue_ccoth_serr[] = {-7.123,5.891,-10.826};
+  double num_ccoth_serr[] = {6.406, 2.766, -5.67};
+  //
+  double nue_ccqe_ferr[] = {1.517,2.045,4.380,2.428,7.912,9.272};
+  double num_ccqe_ferr[] = {0.376,0.449,0.582,1.194,0.781,1.334,2.485};
+  double nue_ccoth_ferr[] = {10.187,9.096,11.705};
+  double num_ccoth_ferr[] = {5.771,6.109,11.559};
   
-  // set values
-  for ( int i=0; i<nclasses; i++ ) {
-    tn186ShiftError[i]=shifts[i];
-    tn186FitError[i]=fits[i];
-    tn186TotError[i]=TMath::Sqrt(fits[i]*fits[i] + shifts[i]*shifts[i]);
-  }
-
   // make histos
-  hErrorTN186CCQE[0] = (TH1D*)hDiagonalErrorsCCQE[0]->Clone("tn186_nueccqe");
-  hErrorTN186CCQE[1] = (TH1D*)hDiagonalErrorsCCQE[1]->Clone("tn186_numccqe");
-  hErrorTN186CCOth[0] = (TH1D*)hDiagonalErrorsCCOth[0]->Clone("tn186_nueccoth");
-  hErrorTN186CCOth[1] = (TH1D*)hDiagonalErrorsCCOth[1]->Clone("tn186_numccoth");
-
-  // identify bins
-  int bins_nue_ccqe[] = {1,2,3,4,5,6};
-  int bins_nue_ccoth[] = {7,8,9};
-  int bins_num_ccqe[] = {10,11,12,13,14,15,16};
-  int bins_num_ccoth[] = {17,18,19};
+  hErrorTN186CCQE[0] = new TH1D("tn186_nueccqe","tn186_nueccqe",7,0,7);
+  hErrorTN186CCQE[0]->SetFillColor(kGray);
+  hErrorTN186CCQE[0]->SetMarkerStyle(1);
+  hErrorTN186CCQE[1] = new TH1D("tn186_numccqe","tn186_numccqe",7,0,7);
+  hErrorTN186CCQE[1]->SetFillColor(kGray);
+  hErrorTN186CCQE[1]->SetMarkerStyle(1);
+  hErrorTN186CCOth[0] = new TH1D("tn186_nueccoth","tn186_nueccoth",3,0,3);
+  hErrorTN186CCOth[0]->SetFillColor(kGray);
+  hErrorTN186CCOth[0]->SetMarkerStyle(1);
+  hErrorTN186CCOth[1] = new TH1D("tn186_numccoth","tn186_numccoth",3,0,3);
+  hErrorTN186CCOth[1]->SetFillColor(kGray);
+  hErrorTN186CCOth[1]->SetMarkerStyle(1);
 
   // fill in histos
 
   // ccqe nue
   for (int i=2; i<=hErrorTN186CCQE[0]->GetNbinsX(); i++){
-    int index = bins_nue_ccqe[i-2];
-    hErrorTN186CCQE[0]->SetBinContent(i,tn186ShiftError[index]);
-    hErrorTN186CCQE[0]->SetBinError(i,tn186FitError[index]);
+    hErrorTN186CCQE[0]->SetBinContent(i,nue_ccqe_serr[i-2]);
+    hErrorTN186CCQE[0]->SetBinError(i,nue_ccqe_ferr[i-2]);
   }
   // ccqe nue
   for (int i=1; i<=hErrorTN186CCQE[1]->GetNbinsX(); i++){
-    int index = bins_num_ccqe[i-1];
-    hErrorTN186CCQE[1]->SetBinContent(i,tn186ShiftError[index]);
-    hErrorTN186CCQE[1]->SetBinError(i,tn186FitError[index]);
+    hErrorTN186CCQE[1]->SetBinContent(i,num_ccqe_serr[i-1]);
+    hErrorTN186CCQE[1]->SetBinError(i,num_ccqe_ferr[i-1]);
   }
   for (int i=1; i<=hErrorTN186CCOth[0]->GetNbinsX(); i++){
-    int index = bins_nue_ccoth[i-1];
-    hErrorTN186CCOth[0]->SetBinContent(i,tn186ShiftError[index]);
-    hErrorTN186CCOth[0]->SetBinError(i,tn186FitError[index]);
+    hErrorTN186CCOth[0]->SetBinContent(i,nue_ccoth_serr[i-1]);
+    hErrorTN186CCOth[0]->SetBinError(i,nue_ccoth_ferr[i-1]);
+  }
+  for (int i=1; i<=hErrorTN186CCOth[1]->GetNbinsX(); i++){
+    hErrorTN186CCOth[1]->SetBinContent(i,nue_ccoth_serr[i-1]);
+    hErrorTN186CCOth[1]->SetBinError(i,nue_ccoth_ferr[i-1]);
   }
 
   //
@@ -90,7 +97,7 @@ std::vector<TLatex*> SKError::getBinLabels(TH1D*hh){
       double offset = -0.5;
       double evismin = hh->GetXaxis()->GetBinLowEdge(i)/1000.;
       double evismax = hh->GetXaxis()->GetBinWidth(i)/1000. + evismin;
-      vlabel.push_back(new TLatex(offset,xpos,Form("[%1.1f - %1.1f]",evismin,evismax)));
+      vlabel.push_back(new TLatex(offset,xpos,Form("[%1.1f - %1.1f] MeV",evismin,evismax)));
       vlabel.at(i-1)->SetTextAlign(32);
       vlabel.at(i-1)->SetTextSize(0.08);
     }
@@ -102,64 +109,174 @@ std::vector<TLatex*> SKError::getBinLabels(TH1D*hh){
 
 
 ///////////////////////////////////////////////////////////////
-void SKError::drawDiagonals(){
+void SKError::drawErrors1D(bool flgDrawTN186){
 
+  // calc errors first
+  calcErrors1D();
+
+  // canvas setup
+  TCanvas* cc = new TCanvas("cc","cc",800,600);
+  cc->Divide(2,2);
+ 
+  TH1D* herr[] = {hErrorsCCQE[0],hErrorsCCQE[1],hErrorsCCOth[0],hErrorsCCOth[1]};
+
+  // histogram properties
+  hErrorsCCQE[0]->SetLineColor(kBlue);;
+//  hErrorsCCQE[0]->SetFillColor(kBlue);
+  hErrorsCCQE[0]->GetYaxis()->SetTitle("#Delta #varepsilon [%]");
+  hErrorsCCQE[0]->SetLineWidth(3);
+  hErrorsCCQE[0]->SetMarkerStyle(0);
+  hErrorsCCQE[1]->SetLineColor(kRed);
+//  hErrorsCCQE[1]->SetFillColor(kRed);
+  hErrorsCCQE[1]->GetYaxis()->SetTitle("#Delta #varepsilon [%]");
+  hErrorsCCQE[1]->SetLineWidth(3);
+  hErrorsCCQE[1]->SetMarkerStyle(0);
+  hErrorsCCOth[0]->SetLineColor(kBlue);
+//  hErrorsCCOth[0]->SetFillColor(kBlue);
+  hErrorsCCOth[0]->GetYaxis()->SetTitle("#Delta #varepsilon [%]");
+  hErrorsCCOth[0]->SetLineWidth(3);
+  hErrorsCCOth[0]->SetMarkerStyle(0);
+  hErrorsCCOth[1]->SetLineColor(kRed);
+//  hErrorsCCOth[1]->SetFillColor(kRed);
+  hErrorsCCOth[1]->GetYaxis()->SetTitle("#Delta #varepsilon [%]");
+  hErrorsCCOth[1]->SetLineWidth(3);
+  hErrorsCCOth[1]->SetMarkerStyle(0);
+
+  // set symmetric ranges
+  double range_nue_ccqe = TMath::Max( TMath::Abs(hErrorsCCQE[0]->GetMaximum()),
+                                      TMath::Abs(hErrorsCCQE[0]->GetMinimum()));
+  double range_num_ccqe = TMath::Max( TMath::Abs(hErrorsCCQE[1]->GetMaximum()),
+                                      TMath::Abs(hErrorsCCQE[1]->GetMinimum()));
+  double range_nue_ccoth = TMath::Max( TMath::Abs(hErrorsCCOth[0]->GetMaximum()),
+                                      TMath::Abs(hErrorsCCOth[0]->GetMinimum()));
+  double range_num_ccoth = TMath::Max( TMath::Abs(hErrorsCCOth[1]->GetMaximum()),
+                                      TMath::Abs(hErrorsCCOth[1]->GetMinimum()));
+  double factor = 1.5;
+  hErrorsCCQE[0]->SetMinimum(-1*factor*range_nue_ccqe);
+  hErrorsCCQE[0]->SetMaximum(1*factor*range_nue_ccqe);
+  hErrorsCCQE[1]->SetMinimum(-1*factor*range_num_ccqe);
+  hErrorsCCQE[1]->SetMaximum(1*factor*range_num_ccqe);
+  hErrorsCCOth[0]->SetMinimum(-1*factor*range_nue_ccoth);
+  hErrorsCCOth[0]->SetMaximum(1*factor*range_nue_ccoth);
+  hErrorsCCOth[1]->SetMinimum(-1*factor*range_num_ccoth);
+  hErrorsCCOth[1]->SetMaximum(1*factor*range_num_ccoth);
+  if (flgDrawTN186){
+    double hmin[] = {-25,-4,-60,-30};
+    double hmax[] = {25,4,60,30};
+    for (int i=0; i<4; i++){
+      herr[i]->SetMinimum(hmin[i]);
+      herr[i]->SetMaximum(hmax[i]);
+    }
+  }
+ 
+
+  // get bin labels
+  vector<TLatex*> vlabel_ccqe = getBinLabels(hEvisNuMuCCQE);
+  vector<TLatex*> vlabel_ccoth = getBinLabels(hEvisNuECCOth);
+
+  // set bin labels
+  for (int ibin=1; ibin<=hErrorsCCQE[0]->GetNbinsX(); ibin++){
+    hErrorsCCQE[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
+    hErrorsCCQE[1]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
+  }
+  for (int ibin=1; ibin<=hErrorsCCOth[0]->GetNbinsX(); ibin++){
+    hErrorsCCOth[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
+    hErrorsCCOth[1]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
+  }
+  float labelsize = 0.06;
+  hErrorsCCQE[0]->GetXaxis()->SetLabelSize(labelsize);
+  hErrorsCCQE[1]->GetXaxis()->SetLabelSize(labelsize);
+  labelsize = 0.08;
+  hErrorsCCOth[0]->GetXaxis()->SetLabelSize(labelsize);
+  hErrorsCCOth[1]->GetXaxis()->SetLabelSize(labelsize);
+
+  // draw
+  TF1* zeroValue = new TF1("zero","0",0,10000);
+  zeroValue->SetLineStyle(2);
+  zeroValue->SetLineWidth(2);
+  cc->cd(1);
+  hErrorsCCQE[0]->Draw("EH");
+  zeroValue->Draw("same");
+  cc->cd(2);
+  hErrorsCCQE[1]->Draw("EH");
+  zeroValue->Draw("same");
+  cc->cd(3);
+  hErrorsCCOth[0]->Draw("EH");
+  zeroValue->Draw("same");
+  cc->cd(4);
+  hErrorsCCOth[1]->Draw("EH");
+  zeroValue->Draw("same");
+  if (flgDrawTN186){
+    cc->cd(1);
+    hErrorTN186CCQE[0]->Draw("E2same");
+    hErrorsCCQE[0]->Draw("sameEH");
+    zeroValue->Draw("same");
+    cc->cd(2);
+    hErrorTN186CCQE[1]->Draw("E2same");
+    hErrorsCCQE[1]->Draw("sameEH");
+    zeroValue->Draw("same");
+    cc->cd(3);
+    hErrorTN186CCOth[0]->Draw("E2same");
+    hErrorsCCOth[0]->Draw("sameEH");
+    zeroValue->Draw("same");
+    cc->cd(4);
+    hErrorTN186CCOth[1]->Draw("E2same");
+    hErrorsCCOth[1]->Draw("sameEH");
+    zeroValue->Draw("same");
+  }
+ 
+
+
+  /*  
   // calc first
-  calcDiagonals();
+  calcErrors1D();
 
   // canvas setup
   TCanvas* cc = new TCanvas("cc","cc",800,600);
   cc->Divide(1,2);
 
   // histogram properties
-  hDiagonalErrorsCCQE[0]->SetLineColor(kBlue);
-  hDiagonalErrorsCCQE[0]->SetFillColor(kBlue);
-  hDiagonalErrorsCCQE[0]->SetLineWidth(3);
-  hDiagonalErrorsCCQE[0]->SetMarkerStyle(0);
-  hDiagonalErrorsCCQE[1]->SetLineColor(kRed);
-  hDiagonalErrorsCCQE[1]->SetFillColor(kRed);
-  hDiagonalErrorsCCQE[1]->SetLineWidth(3);
-  hDiagonalErrorsCCQE[1]->SetMarkerStyle(0);
-  hDiagonalErrorsCCOth[0]->SetLineColor(kBlue);
-  hDiagonalErrorsCCOth[0]->SetFillColor(kBlue);
-  hDiagonalErrorsCCOth[0]->SetLineWidth(3);
-  hDiagonalErrorsCCOth[0]->SetMarkerStyle(0);
-  hDiagonalErrorsCCOth[1]->SetLineColor(kRed);
-  hDiagonalErrorsCCOth[1]->SetFillColor(kRed);
-  hDiagonalErrorsCCOth[1]->SetLineWidth(3);
-  hDiagonalErrorsCCOth[1]->SetMarkerStyle(0);
+  hErrorsCCQE[0]->SetLineColor(kBlue);
+  hErrorsCCQE[0]->SetFillColor(kBlue);
+  hErrorsCCQE[0]->SetLineWidth(3);
+  hErrorsCCQE[0]->SetMarkerStyle(0);
+  hErrorsCCQE[1]->SetLineColor(kRed);
+  hErrorsCCQE[1]->SetFillColor(kRed);
+  hErrorsCCQE[1]->SetLineWidth(3);
+  hErrorsCCQE[1]->SetMarkerStyle(0);
+  hErrorsCCOth[0]->SetLineColor(kBlue);
+  hErrorsCCOth[0]->SetFillColor(kBlue);
+  hErrorsCCOth[0]->SetLineWidth(3);
+  hErrorsCCOth[0]->SetMarkerStyle(0);
+  hErrorsCCOth[1]->SetLineColor(kRed);
+  hErrorsCCOth[1]->SetFillColor(kRed);
+  hErrorsCCOth[1]->SetLineWidth(3);
+  hErrorsCCOth[1]->SetMarkerStyle(0);
 
   // find ranges
   double margin = 1.1;
-  double range_nue_ccqe = TMath::Max( TMath::Abs(hDiagonalErrorsCCQE[0]->GetMaximum()),
-                                      TMath::Abs(hDiagonalErrorsCCQE[0]->GetMinimum()));
-  double range_numu_ccqe = TMath::Max( TMath::Abs(hDiagonalErrorsCCQE[1]->GetMaximum()),
-                                      TMath::Abs(hDiagonalErrorsCCQE[1]->GetMinimum()));
+  double range_nue_ccqe = TMath::Max( TMath::Abs(hErrorsCCQE[0]->GetMaximum()),
+                                      TMath::Abs(hErrorsCCQE[0]->GetMinimum()));
+  double range_numu_ccqe = TMath::Max( TMath::Abs(hErrorsCCQE[1]->GetMaximum()),
+                                      TMath::Abs(hErrorsCCQE[1]->GetMinimum()));
   double range_ccqe = margin*TMath::Max( range_nue_ccqe, range_numu_ccqe);
-  range_ccqe += getMaxError(hDiagonalErrorsCCQE[0]);
-
+  range_ccqe += getMaxError(hErrorsCCQE[0]);
   cout<<"range: "<<range_ccqe<<endl; 
-  //
-  double range_nue_ccoth = TMath::Max( TMath::Abs(hDiagonalErrorsCCOth[0]->GetMaximum()),
-                                      TMath::Abs(hDiagonalErrorsCCOth[0]->GetMinimum()));
-  double range_numu_ccoth = TMath::Max( TMath::Abs(hDiagonalErrorsCCOth[1]->GetMaximum()),
-                                      TMath::Abs(hDiagonalErrorsCCOth[1]->GetMinimum()));
+  double range_nue_ccoth = TMath::Max( TMath::Abs(hErrorsCCOth[0]->GetMaximum()),
+                                      TMath::Abs(hErrorsCCOth[0]->GetMinimum()));
+  double range_numu_ccoth = TMath::Max( TMath::Abs(hErrorsCCOth[1]->GetMaximum()),
+                                      TMath::Abs(hErrorsCCOth[1]->GetMinimum()));
   double range_ccoth = margin*TMath::Max( range_nue_ccoth, range_numu_ccoth);
-  range_ccoth += getMaxError(hDiagonalErrorsCCOth[0]);
-
+  range_ccoth += getMaxError(hErrorsCCOth[0]);
   cout<<"range: "<<range_ccoth<<endl; 
-  //
-  hDiagonalErrorsCCQE[0]->SetMinimum(-1.*range_ccqe);
-  hDiagonalErrorsCCQE[0]->SetMaximum(1.*range_ccqe);
-  //
-  hDiagonalErrorsCCQE[1]->SetMinimum(-1.*range_ccqe);
-  hDiagonalErrorsCCQE[1]->SetMaximum(1.*range_ccqe);
-  //
-  hDiagonalErrorsCCOth[0]->SetMinimum(-1.*range_ccoth);
-  hDiagonalErrorsCCOth[0]->SetMaximum(1.*range_ccoth);
-  //
-  hDiagonalErrorsCCOth[1]->SetMinimum(-1.*range_ccoth);
-  hDiagonalErrorsCCOth[1]->SetMaximum(1.*range_ccoth);
+  hErrorsCCQE[0]->SetMinimum(-1.*range_ccqe);
+  hErrorsCCQE[0]->SetMaximum(1.*range_ccqe);
+  hErrorsCCQE[1]->SetMinimum(-1.*range_ccqe);
+  hErrorsCCQE[1]->SetMaximum(1.*range_ccqe);
+  hErrorsCCOth[0]->SetMinimum(-1.*range_ccoth);
+  hErrorsCCOth[0]->SetMaximum(1.*range_ccoth);
+  hErrorsCCOth[1]->SetMinimum(-1.*range_ccoth);
+  hErrorsCCOth[1]->SetMaximum(1.*range_ccoth);
 
 
   // get bin labels
@@ -168,20 +285,22 @@ void SKError::drawDiagonals(){
 
   // draw
   cc->cd(1);
-  for (int ibin=1; ibin<=hDiagonalErrorsCCQE[0]->GetNbinsX(); ibin++){
-    hDiagonalErrorsCCQE[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
+  for (int ibin=1; ibin<=hErrorsCCQE[0]->GetNbinsX(); ibin++){
+    hErrorsCCQE[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
   }
-  hDiagonalErrorsCCQE[0]->GetXaxis()->SetLabelSize(0.08);
-  hDiagonalErrorsCCQE[0]->Draw("E");
-  hDiagonalErrorsCCQE[1]->Draw("sameE");
+  hErrorsCCQE[0]->GetXaxis()->SetLabelSize(0.08);
+  hErrorsCCQE[0]->Draw("E");
+  hErrorsCCQE[1]->Draw("sameE");
   //
   cc->cd(2);
-  for (int ibin=1; ibin<=hDiagonalErrorsCCOth[0]->GetNbinsX(); ibin++){
-    hDiagonalErrorsCCOth[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
+  for (int ibin=1; ibin<=hErrorsCCOth[0]->GetNbinsX(); ibin++){
+    hErrorsCCOth[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
   }
-  hDiagonalErrorsCCOth[0]->GetXaxis()->SetLabelSize(0.08);
-  hDiagonalErrorsCCOth[0]->Draw("E");
-  hDiagonalErrorsCCOth[1]->Draw("sameE");
+  hErrorsCCOth[0]->GetXaxis()->SetLabelSize(0.08);
+  hErrorsCCOth[0]->Draw("E");
+  hErrorsCCOth[1]->Draw("sameE");
+
+  */
 
   //
   return;
@@ -189,8 +308,9 @@ void SKError::drawDiagonals(){
 }
 
 
+
 ///////////////////////////////////////////////////////////////
-void SKError::calcDiagonals(){
+void SKError::calcErrors1D(){
 
   // identify bins
   int bins_nue_ccqe[] = {1,2,3,4,5,6};
@@ -198,35 +318,38 @@ void SKError::calcDiagonals(){
   int bins_num_ccqe[] = {10,11,12,13,14,15,16};
   int bins_num_ccoth[] = {17,18,19};
 
+  // convert to percent
+  float factor = 100.0;
+
   // ccqe nue
-  for (int i=hDiagonalErrorsCCQE[0]->GetNbinsX(); i>1; i--){
+  for (int i=hErrorsCCQE[0]->GetNbinsX(); i>1; i--){
     int nbin = bins_nue_ccqe[i-2];
-    hDiagonalErrorsCCQE[0]->SetBinContent(i,hDiagonalErrors->GetBinContent(nbin));
-    hDiagonalErrorsCCQE[0]->SetBinError(i,hDiagonalErrors->GetBinError(nbin));
+    hErrorsCCQE[0]->SetBinContent(i,factor*hErrors->GetBinContent(nbin));
+    hErrorsCCQE[0]->SetBinError(i,factor*hErrors->GetBinError(nbin));
   }
 
   // ccqe numu
-  for (int i=hDiagonalErrorsCCQE[1]->GetNbinsX(); i>0; i--){
+  for (int i=hErrorsCCQE[1]->GetNbinsX(); i>0; i--){
     // fill numu ccqe bins
     int nbin = bins_num_ccqe[i-1];
-    hDiagonalErrorsCCQE[1]->SetBinContent(i,hDiagonalErrors->GetBinContent(nbin));
-    hDiagonalErrorsCCQE[1]->SetBinError(i,hDiagonalErrors->GetBinError(nbin));
+    hErrorsCCQE[1]->SetBinContent(i,factor*hErrors->GetBinContent(nbin));
+    hErrorsCCQE[1]->SetBinError(i,factor*hErrors->GetBinError(nbin));
   }
 
   // ccother nue
-  for (int i=hDiagonalErrorsCCOth[0]->GetNbinsX(); i>0; i--){
+  for (int i=hErrorsCCOth[0]->GetNbinsX(); i>0; i--){
     // fill numu ccqe bins
     int nbin = bins_nue_ccoth[i-1];
-    hDiagonalErrorsCCOth[0]->SetBinContent(i,hDiagonalErrors->GetBinContent(nbin));
-    hDiagonalErrorsCCOth[0]->SetBinError(i,hDiagonalErrors->GetBinError(nbin));
+    hErrorsCCOth[0]->SetBinContent(i,factor*hErrors->GetBinContent(nbin));
+    hErrorsCCOth[0]->SetBinError(i,factor*hErrors->GetBinError(nbin));
   }
 
   // ccother numu
-  for (int i=hDiagonalErrorsCCOth[1]->GetNbinsX(); i>0; i--){
+  for (int i=hErrorsCCOth[1]->GetNbinsX(); i>0; i--){
     // fill numu ccqe bins
     int nbin = bins_num_ccoth[i-1];
-    hDiagonalErrorsCCOth[1]->SetBinContent(i,hDiagonalErrors->GetBinContent(nbin));
-    hDiagonalErrorsCCOth[1]->SetBinError(i,hDiagonalErrors->GetBinError(nbin));
+    hErrorsCCOth[1]->SetBinContent(i,factor*hErrors->GetBinContent(nbin));
+    hErrorsCCOth[1]->SetBinError(i,factor*hErrors->GetBinError(nbin));
   }
 
   return;
@@ -251,6 +374,20 @@ void SKError::calcErrors(){
     }
     vShiftErrors = new TVectorD(Nclass,DelEffShiftError);
     return;
+}
+
+
+
+///////////////////////////////////////////////////////////////
+void SKError::marginalize(int ntoy){
+
+  // precondition: Nevents arrays filled over marginal points
+  for (int iclass=0; iclass<Nclass; iclass++){
+    DelEfficiency[iclass][ntoy] = calcMargEff(iclass);
+  }
+
+  //
+  return;
 }
 
 
@@ -471,10 +608,17 @@ double SKError::calcEff(int nclass, int ntoy){
   // don't divide by zero
   if (NeventsTotal[nclass][0]==0) return 0.;
 
+
   // get this efficiency  
-  double eff = Nevents[nclass][ntoy] / NeventsTotal[nclass][ntoy];
+  double eff = Nevents[nclass][ntoy] / NeventsNominal[nclass];
   cout<<"eff: "<<eff<<endl;
-  double eff0 = Nevents[nclass][0] / NeventsTotal[nclass][0];
+  double eff0 = NeventsNominalCore[nclass] / NeventsNominal[nclass];
+  cout<<"eff0: "<<eff0<<endl;
+
+  // get this efficiency  
+//  double eff = Nevents[nclass][ntoy] / NeventsTotal[nclass][0];
+//  cout<<"eff: "<<eff<<endl;
+//  double eff0 = Nevents[nclass][0] / NeventsTotal[nclass][0];
   cout<<"eff0: "<<eff0<<endl;
   
   if (eff0 == 0) return 0.;
@@ -482,6 +626,26 @@ double SKError::calcEff(int nclass, int ntoy){
   return ((eff/eff0) - 1.); 
 
 }
+
+
+
+
+///////////////////////////////////////////////////////////////
+// calcutlate marginalized efficiency
+// here the modified eff. is calc w.r.t. modified total
+double SKError::calcMargEff(int nclass){
+
+  // fill array of efficiencies
+  double effs[NTOYS];
+  for (int i=0; i<Nmarginal; i++){
+    double eff = Nevents[nclass][i] / NeventsTotal[nclass][i];
+    double eff0 = NeventsNominalCore[nclass] / NeventsNominal[nclass];
+    effs[i] = ((eff/eff0) - 1.); 
+  }
+
+  // return average
+  return arraymeanD(effs,Nmarginal);
+};
 
 
 
@@ -497,7 +661,7 @@ double SKError::calcDelEff(int nclass, int ntoy){
   // get this efficiency  
   double eff = Nevents[nclass][ntoy] / NeventsTotal[nclass][ntoy];
   cout<<"eff: "<<eff<<endl;
-  double eff0 = Nevents[nclass][0] / NeventsTotal[nclass][0];
+  double eff0 = NeventsNominalCore[nclass] / NeventsNominal[nclass];
   cout<<"eff0: "<<eff0<<endl;
   
   if (eff0 == 0) return 0.;
@@ -537,11 +701,10 @@ void SKError::calcCov(int vartype){
   for (int i=0; i<Nclass; i++){
 
     // fill diagonal errors
-    
     // efficiency errors
     if ( vartype==0 ) {
-      hDiagonalErrors->SetBinContent(i+1,arraymeanD(DelEfficiency[i],Ntoys));
-      hDiagonalErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(DelEfficiency[i],Ntoys)));
+      hErrors->SetBinContent(i+1,arraymeanD(DelEfficiency[i],Ntoys));
+      hErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(DelEfficiency[i],Ntoys)));
       double cov = arraycovD(DelEfficiency[i],DelEfficiency[i],Ntoys);
       double cor = arraycorD(DelEfficiency[i],DelEfficiency[i],Ntoys);
       hCov->SetBinContent(i+1,i+1,cov);
@@ -550,8 +713,8 @@ void SKError::calcCov(int vartype){
 
     // NSK errors
     else if ( vartype==1 ){
-      hDiagonalErrors->SetBinContent(i+1,arraymeanD(Nevents[i],Ntoys));
-      hDiagonalErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(Nevents[i],Ntoys)));       
+      hErrors->SetBinContent(i+1,arraymeanD(Nevents[i],Ntoys));
+      hErrors->SetBinError(i+1,TMath::Sqrt(arrayvarD(Nevents[i],Ntoys)));       
       double cov = arraycovD(Nevents[i],Nevents[i],Ntoys);
       double cor = arraycorD(Nevents[i],Nevents[i],Ntoys);
       hCov->SetBinContent(i+1,i+1,cov);
@@ -562,12 +725,15 @@ void SKError::calcCov(int vartype){
     for (int j=0; j<Nclass; j++){
      
       // symmetry
-      if (j<=i) continue;
-
+      if (j<i) continue;
+         
       // off-diagonal elements
       if ( vartype==0 ) {
         double cov = arraycovD(DelEfficiency[i],DelEfficiency[j],Ntoys);
         double cor = arraycorD(DelEfficiency[i],DelEfficiency[j],Ntoys);
+        if (j==i){
+          cor = 1.;
+        }
         hCov->SetBinContent(i+1,j+1,cov);
         hCor->SetBinContent(i+1,j+1,cor);
         hCov->SetBinContent(j+1,i+1,cov);
@@ -576,6 +742,9 @@ void SKError::calcCov(int vartype){
       else if ( vartype==1 ){
         double cov = arraycovD(Nevents[i],Nevents[j],Ntoys);
         double cor = arraycorD(Nevents[i],Nevents[j],Ntoys);
+        if (j==i){
+          cor = 1.;
+        }
         hCov->SetBinContent(i+1,j+1,cov);
         hCor->SetBinContent(i+1,j+1,cor);
         hCov->SetBinContent(j+1,i+1,cov);
@@ -597,20 +766,20 @@ void SKError::calcCov(int vartype){
 
 
 ///////////////////////////////////////////////////////////////
-void SKError::calcAllDelEff(int ntoy, int effdef){
+void SKError::calcAllEff(int ntoy){
 
   // find efficiency for each class
   for (int iclass=0; iclass<Nclass; iclass++){
 
     double eff = 0.;
-    if (effdef==0){
+    if (effDefinition==0){
       eff = calcDelEff(iclass,ntoy); 
       DelEfficiency[iclass][ntoy] = eff;
     }
 
     // use nominal value (instead of alpha-modified, see TN-186)
     // in the denominator:
-    else if (effdef==1){
+    else if (effDefinition==1){
       eff = calcEff(iclass,ntoy); 
       DelEfficiency[iclass][ntoy] = eff;
     }
@@ -623,8 +792,67 @@ void SKError::calcAllDelEff(int ntoy, int effdef){
 
 
 ///////////////////////////////////////////////////////////////
-void SKError::addToy(int ntoy){
+void SKError::addNominal(){
 
+   // save histos in arrays
+   int index = 0;
+   //
+   for (int ibin=1; ibin<=hEvisNuECCQE->GetNbinsX(); ibin++){
+     NeventsNominalCore[index] = hEvisNuECCQE->GetBinContent(ibin);
+     index++;
+   }
+   //
+   for (int ibin=1; ibin<=hEvisNuECCOth->GetNbinsX(); ibin++){
+     NeventsNominalCore[index] = hEvisNuECCOth->GetBinContent(ibin);
+     index++;
+   }
+   //
+   for (int ibin=1; ibin<=hEvisNuMuCCQE->GetNbinsX(); ibin++){
+     NeventsNominalCore[index] = hEvisNuMuCCQE->GetBinContent(ibin);
+     index++;
+   }
+   //;
+   for (int ibin=1; ibin<=hEvisNuMuCCOth->GetNbinsX(); ibin++){
+     NeventsNominalCore[index] = hEvisNuMuCCOth->GetBinContent(ibin);
+     index++;
+   }
+
+   // save histos in TOTAL arrays
+   index = 0;
+   //
+   for (int ibin=1; ibin<=hEvisNuECCQE->GetNbinsX(); ibin++){
+     NeventsNominal[index] = hEvisNuECCQETot->GetBinContent(ibin);
+     index++;
+   }
+   //
+   for (int ibin=1; ibin<=hEvisNuECCOth->GetNbinsX(); ibin++){
+     NeventsNominal[index] = hEvisNuECCOthTot->GetBinContent(ibin);
+     index++;
+   }
+   //
+   for (int ibin=1; ibin<=hEvisNuMuCCQE->GetNbinsX(); ibin++){
+     NeventsNominal[index] = hEvisNuMuCCQETot->GetBinContent(ibin);
+     index++;
+   }
+   //
+   for (int ibin=1; ibin<=hEvisNuMuCCOth->GetNbinsX(); ibin++){
+     NeventsNominal[index] = hEvisNuMuCCOthTot->GetBinContent(ibin);
+     index++;
+   }
+
+   // calculate all of the epsilon values!
+//   calcAllEff(ntoy);
+
+ // 
+ return;
+
+
+}
+
+
+
+///////////////////////////////////////////////////////////////
+void SKError::fillNeventArrays(int ntoy){
 
    // save histos in arrays
    int index = 0;
@@ -672,8 +900,19 @@ void SKError::addToy(int ntoy){
      index++;
    }
 
+   return;
+}
+
+
+
+///////////////////////////////////////////////////////////////
+void SKError::addToy(int ntoy){
+
+   // fill all event arrays
+   fillNeventArrays(ntoy);
+
    // calculate all of the epsilon values!
-   calcAllDelEff(ntoy);
+   calcAllEff(ntoy);
 
  // 
  return;
@@ -694,6 +933,8 @@ void SKError::resetHistos(){
   hEvisNuMuCCQETot->Reset();
   hEvisNuECCOthTot->Reset();
   hEvisNuMuCCOthTot->Reset();
+
+
 
   return;
 }
@@ -913,11 +1154,9 @@ void SKError::drawEffDist(int iclass){
    lmean->SetLineColor(kRed);
    lmean->SetLineStyle(2);
    lmean->Draw("same");
-
    TLine* lzero = new TLine(0,0,0,hdist->GetMaximum());
    lzero->SetLineWidth(2);
    lzero->Draw("same");
-
    return;
 }
 
@@ -1044,14 +1283,14 @@ void SKError::initHistos(int ibinning){
 
   if (ibinning==0){
   // histo binning (andy :) )
-  int    NbinsNuECCQE = 1;
-  double BinsNuECCQE[] = {100,30000.};
-  int    NbinsNuECCOth = 1;
-  double BinsNuECCOth[] = {100.,30000.};
+  int    NbinsNuECCQE = 2;
+  double BinsNuECCQE[] = {100,1250.,30000.};
+  int    NbinsNuECCOth = 2;
+  double BinsNuECCOth[] = {100.,1250.,30000.};
   int    NbinsNuMuCCQE = 3;
-  double BinsNuMuCCQE[] = {0.,700.,5000.,30000.};
-  int    NbinsNuMuCCOth = 1;
-  double BinsNuMuCCOth[] = {0,30000.};
+  double BinsNuMuCCQE[] = {0.,1250.,5000.,30000.};
+  int    NbinsNuMuCCOth = 2;
+  double BinsNuMuCCOth[] = {0,1250.,30000.};
   // setup histos
   hEvisNuECCQE = new TH1D("hnueccqe","hnueccqe",NbinsNuECCQE,BinsNuECCQE); 
   hEvisNuECCOth = new TH1D("hnueccoth","hnueccoth",NbinsNuECCOth,BinsNuECCOth); 
@@ -1117,15 +1356,14 @@ void SKError::initHistos(int ibinning){
   hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
   hCov = new TH2D("hcov","hcov",Nclass,0,Nclass,Nclass,0,Nclass);
   hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
-  hDiagonalErrors = new TH1D("hdiag","hdiag",Nclass,0,Nclass);
+  hErrors = new TH1D("hdiag","hdiag",Nclass,0,Nclass);
   int nbins_ccqe = TMath::Max(hEvisNuECCQE->GetNbinsX(),hEvisNuMuCCQE->GetNbinsX());
   int nbins_ccoth = TMath::Max(hEvisNuECCOth->GetNbinsX(),hEvisNuMuCCOth->GetNbinsX());
   for ( int i=0; i<2; i++ ) {
-    hDiagonalErrorsCCQE[i] = new TH1D("hdiag_ccqe","hdiag_ccqe",nbins_ccqe,0,nbins_ccqe);
-    hDiagonalErrorsCCOth[i] = new TH1D("hdiag_ccoth","hdiag_ccoth",nbins_ccoth,0,nbins_ccoth);
+    hErrorsCCQE[i] = new TH1D("hdiag_ccqe","hdiag_ccqe",nbins_ccqe,0,nbins_ccqe);
+    hErrorsCCOth[i] = new TH1D("hdiag_ccoth","hdiag_ccoth",nbins_ccoth,0,nbins_ccoth);
   }
   hCor = new TH2D("hcor","hcor",Nclass,0,Nclass,Nclass,0,Nclass);
-
 
 
   // make labels for bins, sections
@@ -1143,7 +1381,25 @@ SKError::SKError(int ntoys){
   // setup the histos
   Ntoys = ntoys;
   initHistos();
+  initTN186Errors();
 
+  for (int iclass=0; iclass<NCLASSES; iclass++){
+    NeventsNominal[iclass]=0.;
+    NeventsNominalCore[iclass]=0.;
+    DelEffShiftError[iclass]=0.;
+    absDelEffShiftError[iclass]=0.;
+    DelEffFitError[iclass]=0.;
+    for (int jtoy=0; jtoy<NTOYS; jtoy++){
+      Nevents[iclass][jtoy]=0.;
+      NeventsTotal[iclass][jtoy]=0.;
+      DelEfficiency[iclass][jtoy]=0.;
+    }
+  }
+
+
+  // 0 -> 100% defined using flux, xsec, and norm parameters
+  // 1 -> 100% defined using nominal value
+  effDefinition = 0;
 }
 
 

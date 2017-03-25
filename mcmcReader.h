@@ -15,6 +15,8 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 
+#include "stats.C"
+
 class mcmcReader {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
