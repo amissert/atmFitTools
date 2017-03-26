@@ -97,7 +97,7 @@ std::vector<TLatex*> SKError::getBinLabels(TH1D*hh){
       double offset = -0.5;
       double evismin = hh->GetXaxis()->GetBinLowEdge(i)/1000.;
       double evismax = hh->GetXaxis()->GetBinWidth(i)/1000. + evismin;
-      vlabel.push_back(new TLatex(offset,xpos,Form("[%1.1f - %1.1f] MeV",evismin,evismax)));
+      vlabel.push_back(new TLatex(offset,xpos,Form("[%1.1f - %1.1f] GeV",evismin,evismax)));
       vlabel.at(i-1)->SetTextAlign(32);
       vlabel.at(i-1)->SetTextSize(0.08);
     }
@@ -160,15 +160,20 @@ void SKError::drawErrors1D(bool flgDrawTN186){
   hErrorsCCOth[0]->SetMaximum(1*factor*range_nue_ccoth);
   hErrorsCCOth[1]->SetMinimum(-1*factor*range_num_ccoth);
   hErrorsCCOth[1]->SetMaximum(1*factor*range_num_ccoth);
+  double hmin[] = {-20,-1,-60,-6};
+  double hmax[] = {20,1,60,6};
+  for (int i=0; i<4; i++){
+    herr[i]->SetMinimum(hmin[i]);
+    herr[i]->SetMaximum(hmax[i]);
+  }
   if (flgDrawTN186){
-    double hmin[] = {-25,-4,-60,-30};
-    double hmax[] = {25,4,60,30};
+    double hmin2[] = {-25,-4,-60,-30};
+    double hmax2[] = {25,4,60,30};
     for (int i=0; i<4; i++){
-      herr[i]->SetMinimum(hmin[i]);
-      herr[i]->SetMaximum(hmax[i]);
+      herr[i]->SetMinimum(hmin2[i]);
+      herr[i]->SetMaximum(hmax2[i]);
     }
   }
- 
 
   // get bin labels
   vector<TLatex*> vlabel_ccqe = getBinLabels(hEvisNuMuCCQE);
@@ -940,24 +945,25 @@ void SKError::resetHistos(){
 }
 
 
+
 ///////////////////////////////////////////////////////////////
-void SKError::addEvent(int nclass, double evis, double weight, bool flgtot){
+int SKError::addEvent(int nclass, double evis, double weight, bool flgtot){
 
-
+  
   // passes core
   if (!flgtot){
     //
     if (nclass==1){
-      hEvisNuECCQE->Fill(evis,weight);
+      return hEvisNuECCQE->Fill(evis,weight);
     }
     if (nclass==2){
-      hEvisNuMuCCQE->Fill(evis,weight);
+      return hEvisNuMuCCQE->Fill(evis,weight);
     }
     if (nclass==3){
-      hEvisNuECCOth->Fill(evis,weight);
+      return hEvisNuECCOth->Fill(evis,weight);
     }
     if (nclass==4){
-      hEvisNuMuCCOth->Fill(evis,weight);
+      return hEvisNuMuCCOth->Fill(evis,weight);
     }
   }
 
@@ -965,21 +971,22 @@ void SKError::addEvent(int nclass, double evis, double weight, bool flgtot){
   else{
     //
     if (nclass==1){
-      hEvisNuECCQETot->Fill(evis,weight);
+      return hEvisNuECCQETot->Fill(evis,weight);
     }
     if (nclass==2){
-      hEvisNuMuCCQETot->Fill(evis,weight);
+      return hEvisNuMuCCQETot->Fill(evis,weight);
     }
     if (nclass==3){
-      hEvisNuECCOthTot->Fill(evis,weight);
+      return hEvisNuECCOthTot->Fill(evis,weight);
     }
     if (nclass==4){
-      hEvisNuMuCCOthTot->Fill(evis,weight);
+      return hEvisNuMuCCOthTot->Fill(evis,weight);
     }
   }
-  //
-  return;
+
+  return 0;
 }
+
 
 
 ///////////////////////////////////////////////////////////////
@@ -1396,6 +1403,30 @@ SKError::SKError(int ntoys){
     }
   }
 
+  //
+  evisClass[1][1]=0;
+  evisClass[1][2]=1;
+  evisClass[1][3]=2;
+  evisClass[1][4]=3;
+  evisClass[1][5]=4;
+  evisClass[1][6]=5;
+  //
+  evisClass[3][1]=6;
+  evisClass[3][2]=7;
+  evisClass[3][3]=8;
+  //
+  evisClass[2][1]=9;
+  evisClass[2][2]=10;
+  evisClass[2][3]=11;
+  evisClass[2][4]=12;
+  evisClass[2][5]=13;
+  evisClass[2][6]=14;
+  evisClass[2][7]=15;
+  //
+  evisClass[4][1]=16;
+  evisClass[4][2]=17;
+  evisClass[4][3]=18;
+
 
   // 0 -> 100% defined using flux, xsec, and norm parameters
   // 1 -> 100% defined using nominal value
@@ -1403,6 +1434,230 @@ SKError::SKError(int ntoys){
 }
 
 
+
+
+///////////////////////////////////////////////////////////////
+TH1D* SKError::makeHisto(const char* varname){
+
+  TString var = varname;
+  int nbins = 150;
+  double xmin = -1000;
+  double xmax = 1000;
+
+  if (!var.CompareTo("fqpidpar")){
+    nbins = 150;
+    xmin = -4500;
+    xmax = 4500;
+  }
+  if (!var.CompareTo("fqpi0par")){
+    nbins = 100;
+    xmin = -1500;
+    xmax = 1500;
+  }
+  if (!var.CompareTo("fqpippar")){
+    nbins = 150;
+    xmin = -1500;
+    xmax = 1500;
+  }
+  if (!var.CompareTo("fqrcpar")){
+    nbins = 150;
+    xmin = -400;
+    xmax = 1000;
+  }
+  if (!var.CompareTo("pmomv")){
+    nbins = 100;
+    xmin = 0;
+    xmax = 30000;
+  }
+  if (!var.CompareTo("nse")){
+    nbins = 10;
+    xmin = 0;
+    xmax = 10;
+  }
+  if (!var.CompareTo("nse")){
+    nbins = 10;
+    xmin = 0;
+    xmax = 10;
+  }
+  if (!var.CompareTo("nring")){
+    nbins = 10;
+    xmin = 0;
+    xmax = 10;
+  }
+  if (!var.CompareTo("mode")){
+    nbins = 80;
+    xmin = 0;
+    xmax = 40;
+  }
+  if (!var.CompareTo("wall")){
+    nbins = 100;
+    xmin = 0;
+    xmax = 1500;
+  }
+
+  TH1D* h = new TH1D("hvar","hvar",nbins,xmin,xmax);
+  return h;
+}
+
+
+
+///////////////////////////////////////////////////////////////
+int SKError::isCore(int nclass, float fqpidpar, float fqpi0par, float fqpippar,float fqrcpar){
+
+ // see if it passes core cuts
+  // classes: 1 -> nu e CCQE
+  //          2 -> nu mu CCQE
+  //          3 -> nu e CCOth
+  //          4 -> nu mu CCOth
+  //          5 -> NC pi0
+  if (nclass==1){ //< require single ring electron and CCQE
+    if (fqpidpar>=0. && fqpi0par<=0. && fqrcpar<=0.){//< e-like, not pi0, 1R-like
+      return 1;
+    }
+    else{
+      return 0;
+    }
+  }
+
+
+  // muon CCQE
+  if (nclass==2){
+    if (fqpidpar<=0 && fqpippar<=0. && fqrcpar<=0.){
+      return 1; // mu-lik and not pip and 1R-like so is core
+    }
+    else{
+      return 0;
+    }
+  }
+
+
+  // electron CCOth
+  if (nclass==3){
+    if (fqpidpar>=0 && fqpi0par<=0. && fqrcpar<=0.){
+      return 1; // e-like and not pi0 and 1R-like
+    }
+    else{
+      return 0;
+    }
+  }
+
+
+  // muon CCOth
+  if (nclass==4){
+    if (fqpidpar<=0 && fqpippar<=0. && fqrcpar<=0.){
+      return 1; //< mu-lik and not pip and 1R-like
+    }
+    else{
+      return 0.;
+    }
+  }
+
+
+  // NC
+  if (nclass==5){
+    if (fqpidpar>=0 && fqpi0par<=0. && fqrcpar<=0.){
+      return 1; //< e-like and not pi0-like
+    }
+    else{
+      return 0.;
+    }
+  }
+
+  //
+  return 0;
+
+
+}
+
+
+
+///////////////////////////////////////////////////////////////
+int SKError::getClassEvis(int nclass, int nevisbin){
+  return evisClass[nclass][nevisbin];
+}
+
+
+///////////////////////////////////////////////////////////////
+void SKError::drawVariable(mcLargeArray* events, const char* varname, int nclass, bool flgcore){
+
+  // get name of var
+  TString var = varname;
+
+  // setup histogram binning
+  if (hVariable!=NULL){
+    hVariable->Delete();
+  }
+  hVariable = makeHisto(varname);
+
+  // loop over MC events
+  for (int iev=0; iev<events->nsize; iev++){
+
+    // get the class
+    int iclass = getClassMC(events->vnutype[iev], events->vmode[iev], events->vcomponent[iev],
+                 events->vfqemom[iev], events->vfqnsubev[iev], events->vfqtowall[iev], events->vfqwall[iev]);
+
+    if (iclass==0) continue;
+    // get the erec bin
+    int ebin = addEvent(iclass,events->vfqemom[iev], 1.,false);
+    int evisclass = getClassEvis(iclass,ebin);
+   
+
+//    if (evisclass<=0) continue;
+    if (evisclass!=nclass){ 
+//      if (iclass==3){
+//      cout<<"ebin: "<<ebin<<endl;
+//      cout<<"evis: "<<events->vfqemom[iev]<<endl;
+//      cout<<"evisclass: "<<evisclass<<endl;
+//      cout<<"iclass: "<<iclass<<endl;
+//      cout<<"nclass: "<<nclass<<endl;
+//      }
+      continue;
+    }
+
+    if (flgcore){
+      if (!isCore(iclass,events->vattribute[iev][0]
+                        ,events->vattribute[iev][1]
+                        ,events->vattribute[iev][2]
+                        ,events->vattribute[iev][3])){
+        continue;
+      }
+    }
+
+    double ww = events->vweight[iev];
+    if  (!var.CompareTo("fqpidpar")){
+      hVariable->Fill(events->vattribute[iev][0],ww);
+    }
+    if  (!var.CompareTo("fqpi0par")){
+      hVariable->Fill(events->vattribute[iev][1],ww);
+    }
+    if  (!var.CompareTo("fqpippar")){
+      hVariable->Fill(events->vattribute[iev][2],ww);
+    }
+    if  (!var.CompareTo("fqrcpar")){
+      hVariable->Fill(events->vattribute[iev][3],ww);
+    }
+    if  (!var.CompareTo("pmomv")){
+      hVariable->Fill(events->vpmomv[iev],ww);
+    }
+    if  (!var.CompareTo("nse")){
+      hVariable->Fill(events->vfqnsubev[iev],ww);
+    }
+    if  (!var.CompareTo("mode")){
+      hVariable->Fill(events->vmode[iev],ww);
+    }
+    if  (!var.CompareTo("wall")){
+      hVariable->Fill(events->vfqwall[iev],ww);
+    }
+    if  (!var.CompareTo("nring")){
+      hVariable->Fill(events->vfqnring[iev],ww);
+    }
+  
+  }
+
+  hVariable->Draw("");
+
+
+};
 
 
 

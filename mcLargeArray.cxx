@@ -6,7 +6,12 @@
 
 mcLargeArray::mcLargeArray(TChain* ch, int nevents){
  
+  // select random events if not using everything
   nsize = nevents;
+  int nmax = ch->GetEntries();
+  if (nsize>=nmax){ 
+    nsize=nmax;
+  }
   fillArray(ch);
 }
 
@@ -82,13 +87,6 @@ void mcLargeArray::fillArray(TChain* ch){
  fqProcessedEvent* mcevent = new fqProcessedEvent(ch);
 
 
- // select random events if not using everything
-// TRandom2* randy = new TRandom2(nsize);
- int nmax = ch->GetEntries();
- if (nsize>=nmax){ 
-//   flgUseRandom=0;
-   nsize=nmax;
- }
 
  for (int i=0; i<nsize; i++){
   int ievent = i;

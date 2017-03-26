@@ -20,6 +20,7 @@
 #include "TVectorD.h"
 #include "TCanvas.h"
 #include "TGraph.h"
+#include "mcLargeArray.h"
 #include "TLatex.h"
 
 const int NCLASSES = 50;
@@ -68,6 +69,9 @@ class SKError{
   TH1D* hEvisNuECCOthTot;
   TH1D* hEvisNuMuCCQETot;
   TH1D* hEvisNuMuCCOthTot;
+
+  // for checking distributions
+  TH1D* hVariable;
 
   // for drawing lines
   TLine* lineHorz[NLINES];
@@ -120,8 +124,10 @@ class SKError{
   int getClassMC(int nutype, int mode, int component,
                  double evis, int nsubev, double towall, double wall);
 
+  int getClassEvis(int nclass, int nevisbin);
+
   // fill an event in the histograms
-  void addEvent(int nclass, double evis, double weight, bool flgtotal); 
+  int addEvent(int nclass, double evis, double weight, bool flgtotal); 
 
   // save histo contents into arrays
   void addToy(int ntoy);
@@ -179,7 +185,16 @@ class SKError{
 
   void initTN186Errors();
 
+  void drawVariable(mcLargeArray* events, const char* varname, int iclass, bool flgcore=false);
 
+  TH1D* makeHisto(const char* varname);
+
+  int isCore(int nclass, float fqpidpar, float fqpi0par, float fqpippar,float fqrcpar);
+
+  private:
+
+  int evisClass[NCLASSES][NCLASSES];
+  
 };
 
 

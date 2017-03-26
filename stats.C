@@ -28,6 +28,9 @@ void fillnormal(float arrx[], float arry[], int n
 }
 */
 
+const double ZEROISH = 1e-20;
+
+
 //////////////////////////////////////////////
 float arraymean(float arr[], int n){
   
@@ -117,7 +120,8 @@ float arrayvar(float arr[], int n){
     N++;
   }
 
-  return var/N;
+  if (var<ZEROISH) return 0.;
+  return var/(N-1.);
 }
 
 
@@ -130,9 +134,9 @@ float arraycov(float arrx[], float arry[], int n){
   float N = (float)n;
   float cov=0.;
 
-  if ((N-1) <= 0.) return 0.;
+  if ((N) <= 0.) return 0.;
   for (int i=0; i<n; i++){
-    cov += (arrx[i]-meanx)*(arry[i]-meany)/(N-1.); 
+    cov += (arrx[i]-meanx)*(arry[i]-meany)/(N); 
   }
 
   return cov;
@@ -141,6 +145,7 @@ float arraycov(float arrx[], float arry[], int n){
 
 ///////////////////////////////////////////////
 float arraycor(float arrx[], float arry[], int n){
+
 
   // intermediate vars 
   float meanx = arraymean(arrx,n);
@@ -151,7 +156,7 @@ float arraycor(float arrx[], float arry[], int n){
   // checks
   if (varx*vary == 0) return 0.;
   float N = (float)n;
-  if ((N-1) <= 0.) return 0.;
+  if ((N) <= 0.) return 0.;
 
   // calc
   float cov=0.;
@@ -190,8 +195,8 @@ double arrayvarD(double arr[], int n){
     var += ((arr[i]-mean)*(arr[i]-mean));
     N++;
   }
-
-  return var/N;
+  if (var<ZEROISH) return 0.;
+  return var/(N-1);
 }
 
 ///////////////////////////////////////////////
@@ -205,7 +210,7 @@ double arraycovD(double arrx[], double arry[], int n){
 
   if ((N-1) <= 0.) return 0.;
   for (int i=0; i<n; i++){
-    cov += (arrx[i]-meanx)*(arry[i]-meany)/(N-1.); 
+    cov += (arrx[i]-meanx)*(arry[i]-meany)/(N); 
   }
 
   return cov;
@@ -222,14 +227,14 @@ double arraycorD(double arrx[], double arry[], int n){
   double vary = TMath::Sqrt(arrayvarD(arry,n));
   
   // checks
-  if (varx*vary == 0) return 0.;
+  if (varx*vary <= ZEROISH) return 0.;
   double N = (double)n;
   if ((N-1) <= 0.) return 0.;
 
   // calc
   double cov=0.;
   for (int i=0; i<n; i++){
-    cov += (arrx[i]-meanx)*(arry[i]-meany)/(N-1.); 
+    cov += (arrx[i]-meanx)*(arry[i]-meany)/(N-1); 
   }
 
   return cov/(varx*vary);
