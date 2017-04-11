@@ -71,7 +71,12 @@ class SKError{
   TH1D* hEvisNuMuCCOthTot;
 
   // for checking distributions
-  TH1D* hVariable;
+  TH1D* hVariable1;
+  TH1D* hVariable2;
+
+  // names and energy ranges
+  TString className[NCLASSES];
+  TString classRange[NCLASSES];
 
   // for drawing lines
   TLine* lineHorz[NLINES];
@@ -150,26 +155,32 @@ class SKError{
   // calculate efficiencies for all classes
   void calcAllEff(int ntoy);
 
+  // fill Nevent arrays from histograms
   void fillNeventArrays(int ntoy);
 
   // draw scatterplot
   void drawScatter(int iclass, int jclass);
 
+  // calc the shift error from nominal
   double calcShiftError(int iclass);
 
+  // calc error from variance
   double calcFitError(int iclass);
 
+  // calc all of the fit and shift errors
   void calcErrors();
 
   // calcuate marginalized efficiency and set as ntoy-th 
   // array value of DelEfficiency
   void marginalize(int ntoy);
 
+  // print out error values
   void printErrors();
 
   void saveErrors(const char* filename);
 
-  void printEffDist(const char* plotdir);
+  void printEachEffDist(const char* plotdir);
+  void printAllEffDist(const char* plotdir, int nclass, const char* tag);
 
   void makeBinLabels();
 
@@ -185,9 +196,11 @@ class SKError{
 
   void initTN186Errors();
 
-  void drawVariable(mcLargeArray* events, const char* varname, int iclass, bool flgcore=false);
+  void initClassTags();
 
-  TH1D* makeHisto(const char* varname);
+  void drawVariable(mcLargeArray* events, const char* varname, int iclass, int flgcore=0);
+
+  TH1D* makeHisto(const char* varname, const char* hname);
 
   int isCore(int nclass, float fqpidpar, float fqpi0par, float fqpippar,float fqrcpar);
 

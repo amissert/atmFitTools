@@ -575,23 +575,19 @@ int preProcess::passCuts(){
   //Fully Contained Cut
   if ((int)fq->nhitac>NHITACMax) return 0;
 
-
   //////////////////////
   //Visible Energy Cut
   if (fq->fq1rmom[0][1]<EVisMin) return 0;
-
 
   ////////////////
   //FV Basic Cuts
   if (WallMin>0) if (wall<WallMin) return 0; 
   if (ToWallMin>0) if (towall<ToWallMin) return 0;  
 
-
   /////////////////////////
   //Number of subevent cuts
   if (fq->fqnse>NSEMax) return 0;
   if (fq->fqnse<NSEMin) return 0;
- 
 
   /////////////////////////////////////////////
   // optional masking cut for hybrid pi0 spikes
@@ -807,6 +803,11 @@ int preProcess::preProcessIt(){
   int applyT2K = 1;
   if (ntupleType.CompareTo("Cosmic")==0) applyT2K = 0;
   if (ntupleType.CompareTo("Hybrid")==0) applyT2K = 0;
+
+  // apply basic cuts for atm and t2k?
+  int applyBaseCuts = 1;
+  if (ntupleType.CompareTo("Cosmic")) applyBaseCuts = 0;
+
 //  if (ntupleType.CompareTo("Atmospheric")==0) applyT2K = 0;
 
   // loop over events in tree
@@ -825,10 +826,12 @@ int preProcess::preProcessIt(){
     //calc FV bin and fill FV variables
     if (getBinFlg) nbin=getBin();;
     if (nbin<0.) continue;
-    if (!passCuts()) continue;
+    if (applyBaseCuts){
+      if (!passCuts()) continue;
+    }
     naccepted++;
 
-//    // hybrid pi0s don't have the right banks for VR counting
+    // hybrid pi0s don't have the right banks for VR counting
     if (fillVisibleFlg) vis->fillVisVar(); // get visible ring information
 
     // calculate attributes from fiTQun variables
@@ -891,32 +894,26 @@ void preProcess::applyT2KSelection(){
 //returns the index of the best 2R fit
 // ! temporary change to return fit 20000033 !
 int preProcess::getBest2RFitID(fqEvent* fqevent){
-//  cout<<"--------"<<endl;
+
+  // total number of MR fits
   int nfits = (int)fqevent->fqnmrfit;
 
+  // loop to find the best likelihood
   double ngLnLBest = 10000000.;
   int bestindex = 0;
-//  cout<<"nfits: "<<nfits<<endl; 
   for (int ifit=0;ifit<nfits;ifit++){
-//    cout<<"hcecking: "<<ifit<<endl;
     int fitID = TMath::Abs(fqevent->fqmrifit[ifit]); //< fit fit ID code
-//    if (fitID==20000033){
+    // pick out the fits we want to compare to
     if (TMath::Abs(fitID-10000000)<50){
-//    if (TMath::Abs(fitID-20000000)<50){
-//    if (TMath::Abs(fitID)<50){
-//      cout<<fitID<<endl;
-//      cout<<fqevent->fqmrnll[ifit]<<endl;
-//      cout<<"best!"<<endl;
+      // check if it's the best
       if (fqevent->fqmrnll[ifit] < ngLnLBest){
         ngLnLBest = fqevent->fqmrnll[ifit];
         bestindex = ifit;
       }
-     // break; //< we want best 2R fits
     }
   }
   
   best2RID = bestindex;
-//  cout<<"best: "<<fqevent->fqmrifit[bestindex]<<endl;
   return bestindex;
 }
 
@@ -942,57 +939,28 @@ float preProcess::getRCParameter(fqEvent* fqevent){
   
   // get best 2R ID
   int ibest = getBest2RFitID(fqevent);
-//  int ibest = 0;
 
   // get best 1R Likelihood 
   float best1Rnglnl = TMath::Min(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2] );
 
-  /*
-  float best1Rnglnl = 0.;
-//  float ring1mom = 0.;
-  if ( fqevent->fq1rnll[0][1]<fqevent->fq1rnll[0][2]){
-    best1Rnglnl = fqevent->fq1rnll[0][1];
-    ring1mom = fqevent->fq1rmom[0][1];
-  }
-  else{
-    best1Rnglnl = fqevent->fq1rnll[0][2];
-    ring1mom = fqevent->fq1rmom[0][2];
-  }
-
-//  float best1Rnglnl = (float)fmin(fqevent->fq1rnll[0][1],fqevent->fq1rnll[0][2]);
-//  cout<<"best 1r: "<<best1Rnglnl<<endl;
-  */
-
-
-  ///////////////////////////////////////////////////
   // get mom of 2nd ring
   float ringmom = (float)TMath::Min(fqevent->fqmrmom[best2RID][0],fqevent->fqmrmom[best2RID][1]);
   
-
-//  cout<<"best mr: "<<fqevent->fqmrnll[best2RID]<<endl;
-//  cout<<"mrmom: "<<fqevent->fqmrmom[best2RID][1]<<endl;
+  // likelihood difference between 1R and 2R
   float deltaLnL = best1Rnglnl - fqevent->fqmrnll[best2RID];
 
-  // cut from fiTQun.cc
+  // cut values from fiTQun.cc v4r0
   float a0 = 150.;
   float a1 = -0.6;
-
-//  float cthresh = a0 + a1*(ringmom);
-  float cthresh = a0 + a1*(ringmom);;
+  // these values determine the cut line
+  float cthresh = a0 + a1*(ringmom);
   if (!(cthresh>0.)) cthresh=0.;
   
+
   float rcpar = deltaLnL - cthresh;
 
-  //////////////////////////////////////
 
- // ring-counting parameter
-//  float rcpar = deltaLnL - (a0 + a1*ringmom); 
-//  float rcpar = deltaLnL - (a0 + a1*ringmom); 
-
-//  float rcpar = deltaLnL; 
-//  float rcpar = (float) fqevent->fqmrnring[0];
-  // dot product between best 2 rings
-//  cout<<"rcpar: "<<rcpar<<endl;
+  // also calculate angle between 2R rings (should be moved to separate function)
   fqmrdot =   fqevent->fqmrdir[best2RID][0][0]*fqevent->fqmrdir[best2RID][1][0]
             + fqevent->fqmrdir[best2RID][0][1]*fqevent->fqmrdir[best2RID][1][1]
             + fqevent->fqmrdir[best2RID][0][2]*fqevent->fqmrdir[best2RID][1][2];
@@ -1006,9 +974,11 @@ float preProcess::getRCParameter(fqEvent* fqevent){
     rcpar = TMath::Sqrt(rcpar);
   }
   ////////////////////////////
-  
+ 
+  // tricks to make peak widths in distribution more comparable
   return 500.*(TMath::Log(rcpar+40.)-TMath::Log(40));
 }
+
 
 
 ///////////////////////////////////////

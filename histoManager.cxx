@@ -757,8 +757,6 @@ void histoManager::showMCBreakdown(int isample,int ibin,int iatt){
   color[3] = 6;
   color[4] = 5;
   color[5] = 8;
-  //color[6] = 15;
-//  color[7] = 1;
   int style[NCOMPMAX];
   style[0] = 1001;
   style[1] = 1001;
@@ -766,10 +764,16 @@ void histoManager::showMCBreakdown(int isample,int ibin,int iatt){
   style[3] = 1001;
   style[4] = 1001;
   style[5] = 1001;
-//  style[6] = 1001;
-//  style[7] = 1001;
   double size[NCOMPMAX];
   int hitolo[NCOMPMAX];
+
+  // titles
+  TString xtitle[NATTMAX];
+  xtitle[0] = "fiTQun e/#mu PID Par.";
+  xtitle[1] = "fiTQun e/#pi^{0} PID Par.";
+  xtitle[2] = "fiTQun mu/#pi PID Par.";
+  xtitle[3] = "fiTQun Ring-Counting Par.";
+  TString htitle = Form("Detector Region %d Sample %d",ibin,isample);
 
   for (int i=0;i<nComponents;i++){
     hMC[isample][ibin][i][iatt]->SetFillColor(color[i]);
@@ -793,6 +797,9 @@ void histoManager::showMCBreakdown(int isample,int ibin,int iatt){
   }
 
   // now make plot
+  hMC[isample][ibin][hitolo[0]][iatt]->GetXaxis()->SetTitle(xtitle[iatt].Data());
+  hMC[isample][ibin][hitolo[0]][iatt]->GetXaxis()->CenterTitle();
+  hMC[isample][ibin][hitolo[0]][iatt]->SetTitle(htitle.Data());
   hMC[isample][ibin][hitolo[0]][iatt]->Draw("h");
   for (int j=1;j<nComponents;j++){
      hMC[isample][ibin][hitolo[j]][iatt]->Draw("sameh");
@@ -806,6 +813,7 @@ void histoManager::showMCBreakdown(int isample,int ibin,int iatt){
   Leg->AddEntry(hMC[isample][ibin][4][iatt],"Single #pi^{0}","F");
   Leg->AddEntry(hMC[isample][ibin][5][iatt],"Single Hadron","F");
  // Leg->AddEntry(hMC[isample][ibin][6][iatt],"Other","F");
+  Leg->SetFillColor(kWhite);
   Leg->Draw("same");
   return;
 }

@@ -4,6 +4,7 @@
 #include "TMath.h"
 #include "TLine.h"
 #include "TString.h"
+#include "TLatex.h"
 #include "TCanvas.h"
 #include <iostream>
 #include "atmFitPars.h"
@@ -94,7 +95,89 @@ class makeCov{
   ///////////////////////////////////
   // print errors
   void printParErrors();
+
+  ///////////////////////////////////
+  // draw with lines and labels
+  void drawLabeldCor();
+  void drawVertBinLines();
+  void drawHorzBinLines();
+
 };
+
+
+
+void makeCov::drawLabeldCor(){
+  TCanvas *cc = new TCanvas("cc","cc",700,700);
+  cor->GetYaxis()->SetNdivisions(0);
+  cor->GetXaxis()->SetNdivisions(0);
+  cor->Draw("colz");
+  drawVertBinLines();
+  drawHorzBinLines();
+  return;
+}
+
+
+
+void makeCov::drawHorzBinLines(){
+
+ TLine* L[6];
+ int spacing = 48;
+ int offset  = -20;
+ int max     = 325;
+ for (int i=0; i<6; i++){
+    double y = spacing + (double)i*spacing;
+    double center = y - (spacing)/2.;
+    TString label = Form("Region %d",i+1);
+    TLatex* texlabel = new TLatex(offset,center,label.Data());
+    texlabel->SetTextAlign(22);
+    texlabel->SetTextAngle(90);
+    texlabel->SetTextSize(0.025);
+    texlabel->Draw();
+    L[i] = new TLine(offset,y,max,y);
+    L[i]->Draw();
+ }
+
+ double alphacenter = (325.-288)/2. + 288.;
+ TString label = "#alpha";
+ TLatex* texlabel = new TLatex(offset,alphacenter,label.Data());
+ texlabel->SetTextAlign(22);
+ texlabel->SetTextAngle(90);
+ texlabel->SetTextSize(0.05);
+ texlabel->Draw();
+
+ return;
+}
+
+
+
+void makeCov::drawVertBinLines(){
+
+ TLine* L[6];
+ double spacing = 48;
+ double offset  = -20;
+ double max     = 325;
+ for (int i=0; i<6; i++){
+    double x = spacing + (double)i*spacing;
+    double center = x - (spacing)/2.;
+    TString label = Form("Region %d",i+1);
+    TLatex* texlabel = new TLatex(center,offset,label.Data());
+    texlabel->SetTextAlign(22);
+    texlabel->SetTextSize(0.025);
+    texlabel->Draw();
+    L[i] = new TLine(x,offset,x,max);
+    L[i]->Draw();
+ }
+
+ double alphacenter = (325.-288)/2. + 288.;
+ TString label = "#alpha";
+ TLatex* texlabel = new TLatex(alphacenter,offset,label.Data());
+ texlabel->SetTextAlign(22);
+// texlabel->SetTextAngle(90);
+ texlabel->SetTextSize(0.05);
+ texlabel->Draw();
+ return;
+}
+
 
 void makeCov::printParErrors(){
   for (int ipar=0; ipar<ntotpar; ipar++){
@@ -105,6 +188,7 @@ void makeCov::printParErrors(){
   }
   return;
 }
+
 
 void makeCov::printParInfo(int ipar){
 

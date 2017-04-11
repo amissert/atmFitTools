@@ -178,6 +178,7 @@ class optimusPrime{
   void initHistos(int nselection, int oscpar=0);
 
   void setSeedHisogram(int nselection, TH1D* hseed, int oscpar=0);
+  void drawFOM(int nselection, int oscpar);
 
   private:
 

@@ -62,37 +62,49 @@ void fitPlots::drawFitSummary(int isamp, int ibin){
   // fill arrays
   fillArrays(ibin, isamp);
 
+  // print at title
+  TString title = Form("Sample %d Region %d",isamp,ibin+1);
+//  TLatex* tit = new TLatex(0.5,0.95,title.Data());
+//  tit->SetTextAlign(22);
+
   cc = new TCanvas("cc","cc",800,800);
   cc->Divide(2,2);
-//  cc->cd(1);
-  
+  TString xtitle[] = {"e/#mu PID",
+                      "e/#pi^{0} PID",
+                      "#mu/#pi PID",
+                      "RC Parameter"};
+
   for (int iatt=0; iatt<4; iatt++){
 
     cc->cd(iatt+1);
-
     // calc summaryy
     hAtt[iatt]->calcSummary();
     hAtt[iatt]->hSummary->SetMarkerStyle(4);
-    hAtt[iatt]->hSummary->Draw("e2");
-//    hTmp = (TH1D*)hAtt[iatt]->hSummary->Clone("htmp");
-//    hTmp->SetFillColor(0);
-//    hTmp->Draw("samehisto");
-//    hAtt[iatt]->hSummary->SetFillColor(kCyan + 1);
+    hAtt[iatt]->hSummary->GetXaxis()->SetTitle(xtitle[iatt].Data());
+    hAtt[iatt]->hSummary->GetXaxis()->SetTitleSize(0.05);
+    hAtt[iatt]->hSummary->GetXaxis()->SetNdivisions(5);
+    hAtt[iatt]->hSummary->GetYaxis()->SetNdivisions(5);
+    hAtt[iatt]->hSummary->SetTitle(title.Data());
 
     // draw MC original
     TH1D* hmc = hCompare->hManager->getSumHistogram(isamp,ibin,iatt,1);
     hmc->SetLineColor(kRed);
-    hmc->Draw("samehisto");
 
     // draw Data
     TH1D* hd = hCompare->hManager->hData[isamp][ibin][iatt];
-//    if (iatt==3) applyLoBound(hd,0.);
     hd->SetMarkerStyle(8);
-    hd->Draw("samee");
 
- //   cc->cd(iatt+1);
-//    hTmp->Delete();
-
+    // get range:
+    double max = TMath::Max( hAtt[iatt]->hSummary->GetMaximum(),
+                             hmc->GetMaximum());
+    max = TMath::Max(  max, hd->GetMaximum());
+    
+    // draw
+    hd->SetMaximum(max*1.2);
+    hd->Draw();
+    hAtt[iatt]->hSummary->Draw("samee2");
+    hmc->Draw("samehisto");
+    hd->Draw("same");
   }
 
   //

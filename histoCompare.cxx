@@ -860,11 +860,29 @@ void histoCompare::showFitDiff(int isamp,int ibin,int iatt){
 
 void histoCompare::showFitResult(int isamp,int ibin,int iatt){
 
+  // x axis lables
+  TString xtitle[NATTMAX];
+  xtitle[0] = "fiTQun e/#mu PID Par.";
+  xtitle[1] = "fiTQun e/#pi^{0} PID Par.";
+  xtitle[2] = "fiTQun mu/#pi PID Par.";
+  xtitle[3] = "fiTQun Ring-Counting Par.";
+
+  // xaxis title size
+  double xtitlesize = 0.05;
+  double ytitlesize = 0.05;
+  double xlabelsize = 0.045;
+  double ylabelsize = 0.045;
+
   // get (normalized) histogram with parameter modifications
   hMod = (TH1D*)hManager->getSumHistogramMod(isamp,ibin,iatt)->Clone("hmod");
 
   // get nominal histgram (also normalized)
   hTmp = hManager->getSumHistogram(isamp,ibin,iatt,1);
+
+  // setup labels
+  hMod->GetXaxis()->SetTitle(xtitle[iatt].Data());
+  hMod->GetXaxis()->SetTitleSize(xtitlesize);
+  hMod->GetXaxis()->SetLabelSize(xlabelsize);
 
   // draw MC histograms
   hMod->SetLineColor(kBlue);
@@ -876,11 +894,21 @@ void histoCompare::showFitResult(int isamp,int ibin,int iatt){
   double xmax =  hManager->hData[isamp][ibin][iatt]->GetBinLowEdge(nbinstot-hManager->nBinBuffer);
   hManager->hData[isamp][ibin][iatt]->GetXaxis()->SetRangeUser(xmin,xmax);
   hManager->hData[isamp][ibin][iatt]->SetMarkerStyle(8);
-  hManager->hData[isamp][ibin][iatt]->SetTitle(Form("FV_bin%d",ibin));
+  hManager->hData[isamp][ibin][iatt]->SetTitle(Form("Detector Region %d Sample %d",ibin,isamp));
+  hManager->hData[isamp][ibin][iatt]->GetXaxis()->SetTitle(xtitle[iatt].Data());
+//  hManager->hData[isamp][ibin][iatt]->GetYaxis()->SetTitle("# of Events");
+  hManager->hData[isamp][ibin][iatt]->GetXaxis()->SetTitleSize(xtitlesize);
+  hManager->hData[isamp][ibin][iatt]->GetYaxis()->SetTitleSize(ytitlesize);
+  hManager->hData[isamp][ibin][iatt]->GetXaxis()->SetLabelSize(xlabelsize);
+  hManager->hData[isamp][ibin][iatt]->GetYaxis()->SetLabelSize(ylabelsize);
+  hManager->hData[isamp][ibin][iatt]->GetXaxis()->CenterTitle(1);
+  hManager->hData[isamp][ibin][iatt]->GetYaxis()->CenterTitle(1);
+
   hManager->hData[isamp][ibin][iatt]->Draw("e");
-  hTmp->SetTitle(Form("FV_bin%d",ibin));
+
+  hTmp->SetTitle(Form("DR_%d",ibin+1));
   hTmp->Draw("samehist");
-  hMod->SetTitle(Form("FV_bin%d",ibin));
+  hMod->SetTitle(Form("DR_%d",ibin+1));
   hMod->Draw("samehist");
 
   //
@@ -1247,20 +1275,6 @@ void histoCompare::printFitResults(const char* directory){
       cc->Print(plotname.Data()); 
     }
   }
-
-  /*
-  for (int isamp=0;isamp<nSamp;isamp++){
-    for (int ibin=0;ibin<nBin;ibin++){
-      for (int iatt=0;iatt<nAtt;iatt++){
-        showFitResult(isamp,ibin,iatt);
-        TString plotname = directory;
-        plotname.Append(hTmp->GetName());
-        plotname.Append(".png");
-        cc->Print(plotname.Data()); 
-      }
-    }
-  }
-  */
 
   return;
 }

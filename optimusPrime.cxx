@@ -5,6 +5,28 @@
 #include "optimusPrime.h"
 
 
+
+////////////////////////////////////////////////////////////////////
+void optimusPrime::drawFOM(int nselection, int noscpar){
+
+  TString sampname[] = {"#nu_{e} CCQE","#nu_{mu} CCQE", "#nu_{e} CC1R#pi"};
+  TString osparname[] = {"#theta_{23}","#Delta M^{2}","#theta_{13}","#delta_{CP}"};
+  TCanvas* cc = new TCanvas("cc","cc",800,700);
+  cc->GetPad(0)->SetLeftMargin(0.10);
+  cc->GetPad(0)->SetRightMargin(0.17);
+  cc->GetPad(0)->SetBottomMargin(0.15);
+  hFV->GetXaxis()->SetTitle("Towall Cut [cm]");
+  hFV->GetYaxis()->SetTitle("Wall Cut [cm]");
+  hFV->GetZaxis()->SetTitle("Figure of Merit");
+  hFV->GetZaxis()->SetTitleOffset(1.4);
+  hFV->SetTitle(sampname[nselection-1].Data());
+//  hFV->CenterTitle(1);
+  hFV->Draw("colz");
+  hFV->Draw("colz");
+
+  return;
+}
+
 ////////////////////////////////////////////////////////////////////
 void optimusPrime::setSeedHisogram(int nselection, TH1D* histo, int oscpar){
 
@@ -439,7 +461,7 @@ void optimusPrime::deleteHistos(){
 
   for (int i=0; i<10; i++){
     cout<<"optimusPrime::deleteHistos: Deleting histogram "<<i<<endl;
-    hErec[i]->Delete();
+    if(hErec[i]!=NULL) hErec[i]->Delete();
   }
 
   //
@@ -827,8 +849,8 @@ void optimusPrime::calcFOMMap(float towallmax, float wallmax,int oscpar, int npt
  hFV->SetMaximum(1.01*fommax);
  
  // draw result
- hFV->Draw("colz");
-
+// hFV->Draw("colz");
+ drawFOM(nselection, oscpar);
  //
  return;
 

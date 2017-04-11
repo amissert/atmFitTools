@@ -5,6 +5,7 @@
 #include "atmFitPars.h"
 #include "hArray.h"
 #include "TRandom2.h"
+#include "TLatex.h"
 #include "TCanvas.h"
 #include "mcmcReader.h"
 

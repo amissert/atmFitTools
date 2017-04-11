@@ -28,6 +28,7 @@ mcmcApply::mcmcApply(atmFitPars* fitpars, mcmcReader* mcmcpars){
     flgApplyAttSmearPar[iatt] = true;
     flgApplyAttBiasPar[iatt]  = true;
   }
+  flgGlobalUseBestPars=false;
   for (int ipar=0; ipar<NMCMCPARS; ipar++){
     flgUseBestPar[ipar]=false;
   }

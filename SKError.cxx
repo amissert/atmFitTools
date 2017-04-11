@@ -4,6 +4,59 @@
 #include "SKError.h"
 
 
+///////////////////////////////////////////////////////////////
+void SKError::initClassTags(){
+
+  // names of classes
+  className[0] = "#nu_{e} CC1e [100, 300] MeV";
+  className[1] = "#nu_{e} CC1e [300, 700] MeV";
+  className[2] = "#nu_{e} CC1e [700, 1250] MeV";
+  className[3] = "#nu_{e} CC1e [1250, 2000] MeV";
+  className[4] = "#nu_{e} CC1e [2000, 5000] MeV";
+  className[5] = "#nu_{e} CC1e [5000, 30000] MeV";
+  //
+  className[6] = "#nu_{e} CCOth. [0, 1250] MeV";
+  className[7] = "#nu_{e} CCOth. [1250, 5000] MeV";
+  className[8] = "#nu_{e} CCOth. [5000, 30000] MeV";
+  //
+  className[9] = "#nu_{#mu} CC1#mu [0, 100] MeV";
+  className[10] = "#nu_{#mu} CC1#mu [100, 300] MeV";
+  className[11] = "#nu_{#mu} CC1#mu [300, 700] MeV";
+  className[12] = "#nu_{#mu} CC1#mu [700, 1250] MeV";
+  className[13] = "#nu_{#mu} CC1#mu [1250, 2000] MeV";
+  className[14] = "#nu_{#mu} CC1#mu [2000, 5000] MeV";
+  className[15] = "#nu_{#mu} CC1#mu [5000, 30000] MeV";
+  //
+  className[16] = "#nu_{#mu} CCOth. [0, 1250] MeV";
+  className[17] = "#nu_{#mu} CCOth. [1250, 5000] MeV";
+  className[18] = "#nu_{#mu} CCOth. [5000, 30000] MeV";
+
+  // binnin ames of classes
+  classRange[0] = "[100, 300] MeV";
+  classRange[1] = "[300, 700] MeV";
+  classRange[2] = "[700, 1250] MeV";
+  classRange[3] = "[1250, 2000] MeV";
+  classRange[4] = "[2000, 5000] MeV";
+  classRange[5] = "[5000, 30000] MeV";
+  //
+  classRange[6] = "[0, 1250] MeV";
+  classRange[7] = "[1250, 5000] MeV";
+  classRange[8] = "[5000, 30000] MeV";
+  //
+  classRange[9] = "[0, 100] MeV";
+  classRange[10] = "[100, 300] MeV";
+  classRange[11] = "[300, 700] MeV";
+  classRange[12] = "[700, 1250] MeV";
+  classRange[13] = "[1250, 2000] MeV";
+  classRange[14] = "[2000, 5000] MeV";
+  classRange[15] = "[5000, 30000] MeV";
+  //
+  classRange[16] = "[0, 1250] MeV";
+  classRange[17] = "[1250, 5000] MeV";
+  classRange[18] = "[5000, 30000] MeV";
+
+  return;
+}
 
 ///////////////////////////////////////////////////////////////
 void SKError::initTN186Errors(){
@@ -178,15 +231,14 @@ void SKError::drawErrors1D(bool flgDrawTN186){
   // get bin labels
   vector<TLatex*> vlabel_ccqe = getBinLabels(hEvisNuMuCCQE);
   vector<TLatex*> vlabel_ccoth = getBinLabels(hEvisNuECCOth);
-
   // set bin labels
   for (int ibin=1; ibin<=hErrorsCCQE[0]->GetNbinsX(); ibin++){
     hErrorsCCQE[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
     hErrorsCCQE[1]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
   }
   for (int ibin=1; ibin<=hErrorsCCOth[0]->GetNbinsX(); ibin++){
-    hErrorsCCOth[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
-    hErrorsCCOth[1]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
+    hErrorsCCOth[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccoth.at(ibin-1)->GetTitle());
+    hErrorsCCOth[1]->GetXaxis()->SetBinLabel(ibin,vlabel_ccoth.at(ibin-1)->GetTitle());
   }
   float labelsize = 0.06;
   hErrorsCCQE[0]->GetXaxis()->SetLabelSize(labelsize);
@@ -230,82 +282,6 @@ void SKError::drawErrors1D(bool flgDrawTN186){
     zeroValue->Draw("same");
   }
  
-
-
-  /*  
-  // calc first
-  calcErrors1D();
-
-  // canvas setup
-  TCanvas* cc = new TCanvas("cc","cc",800,600);
-  cc->Divide(1,2);
-
-  // histogram properties
-  hErrorsCCQE[0]->SetLineColor(kBlue);
-  hErrorsCCQE[0]->SetFillColor(kBlue);
-  hErrorsCCQE[0]->SetLineWidth(3);
-  hErrorsCCQE[0]->SetMarkerStyle(0);
-  hErrorsCCQE[1]->SetLineColor(kRed);
-  hErrorsCCQE[1]->SetFillColor(kRed);
-  hErrorsCCQE[1]->SetLineWidth(3);
-  hErrorsCCQE[1]->SetMarkerStyle(0);
-  hErrorsCCOth[0]->SetLineColor(kBlue);
-  hErrorsCCOth[0]->SetFillColor(kBlue);
-  hErrorsCCOth[0]->SetLineWidth(3);
-  hErrorsCCOth[0]->SetMarkerStyle(0);
-  hErrorsCCOth[1]->SetLineColor(kRed);
-  hErrorsCCOth[1]->SetFillColor(kRed);
-  hErrorsCCOth[1]->SetLineWidth(3);
-  hErrorsCCOth[1]->SetMarkerStyle(0);
-
-  // find ranges
-  double margin = 1.1;
-  double range_nue_ccqe = TMath::Max( TMath::Abs(hErrorsCCQE[0]->GetMaximum()),
-                                      TMath::Abs(hErrorsCCQE[0]->GetMinimum()));
-  double range_numu_ccqe = TMath::Max( TMath::Abs(hErrorsCCQE[1]->GetMaximum()),
-                                      TMath::Abs(hErrorsCCQE[1]->GetMinimum()));
-  double range_ccqe = margin*TMath::Max( range_nue_ccqe, range_numu_ccqe);
-  range_ccqe += getMaxError(hErrorsCCQE[0]);
-  cout<<"range: "<<range_ccqe<<endl; 
-  double range_nue_ccoth = TMath::Max( TMath::Abs(hErrorsCCOth[0]->GetMaximum()),
-                                      TMath::Abs(hErrorsCCOth[0]->GetMinimum()));
-  double range_numu_ccoth = TMath::Max( TMath::Abs(hErrorsCCOth[1]->GetMaximum()),
-                                      TMath::Abs(hErrorsCCOth[1]->GetMinimum()));
-  double range_ccoth = margin*TMath::Max( range_nue_ccoth, range_numu_ccoth);
-  range_ccoth += getMaxError(hErrorsCCOth[0]);
-  cout<<"range: "<<range_ccoth<<endl; 
-  hErrorsCCQE[0]->SetMinimum(-1.*range_ccqe);
-  hErrorsCCQE[0]->SetMaximum(1.*range_ccqe);
-  hErrorsCCQE[1]->SetMinimum(-1.*range_ccqe);
-  hErrorsCCQE[1]->SetMaximum(1.*range_ccqe);
-  hErrorsCCOth[0]->SetMinimum(-1.*range_ccoth);
-  hErrorsCCOth[0]->SetMaximum(1.*range_ccoth);
-  hErrorsCCOth[1]->SetMinimum(-1.*range_ccoth);
-  hErrorsCCOth[1]->SetMaximum(1.*range_ccoth);
-
-
-  // get bin labels
-  vector<TLatex*> vlabel_ccqe = getBinLabels(hEvisNuMuCCQE);
-  vector<TLatex*> vlabel_ccoth = getBinLabels(hEvisNuECCOth);
-
-  // draw
-  cc->cd(1);
-  for (int ibin=1; ibin<=hErrorsCCQE[0]->GetNbinsX(); ibin++){
-    hErrorsCCQE[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
-  }
-  hErrorsCCQE[0]->GetXaxis()->SetLabelSize(0.08);
-  hErrorsCCQE[0]->Draw("E");
-  hErrorsCCQE[1]->Draw("sameE");
-  //
-  cc->cd(2);
-  for (int ibin=1; ibin<=hErrorsCCOth[0]->GetNbinsX(); ibin++){
-    hErrorsCCOth[0]->GetXaxis()->SetBinLabel(ibin,vlabel_ccqe.at(ibin-1)->GetTitle());
-  }
-  hErrorsCCOth[0]->GetXaxis()->SetLabelSize(0.08);
-  hErrorsCCOth[0]->Draw("E");
-  hErrorsCCOth[1]->Draw("sameE");
-
-  */
 
   //
   return;
@@ -412,7 +388,84 @@ void SKError::printErrors(){
 
 
 ///////////////////////////////////////////////////////////////
-void SKError::printEffDist(const char* plotdir){
+void SKError::printAllEffDist(const char* plotdir, int nutype, const char* tag){
+     TString stag = tag;
+
+     // nutype = 1 (electron) or 2 (muon)
+
+     // set up list of classes
+     int iclass[10];
+     int nclasses = 9;
+     if (nutype == 1){
+        int start = 0;
+        for ( int i=0; i<nclasses; i++ ) {
+          iclass[i] = start + i;
+        }
+     }
+     else {
+        nclasses = 10;
+        int start = 9;
+        for ( int i=0; i<nclasses; i++ ) {
+          iclass[i] = start + i;
+        }
+     }
+
+     // set up canvas
+     TCanvas* cc = new TCanvas("cc","cc",900,600);
+     cc->Divide(4,3);
+
+     // set up pads 
+     int ipad[10];
+     if (nutype == 1){
+       ipad[0] = 1; 
+       ipad[1] = 2; 
+       ipad[2] = 3; 
+       ipad[3] = 5; 
+       ipad[4] = 6; 
+       ipad[5] = 7; 
+       ipad[6] = 9; 
+       ipad[7] = 10; 
+       ipad[8] = 11; 
+     }
+     else {
+       ipad[0] = 1; 
+       ipad[1] = 2; 
+       ipad[2] = 3; 
+       ipad[3] = 4; 
+       ipad[4] = 5; 
+       ipad[5] = 6; 
+       ipad[6] = 7; 
+       ipad[7] = 9; 
+       ipad[8] = 10; 
+       ipad[9] = 11; 
+     }
+
+
+     // directory to dump plots
+     TString pdir = plotdir;
+
+     // print them
+     for (int i=0; i<nclasses; i++){
+       // got to right pad
+       cc->cd(ipad[i]);
+       // draw distribution
+       drawEffDist(iclass[i]);
+     }
+
+
+     TString pname = pdir.Data();
+     pname.Append(Form("eff_dist_nutype%d",nutype));
+     pname.Append(stag.Data());
+     pname.Append(".png");
+     cc->Print(pname.Data());
+
+     return;
+}
+
+
+
+///////////////////////////////////////////////////////////////
+void SKError::printEachEffDist(const char* plotdir){
      TCanvas* cc = new TCanvas("cc","cc",700,600);
      cc->GetPad(0)->SetLeftMargin(0.12);
      cc->GetPad(0)->SetRightMargin(0.12);
@@ -506,7 +559,7 @@ void SKError::makeBinLabels(){
   }
 
   // sector labels
-  TString sector[] = {"CCQE","CCOth.","CCQE","CCOth."};
+  TString sector[] = {"CC1e","CCOth.","CC1#mu","CCOth."};
   TString nulabel[] = {"#nu_{e}","#nu_{e}","#nu_{#mu}","#nu_{#mu}"};
   double labelpos[]= {3.,7.5,12.5,17.5};
   double offset = -3.5;
@@ -759,8 +812,8 @@ void SKError::calcCov(int vartype){
   }
 
   //scales
-  hCor->SetMinimum(-1.11);
-  hCor->SetMaximum(1.11);
+  hCor->SetMinimum(-1.05);
+  hCor->SetMaximum(1.00);
 
   // draw correlations
   drawCor();
@@ -1131,28 +1184,33 @@ void SKError::drawEffDist(int iclass){
  
    // setup histogram range
    double xmin = arrayminD(DelEfficiency[iclass],Ntoys);
-   cout<<"xmin: "<<xmin<<endl;
    double xmax = arraymaxD(DelEfficiency[iclass],Ntoys);
-   cout<<"xmax: "<<xmax<<endl;
    double width = (xmax-xmin);
    xmin = xmin-(width/2.);
    xmax = xmax+(width/2.);
 
-   hdist=new TH1D("hdist","hdist",30,xmin,xmax);
-
+   // make histogram
+   int nbinsx = 30;
+   hdist=new TH1D("hdist","hdist",nbinsx,xmin,xmax);
    for (int i=0; i<Ntoys; i++){
      hdist->Fill(DelEfficiency[iclass][i]);
    }
 
+   // setup histogram
    hdist->SetLineWidth(3);
+   hdist->SetTitle(className[iclass].Data());
+   hdist->SetTitleSize(0.25);
    hdist->SetLineColor(kBlue);
    hdist->GetXaxis()->SetTitle("#Delta #varepsilon");
-   hdist->GetYaxis()->SetTitle("# of throws");
-   hdist->GetYaxis()->SetTitleSize(0.06);
-   hdist->GetXaxis()->SetTitleSize(0.06);
-   hdist->GetXaxis()->SetTitleOffset(0.8);
-   hdist->GetYaxis()->SetTitleOffset(0.8);
+//   hdist->GetYaxis()->SetTitle("# of throws");
+   hdist->GetYaxis()->SetTitleSize(0.065);
+   hdist->GetXaxis()->SetTitleSize(0.065);
+   hdist->GetXaxis()->SetTitleOffset(0.7);
+   hdist->GetYaxis()->SetTitleOffset(0.7);
    hdist->GetXaxis()->SetNdivisions(5);
+   hdist->GetXaxis()->SetLabelSize(0.06);
+   hdist->GetYaxis()->SetLabelSize(0.06);
+   hdist->GetYaxis()->SetNdivisions(5);
    hdist->Draw();
 
    // lines
@@ -1389,6 +1447,7 @@ SKError::SKError(int ntoys){
   Ntoys = ntoys;
   initHistos();
   initTN186Errors();
+  initClassTags();
 
   for (int iclass=0; iclass<NCLASSES; iclass++){
     NeventsNominal[iclass]=0.;
@@ -1437,65 +1496,71 @@ SKError::SKError(int ntoys){
 
 
 ///////////////////////////////////////////////////////////////
-TH1D* SKError::makeHisto(const char* varname){
+TH1D* SKError::makeHisto(const char* varname, const char* hname){
 
   TString var = varname;
   int nbins = 150;
   double xmin = -1000;
   double xmax = 1000;
+  TString xtitle = "";
 
   if (!var.CompareTo("fqpidpar")){
     nbins = 150;
     xmin = -4500;
     xmax = 4500;
+    xtitle.Append("e/#mu PID");
   }
   if (!var.CompareTo("fqpi0par")){
     nbins = 100;
     xmin = -1500;
     xmax = 1500;
+    xtitle.Append("e/#pi_{0} PID");
   }
   if (!var.CompareTo("fqpippar")){
     nbins = 150;
     xmin = -1500;
     xmax = 1500;
+    xtitle.Append("#mu/#pi PID");
   }
   if (!var.CompareTo("fqrcpar")){
     nbins = 150;
     xmin = -400;
     xmax = 1000;
+    xtitle.Append("RC parameter");
   }
   if (!var.CompareTo("pmomv")){
     nbins = 100;
     xmin = 0;
     xmax = 30000;
+    xtitle.Append("E_{#nu}");
   }
   if (!var.CompareTo("nse")){
     nbins = 10;
     xmin = 0;
     xmax = 10;
-  }
-  if (!var.CompareTo("nse")){
-    nbins = 10;
-    xmin = 0;
-    xmax = 10;
+    xtitle.Append("N_{subev}");
   }
   if (!var.CompareTo("nring")){
     nbins = 10;
     xmin = 0;
     xmax = 10;
+    xtitle.Append("N_{rings}");
   }
   if (!var.CompareTo("mode")){
     nbins = 80;
     xmin = 0;
     xmax = 40;
+    xtitle.Append("NEUT mode");
   }
   if (!var.CompareTo("wall")){
     nbins = 100;
     xmin = 0;
     xmax = 1500;
+    xtitle.Append("wall");
   }
 
-  TH1D* h = new TH1D("hvar","hvar",nbins,xmin,xmax);
+  TH1D* h = new TH1D(hname,hname,nbins,xmin,xmax);
+  h->GetXaxis()->SetTitle(xtitle.Data());
   return h;
 }
 
@@ -1578,16 +1643,20 @@ int SKError::getClassEvis(int nclass, int nevisbin){
 
 
 ///////////////////////////////////////////////////////////////
-void SKError::drawVariable(mcLargeArray* events, const char* varname, int nclass, bool flgcore){
+void SKError::drawVariable(mcLargeArray* events, const char* varname, int nclass, int flgcore){
 
   // get name of var
   TString var = varname;
 
   // setup histogram binning
-  if (hVariable!=NULL){
-    hVariable->Delete();
+  if (hVariable1!=NULL){
+    hVariable1->Delete();
   }
-  hVariable = makeHisto(varname);
+  if (hVariable2!=NULL){
+    hVariable2->Delete();
+  }
+  hVariable2 = makeHisto(varname,"vhvar2");
+  hVariable1 = makeHisto(varname,"vhvar1");
 
   // loop over MC events
   for (int iev=0; iev<events->nsize; iev++){
@@ -1602,17 +1671,41 @@ void SKError::drawVariable(mcLargeArray* events, const char* varname, int nclass
     int evisclass = getClassEvis(iclass,ebin);
    
 
-//    if (evisclass<=0) continue;
     if (evisclass!=nclass){ 
-//      if (iclass==3){
-//      cout<<"ebin: "<<ebin<<endl;
-//      cout<<"evis: "<<events->vfqemom[iev]<<endl;
-//      cout<<"evisclass: "<<evisclass<<endl;
-//      cout<<"iclass: "<<iclass<<endl;
-//      cout<<"nclass: "<<nclass<<endl;
-//      }
       continue;
     }
+
+    if (flgcore==2){
+      double ww = events->vweight[iev];
+      if  (!var.CompareTo("fqpidpar")){
+        hVariable2->Fill(events->vattribute[iev][0],ww);
+      }
+      if  (!var.CompareTo("fqpi0par")){
+        hVariable2->Fill(events->vattribute[iev][1],ww);
+      }
+      if  (!var.CompareTo("fqpippar")){
+        hVariable2->Fill(events->vattribute[iev][2],ww);
+      }
+      if  (!var.CompareTo("fqrcpar")){
+        hVariable2->Fill(events->vattribute[iev][3],ww);
+      }
+      if  (!var.CompareTo("pmomv")){
+        hVariable2->Fill(events->vpmomv[iev],ww);
+      }
+      if  (!var.CompareTo("nse")){
+        hVariable2->Fill(events->vfqnsubev[iev],ww);
+      }
+      if  (!var.CompareTo("mode")){
+        hVariable2->Fill(events->vmode[iev],ww);
+      }
+      if  (!var.CompareTo("wall")){
+        hVariable2->Fill(events->vfqwall[iev],ww);
+      }
+      if  (!var.CompareTo("nring")){
+        hVariable2->Fill(events->vfqnring[iev],ww);  
+      }
+    }
+    
 
     if (flgcore){
       if (!isCore(iclass,events->vattribute[iev][0]
@@ -1625,36 +1718,42 @@ void SKError::drawVariable(mcLargeArray* events, const char* varname, int nclass
 
     double ww = events->vweight[iev];
     if  (!var.CompareTo("fqpidpar")){
-      hVariable->Fill(events->vattribute[iev][0],ww);
+      hVariable1->Fill(events->vattribute[iev][0],ww);
     }
     if  (!var.CompareTo("fqpi0par")){
-      hVariable->Fill(events->vattribute[iev][1],ww);
+      hVariable1->Fill(events->vattribute[iev][1],ww);
     }
     if  (!var.CompareTo("fqpippar")){
-      hVariable->Fill(events->vattribute[iev][2],ww);
+      hVariable1->Fill(events->vattribute[iev][2],ww);
     }
     if  (!var.CompareTo("fqrcpar")){
-      hVariable->Fill(events->vattribute[iev][3],ww);
+      hVariable1->Fill(events->vattribute[iev][3],ww);
     }
     if  (!var.CompareTo("pmomv")){
-      hVariable->Fill(events->vpmomv[iev],ww);
+      hVariable1->Fill(events->vpmomv[iev],ww);
     }
     if  (!var.CompareTo("nse")){
-      hVariable->Fill(events->vfqnsubev[iev],ww);
+      hVariable1->Fill(events->vfqnsubev[iev],ww);
     }
     if  (!var.CompareTo("mode")){
-      hVariable->Fill(events->vmode[iev],ww);
+      hVariable1->Fill(events->vmode[iev],ww);
     }
     if  (!var.CompareTo("wall")){
-      hVariable->Fill(events->vfqwall[iev],ww);
+      hVariable1->Fill(events->vfqwall[iev],ww);
     }
     if  (!var.CompareTo("nring")){
-      hVariable->Fill(events->vfqnring[iev],ww);
+      hVariable1->Fill(events->vfqnring[iev],ww);
     }
   
   }
 
-  hVariable->Draw("");
+  hVariable1->Draw("");
+  if (flgcore==2) {
+    hVariable2->SetLineColor(kRed);
+    hVariable2->Draw("h");
+    hVariable1->Draw("sameh");
+
+  }
 
 
 };

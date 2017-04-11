@@ -258,6 +258,7 @@ void toyMC::makeCombinedUncertainty(int nmcmcpts){
 }
 
 
+
 ////////////////////////////////////////////////////////////////
 // fill the SKError class
 void toyMC::fillMarginalizedSKErr(const int ntoys, const int nmarg, int nbinning, int flgcustom, int effdef){
@@ -352,7 +353,6 @@ void toyMC::fillMarginalizedSKErr(const int ntoys, const int nmarg, int nbinning
 
       // set alpha parameters
       chPars->GetEntry(mcmc_list_alpha[i]);
-//      chPars->GetEntry(0.);
       modifier->setAlphaFromMCMC();
       modifier->setBestPars();
 
