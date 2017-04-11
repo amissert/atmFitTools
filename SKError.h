@@ -180,6 +180,7 @@ class SKError{
   void saveErrors(const char* filename);
 
   void printEachEffDist(const char* plotdir);
+
   void printAllEffDist(const char* plotdir, int nclass, const char* tag);
 
   void makeBinLabels();
