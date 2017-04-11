@@ -74,7 +74,8 @@ int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
 //   returns:
 //     -1 -> Neither core nor tail
 //      0 -> Tail
-//      1 -> Core
+//      1 -> Core -OR- e-like core for NC
+//      2 -> mu-like core for NC
 /////////////////////////////////////////////////////////////////
 int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
 
@@ -154,17 +155,37 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
       return 0.;
     }
   }
+ 
 
-
-  // NC
+  /*
+  // NC Pi0
   if (nclass==5){
-    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){
-      return 1; //< e-like and not pi0-like
+    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.
+        && cutPars.fqnsubev==1 && cutPars.fqmome>100){
+      return 1; //< e-like core
+    }
+    else if (cutPars.fqpid<0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+      return 2; //< mu-like core
     }
     else{
       return 0.;
     }
   }
+
+  // NC Pi
+  if (nclass==6){
+    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.
+        && cutPars.fqnsubev==1 && cutPars.fqmome>100){
+      return 1; //< e-like core
+    }
+    else if (cutPars.fqpid<0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+      return 2; //< mu-like core
+    }
+    else{
+      return 0.;
+    }
+  }
+  */
 
   //
   return -1;
@@ -364,7 +385,14 @@ void toyMC::fillMarginalizedSKErr(const int ntoys, const int nmarg, int nbinning
 
 
         // get true MC event class for event "iev"
-        int nclass = skErr->getClassMC(fastevents->vnutype[iev],
+       // int nclass = skErr->getClassMC(fastevents->vnutype[iev],
+       //                                fastevents->vmode[iev],
+       //                                fastevents->vcomponent[iev],
+       //                                fastevents->vfqemom[iev],
+       //                                fastevents->vfqnsubev[iev],
+       //                                fastevents->vfqtowall[iev],
+       //                                fastevents->vfqwall[iev]);
+       int nclass = skErr->getClassMC(fastevents->vnutype[iev],
                                        fastevents->vmode[iev],
                                        fastevents->vcomponent[iev],
                                        fastevents->vfqemom[iev],
@@ -376,7 +404,7 @@ void toyMC::fillMarginalizedSKErr(const int ntoys, const int nmarg, int nbinning
         int iscore = applyCoreCutsToModifiedEvent(iev,nclass,true);
 
         // if its core or tail fill histos
-        if (iscore<0) continue; //< skip unclassified events
+        if (iscore < 0) continue; //< skip unclassified events
 
         // get the new event weight
         float   ww = fastevents->vweight[iev]
