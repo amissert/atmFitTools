@@ -9,8 +9,10 @@
 #include "TChain.h"
 #include "TTree.h"
 #include "TGraph.h"
+#include "TMath.h"
+#include "TVector3.h"
 #include <iostream>
-#include "fqProcessedEvent.h"
+#include "../fqProcessedEvent.h"
 
 class enteringCosmic{
 
@@ -23,13 +25,22 @@ class enteringCosmic{
  fqProcessedEvent* mcevent;
  fqProcessedEvent* datevent;
 
+
  double calcNorm;
+ double calcDTheta(fqProcessedEvent* fqev);
+ double calcMuRange(fqProcessedEvent* fqev);
+
+ // select events for trying to calculate direction from decay-e vertex
+ int  passDirCuts(fqProcessedEvent* fqev);
  double Norm;
+ int Nevmax;
 
  void fillFVHistos();
+ void fillDirHistos();
  void makeGraphs();
  void init();
  TH1D* hwall[2];
+ TH1D* hdtheta[2];
  TH1D* hwalle[2];
  TH1D* hwallraw[2];
  TH1D* hratio;

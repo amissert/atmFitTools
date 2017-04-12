@@ -45,9 +45,9 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ PREPROC PARAMETERS $$$$$$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ OUTPUT DIRECTORY FOR THE PROCESSED FILES 
-s,preProcessOutDir=/nfs/data41/t2k/amissert/processed/cosmic/nov15/;
-s,preProcessFilesMC=/nfs/data40/t2k/amissert/skdata/cosmicsMultiGeV/14a/mc/*_fQ.root;
-s,preProcessFilesData=/nfs/data40/t2k/amissert/skdata/cosmicsMultiGeV/14a/data/xxx*_fQ.root;
+s,preProcessOutDir=/nfs/data41/t2k/amissert/processed/cosmic/apr2/;
+s,preProcessFilesMC=/nfs/data41/t2k/amissert/skdata/cosmic/14c/mc/fqv5/*.root;
+s,preProcessFilesData=/nfs/data41/t2k/amissert/skdata/cosmic/14c/data/fqv5/*.root;
 $$ CODE FOR FV BINNING
 $$   0 -> SIMPLE (3 FV BINS BASED ON WALL CUTS)
 $$   1 -> COSMIC (SORT BY SIDE VS TOP ENTERING)
@@ -69,7 +69,7 @@ i,preProcessMCSamples=1;
 $$ NHITAC CUT FOR FC EVENTS
 i,preProcFCCut=10000000;
 $$ VISIBLE ENERGY CUT
-d,preProcEVisCut=30.;
+d,preProcEVisCut=100.;
 $$ MIN WALL CUT
 d,preProcWallMinCut=-1000;
 $$ MIN TOWALL Cut

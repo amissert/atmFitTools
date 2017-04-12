@@ -40,6 +40,7 @@ class SKError{
   int Nclass;
   int Ntoys;
   int Nmarginal;
+  int NEvisHistos;
  
   // arrays for numbers of events
   double Nevents[NCLASSES][NTOYS];
@@ -63,12 +64,14 @@ class SKError{
   TH1D* hEvisNuECCOth;
   TH1D* hEvisNuMuCCQE;
   TH1D* hEvisNuMuCCOth;
+  TH1D* hEvisCore[NCLASSES];
 
   // totals
   TH1D* hEvisNuECCQETot;
   TH1D* hEvisNuECCOthTot;
   TH1D* hEvisNuMuCCQETot;
   TH1D* hEvisNuMuCCOthTot;
+  TH1D* hEvisBase[NCLASSES];
 
   // for checking distributions
   TH1D* hVariable1;
@@ -132,7 +135,7 @@ class SKError{
   int getClassEvis(int nclass, int nevisbin);
 
   // fill an event in the histograms
-  int addEvent(int nclass, double evis, double weight, bool flgtotal); 
+  int addEvent(int nclass, double evis, double weight, int iscore); 
 
   // save histo contents into arrays
   void addToy(int ntoy);

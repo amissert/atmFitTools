@@ -157,7 +157,6 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
   }
  
 
-  /*
   // NC Pi0
   if (nclass==5){
     if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.
@@ -185,7 +184,6 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
       return 0.;
     }
   }
-  */
 
   //
   return -1;
@@ -486,10 +484,8 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
                                      fastevents->vfqnsubev[iev],
                                      fastevents->vfqtowall[iev],
                                      fastevents->vfqwall[iev]);
-    
     // passes core selection?
     int iscore = applyCoreCutsToModifiedEvent(iev,nclass,true);
-
     // if its core or tail fill histos
     if (iscore<0) continue; //< skip unclassified events
 
@@ -502,13 +498,13 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
 
     // fill total histos
     // the "true" flag means we add it to the "total" evis histogram for this class
-    skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,true);
+    skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,iscore);
 
-    if (iscore==1){
+//    if (iscore>0){
       // fill core histos
     // the "true" flag means we add it to the "core" evis histogram for this class
-      skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,false);
-    }
+//      skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,iscore);
+//    }
      
   }
   skErr->addNominal();
@@ -558,12 +554,12 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
      
 
       // fill total histos
-      skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,true);
+      skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,iscore);
 
-      if (iscore==1){
+//      if (iscore==1){
         // fill core histos
-        skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,false);
-      }
+//        skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,false);
+//      }
      
     }
 

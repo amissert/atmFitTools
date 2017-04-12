@@ -981,7 +981,13 @@ void SKError::addToy(int ntoy){
 ///////////////////////////////////////////////////////////////
 void SKError::resetHistos(){
 
-  //
+
+  for (int ih=0; ih<NEvisHistos; ih++){
+    hEvisCore[ih]->Reset();
+    hEvisBase[ih]->Reset();
+  }
+  
+  /*
   hEvisNuECCQE->Reset();
   hEvisNuMuCCQE->Reset();
   hEvisNuECCOth->Reset();
@@ -991,7 +997,7 @@ void SKError::resetHistos(){
   hEvisNuMuCCQETot->Reset();
   hEvisNuECCOthTot->Reset();
   hEvisNuMuCCOthTot->Reset();
-
+  */
 
 
   return;
@@ -1000,11 +1006,11 @@ void SKError::resetHistos(){
 
 
 ///////////////////////////////////////////////////////////////
-int SKError::addEvent(int nclass, double evis, double weight, bool flgtot){
+int SKError::addEvent(int nclass, double evis, double weight, int iscore){
 
   
   // passes core
-  if (!flgtot){
+  if (iscore>0){
     //
     if (nclass==1){
       return hEvisNuECCQE->Fill(evis,weight);
@@ -1057,9 +1063,10 @@ int SKError::getClassMC(int nutype, int mode, int component,
 
   double towall_nuecut = 170.;
   double towall_numucut = 250.;
+  double towall_NC = 150.;
   double wall_nuecut = 80.;
   double wall_numucut = 50.;
-
+  double wall_NC = 50.;
   
   // CC and single electron
   if (component==0 && TMath::Abs(mode)<30 && evis>100. && nutype==12
@@ -1085,10 +1092,16 @@ int SKError::getClassMC(int nutype, int mode, int component,
     return 4;
   }
 
-  // NC
-  if (component==4 && TMath::Abs(mode)>=30 && evis>100. && nsubev==1
-       && towall>towall_nuecut && wall>wall_nuecut ){
+  // NC pi0
+  if (component==4 && TMath::Abs(mode)>=30 && evis>30. && nsubev>=2
+       && towall>towall_NC && wall>wall_NC ){
     return 5;
+  }
+
+  // NC pi
+  if (component==5 && TMath::Abs(mode)>=30 && evis>30. && nsubev>=2
+       && towall>towall_NC && wall>wall_NC ){
+    return 6;
   }
   
 
@@ -1324,7 +1337,7 @@ void SKError::zeroArrays(){
 ///////////////////////////////////////////////////////////////
 void SKError::initHistos(int ibinning){
 
-  // histo binning (patrick :) )
+  // histo binning  )
   if (ibinning==1){
   int    NbinsNuECCQE = 6;
   double BinsNuECCQE[] = {100.,300.,700.,1250.,2000.,5000.,30000.};
@@ -1334,6 +1347,7 @@ void SKError::initHistos(int ibinning){
   double BinsNuMuCCQE[] = {0.,100.,300.,700.,1250.,2000.,5000.,30000.};
   int    NbinsNuMuCCOth = 3;
   double BinsNuMuCCOth[] = {100.,1250.,5000.,30000.};
+
   // setup histos
   hEvisNuECCQE = new TH1D("hnueccqe","hnueccqe",NbinsNuECCQE,BinsNuECCQE); 
   hEvisNuECCOth = new TH1D("hnueccoth","hnueccoth",NbinsNuECCOth,BinsNuECCOth); 
@@ -1344,6 +1358,18 @@ void SKError::initHistos(int ibinning){
   hEvisNuECCOthTot = new TH1D("hnueccothtot","hnueccothtot",NbinsNuECCOth,BinsNuECCOth); 
   hEvisNuMuCCQETot = new TH1D("hnumuccqetot","hnumuccqetot",NbinsNuMuCCQE,BinsNuMuCCQE); 
   hEvisNuMuCCOthTot = new TH1D("hnumuccothtot","hnumuccothtot",NbinsNuMuCCOth,BinsNuMuCCOth); 
+  //
+  hEvisCore[0]=hEvisNuECCQE;
+  hEvisCore[1]=hEvisNuECCOth;
+  hEvisCore[2]=hEvisNuMuCCQE;
+  hEvisCore[3]=hEvisNuMuCCOth;
+  //
+  hEvisBase[0]=hEvisNuECCQETot;
+  hEvisBase[1]=hEvisNuECCOthTot;
+  hEvisBase[2]=hEvisNuMuCCQETot;
+  hEvisBase[3]=hEvisNuMuCCOthTot;
+  //
+  NEvisHistos=4;
   }
 
   if (ibinning==0){
@@ -1366,6 +1392,18 @@ void SKError::initHistos(int ibinning){
   hEvisNuECCOthTot = new TH1D("hnueccothtot","hnueccothtot",NbinsNuECCOth,BinsNuECCOth); 
   hEvisNuMuCCQETot = new TH1D("hnumuccqetot","hnumuccqetot",NbinsNuMuCCQE,BinsNuMuCCQE); 
   hEvisNuMuCCOthTot = new TH1D("hnumuccothtot","hnumuccothtot",NbinsNuMuCCOth,BinsNuMuCCOth); 
+  //
+  hEvisCore[0]=hEvisNuECCQE;
+  hEvisCore[1]=hEvisNuECCOth;
+  hEvisCore[2]=hEvisNuMuCCQE;
+  hEvisCore[3]=hEvisNuMuCCOth;
+  //
+  hEvisBase[0]=hEvisNuECCQETot;
+  hEvisBase[1]=hEvisNuECCOthTot;
+  hEvisBase[2]=hEvisNuMuCCQETot;
+  hEvisBase[3]=hEvisNuMuCCOthTot;
+  //
+  NEvisHistos=4;
   }
 
 
@@ -1385,12 +1423,28 @@ void SKError::initHistos(int ibinning){
   hEvisNuECCOthTot = new TH1D("hnueccothtot","hnueccothtot",nbins,0,Evismax);
   hEvisNuMuCCQETot = new TH1D("hnumuccqetot","hnumuccqetot",nbins,0,Evismax);
   hEvisNuMuCCOthTot = new TH1D("hnumuccothtot","hnumuccothtot",nbins,0,Evismax);
+  //
+  hEvisCore[0]=hEvisNuECCQE;
+  hEvisCore[1]=hEvisNuECCOth;
+  hEvisCore[2]=hEvisNuMuCCQE;
+  hEvisCore[3]=hEvisNuMuCCOth;
+  //
+  hEvisBase[0]=hEvisNuECCQETot;
+  hEvisBase[1]=hEvisNuECCOthTot;
+  hEvisBase[2]=hEvisNuMuCCQETot;
+  hEvisBase[3]=hEvisNuMuCCOthTot;
+  //
+  NEvisHistos=4;
   }
 
 
   // count all bins
-  Nclass = hEvisNuECCQE->GetNbinsX() + hEvisNuECCOth->GetNbinsX()
-           +  hEvisNuMuCCQE->GetNbinsX() + hEvisNuMuCCOth->GetNbinsX();
+  Nclass=0;
+  for (int ih=0; ih<NEvisHistos; ih++){
+   Nclass += hEvisCore[ih]->GetNbinsX(); 
+  }
+//  Nclass = hEvisNuECCQE->GetNbinsX() + hEvisNuECCOth->GetNbinsX()
+//           +  hEvisNuMuCCQE->GetNbinsX() + hEvisNuMuCCOth->GetNbinsX();
 
   // setup slice
   hSlice = new TH1D("hslice","hslice",Nclass,0,Nclass);
