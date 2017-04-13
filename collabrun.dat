@@ -1,0 +1,236 @@
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$  PARAMETER FILE FOR FITS $$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$  FORMAT:<type>,<name>=<value>;
+$  FIRST CHARACTER DENOTES DATA TYPE
+$  SUPPORTED TYPES:
+$	'i' -> integer
+$	'f' -> float
+$	'd' -> double
+$	's' -> string
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ GLOBAL PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$$$$
+
+$ EXPLICIT NORMALIZATION BETWEEN DATA AND MC
+$ THIS IS PRINTED OUT AFTER RUNNING HISTOGRAM FACTORY
+$d:normFactor = 1.0;
+d:normFactor = 1.06033;
+
+
+$ NUMBER OF SAMPLES, COMPONENTS, ETC.
+i,nSamples=3;
+i,nFVBins=6;
+i,nComponents=6;
+i,nAttributes=4;
+i,nSysPars=19;
+
+$ ROOT NAME FOR OUTPUT FILES
+s,globalRootName=atm_run0;
+
+$ OTHER NAMES
+s,FVBinName0=wall0;
+s,FVBinName1=wall1;
+s,FVBinName2=wall2;
+
+$ THESE SPECIFY WHICH ATTRIBUTES TO USE IN THE FIT
+s,fQAttName0=fqelike;
+s,fQAttName1=fqpi0par;
+s,fQAttName2=fqpippar;
+s,fQAttName3=fqrcpar;
+s,fQAttName4=fq1rmom;
+
+$ COMPONENT NAMES THAT DONT REALLY MATTER?
+s,MCComponentName0=single_e;
+s,MCComponentName1=single_mu;
+s,MCComponentName2=e_other;
+s,MCComponentName3=mu_other;
+s,MCComponentName4=pi0;
+s,MCComponentName5=other;
+s,sampleName0=1se;
+s,sampleName1=2se;
+s,sampleName2=gt2se;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ PREPROC PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+$$ OUTPUT DIRECTORY FOR THE PROCESSED FILES 
+s,preProcessOutDir=/nfs/data41/t2k/amissert/processed/wetrun/nring/;
+s,preProcessFilesMC=/nfs/data41/t2k/amissert/skdata/atmospheric/cris_ntuple/atm*.root;
+s,preProcessFilesData=/nfs/data41/t2k/amissert/skdata/atmospheric/data_cris_mar15/apf*.root;
+
+$$ CODE FOR FV BINNING
+$$   0 -> BIN USING TH2FV (USE THIS FOR ATMSPHERIC FITS)
+$$   1 -> COSMIC (SORT BY SIDE VS TOP ENTERING)
+$$   2 -> NO FV BINNING (ONE BIN)
+i,preProcessFVBinning=0;
+
+$$ MC COMPONENT DEFINITIONS
+$$   0 -> VISIBLE+NEUT
+$$   1 -> COSMIC  (CUTS ON SUBEV #)
+$$   2 -> VISIBLE (CUTS ONLY ON # VIS RINGS)
+$$   3 -> HPI0 (NO CUTS)
+i,preProcessMCComponents=2;
+
+$$ MC AND DATA SAMPLE DEFINITION
+$$  0 -> ATMOSPHERIC (BY NSE)
+$$  1 -> COSMIC
+$$  2 -> HYBRID PI0 (ONE SAMPLE)
+$$  3 -> ATMOSPHERIC + E 
+i,preProcessMCSamples=0;
+
+$$ NHITAC CUT FOR FC EVENTS
+i,preProcFCCut=16;
+
+$$ VISIBLE ENERGY CUT
+d,preProcEVisCut=100.;
+
+$$ MIN WALL CUT
+d,preProcWallMinCut=0;
+
+$$ MIN TOWALL Cut
+d,preProcToWallMinCut=0;
+
+$$ MAX SUBEVENTS
+i,preProcNseMax=100;
+
+$$ MIN SUBEVENTS
+i,preProcNseMin=0;
+
+$$ MIN TIME BETWEEN FIRST TWO SUBEVENTS (INGATE CUT)
+d,preProcInGateCut=0;
+
+$$ ADD ADDIONAL VARIABLES TO OUTPUT (MAY INCREASE PROCESSING TIME)
+i,preProcAddMoreVars=0;
+
+$$ NTUPLE STRUCTURE OF INPUT FILES
+$$  Atmospheric -> Atmospheric MC structure
+$$  T2KMCReduced -> Reduced T2K MC structure 
+s:ntupleType=Atmospheric;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ HFACTORY PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$$
+$$ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+$$ OUTPUT FILE FOR FILLED HISTOGRAMS
+s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/wetrun/collab_run2/histos.root;
+
+$$ PROCESSED MC FILES
+s,hFactoryMCFiles=/nfs/data41/t2k/amissert/processed/wetrun/collab_run2/*ppmc*.root;
+
+$$ PROCESSED DATA FILES
+s,hFactoryDataFiles=/nfs/data41/t2k/amissert/processed/wetrun/collab_run2/*ppd*.root;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ HISTOGRAM BINNING $$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+i,nBinsAtt0=45;
+i,nBinsDataAtt0=25;
+i,nBinsAtt1=45;
+i,nBinsDataAtt1=25;
+i,nBinsAtt2=45;
+i,nBinsDataAtt2=25;
+i,nBinsAtt3=45;
+i,nBinsDataAtt3=25;
+i,nBinsAtt4=45;
+i,nBinsDataAtt4=25;
+d,xMinAtt0=-2800;
+d,xMaxAtt0=2800;
+d,xMinAtt1=-500;
+d,xMaxAtt1=1000.;
+d,xMinAtt2=-1000;
+d,xMaxAtt2=600;
+d,xMinAtt3=-500;
+d,xMaxAtt3=1500;
+d,xMinAtt4=0;
+d,xMaxAtt4=2000;
+d,xMinAtt5=-0.5;
+d,xMaxAtt5=3.2;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ SPLINE FACTORY PARAMETERS $$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+$ NAME OF OUTPUT FILE FOR BIN SPLINES
+s,splineFactoryOutput=/nfs/data41/t2k/amissert/processed/wetrun/collab_run2/spline_pars_all2.root;
+
+$  CODE FOR THE TYPE OF SYSTEMATIC ERROR PARAMETERIZATION
+$    tn186 -> SIMPLE TN186 PARAMETERIZATION 
+$    none  -> NO SYSTEMATIC ERRORS
+$    cosmic -> COSMIC MUON FLUX SYSTEMATICS
+$    debug -> 5% scaling uncertainty for each bin
+s,sysParType=tn186;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ FIT & MCMC PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+$  TOTAL # OF STEPS FOR THS MCMC
+i,MCMCNSteps=100000;
+
+$  NUMBER OF STEPS BEFORE SAVING THE MCMC 
+i,MCMCNBurnIn=1;
+
+$  TUNING PARAMETER FOR DISTANCE BETWEEN PROPOSED STEPS
+$ for MCMC
+$d,MCMCTunePar=0.044;
+$ for DEMCMC
+d,MCMCTunePar=0.099;
+
+$  CAN TURN ON OR OFF THE SMEARING PARAMETERS
+i,flgFixAllSmearPars=0;
+
+$  BUFFER OF BINS TO NOT INCLUDE IN THE LIKELIHOOD EVALUATION
+$  THIS NUMBER OF BINS AT THE BEGINNING AND END WILL BE IGNORED
+i,nBinBuffer=2;
+
+$  TOGGLE THE USE IF BIN SPLINES
+i,useSplinesFlg=1;
+
+$  TOGGLE THE USE OF NORMALIZATION PARAMETERS
+i,flgUseNormPars=1;
+
+$  DO YOU WANT TO READ A SPECIFIED FILE OF PARAMETERS IN?
+$  CAN USE THIS TO READ IN PREVIOUS FIT RESULTS OR START
+$  THE MCMC FROM SOME PREVIOUS POINT
+i,flgUseFitParFile=1;
+$s,fitParFile=/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun/demcmc_run4_summary_sample.root;
+$s,fitParFile=/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun/mcmcfit_summary_sample.root;
+s,fitParFile=/nfs/data41/t2k/amissert/atmos/head/atmFitTools/pars/atmfit_fullpars_run2_LnLFit.root;
+
+
+$  TOGGLE PRIORS ON SHAPE PARAMETERS
+$  SOME LOOSE PRIORS ARE NEEDED TO CONSTRAIN SOME SHAPE
+$  PARAMETERS FOR LOW STATISTICS BINS
+i,flgUsePriorsInFit=1;
+d,smearPriorWidthAtt0=0.1;
+d,smearPriorWidthAtt1=0.1;
+d,smearPriorWidthAtt2=0.1;
+d,smearPriorWidthAtt3=0.1;
+d,smearPriorWidthAtt4=0.1;
+d,biasPriorWidthAtt0=200;
+d,biasPriorWidthAtt1=200;
+d,biasPriorWidthAtt2=200;
+d,biasPriorWidthAtt3=200;
+d,biasPriorWidthAtt4=100;
+
+$  ENFORCE A PHYSICAL BOUNDARY ON SOME ATTRIBUTES
+i,flgUsePhysLoBound=1;
+d,physLoBoundAtt0=-1;
+d,physLoBoundAtt1=-1;
+d,physLoBoundAtt2=-1;
+d,physLoBoundAtt3=0;
+$d,physLoBoundAtt3=-1;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$ POSTFIT PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+s,MCMCFile=mcmctree.root;
+$i,MCMCBurnIn=100;
+$i,NMCEvents=500;
+$i,NDataEvents=500000;
+$i,NMCMCPts=20;

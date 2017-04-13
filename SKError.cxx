@@ -837,10 +837,10 @@ void SKError::calcAllEff(int ntoy){
 
     // use nominal value (instead of alpha-modified, see TN-186)
     // in the denominator:
-    else if (effDefinition==1){
-      eff = calcEff(iclass,ntoy); 
-      DelEfficiency[iclass][ntoy] = eff;
-    }
+//    else if (effDefinition==1){
+//      eff = calcEff(iclass,ntoy); 
+//      DelEfficiency[iclass][ntoy] = eff;
+//    }
 
   }
 
@@ -852,6 +852,16 @@ void SKError::calcAllEff(int ntoy){
 ///////////////////////////////////////////////////////////////
 void SKError::addNominal(){
 
+   int index = 0;
+   for (int ih=0; ih<NEvisHistos; ih++){
+     for (int ibin=1; ibin<=hEvisCore[ih]->GetNbinsX(); ibin++ ){
+       NeventsNominalCore[index] = hEvisCore[ih]->GetBinContent(ibin);
+       NeventsNominal[index] = hEvisBase[ih]->GetBinContent(ibin);
+       index++;
+     }
+   }
+ 
+   /*  
    // save histos in arrays
    int index = 0;
    //
@@ -897,9 +907,10 @@ void SKError::addNominal(){
      NeventsNominal[index] = hEvisNuMuCCOthTot->GetBinContent(ibin);
      index++;
    }
-
+   
    // calculate all of the epsilon values!
 //   calcAllEff(ntoy);
+  */
 
  // 
  return;
@@ -912,6 +923,17 @@ void SKError::addNominal(){
 ///////////////////////////////////////////////////////////////
 void SKError::fillNeventArrays(int ntoy){
 
+   int index = 0;
+   for (int ih=0; ih<NEvisHistos; ih++){
+     for (int ibin=1; ibin<=hEvisCore[ih]->GetNbinsX(); ibin++ ){
+       cout<<"total events index: "<<index<<"content "<<hEvisBase[ih]->GetBinContent(ibin)<<endl;
+       Nevents[index][ntoy] = hEvisCore[ih]->GetBinContent(ibin);
+       NeventsTotal[index][ntoy] = hEvisBase[ih]->GetBinContent(ibin);
+       index++;
+     }
+   }
+
+   /*  
    // save histos in arrays
    int index = 0;
    //
@@ -957,7 +979,7 @@ void SKError::fillNeventArrays(int ntoy){
      NeventsTotal[index][ntoy] = hEvisNuMuCCOthTot->GetBinContent(ibin);
      index++;
    }
-
+   */
    return;
 }
 
@@ -981,23 +1003,23 @@ void SKError::addToy(int ntoy){
 ///////////////////////////////////////////////////////////////
 void SKError::resetHistos(){
 
-
   for (int ih=0; ih<NEvisHistos; ih++){
+    cout<<"SKError::restHistos: resetting histograms: "<<ih<<endl;
     hEvisCore[ih]->Reset();
     hEvisBase[ih]->Reset();
   }
-  
-  /*
-  hEvisNuECCQE->Reset();
-  hEvisNuMuCCQE->Reset();
-  hEvisNuECCOth->Reset();
-  hEvisNuMuCCOth->Reset();
+
   //
-  hEvisNuECCQETot->Reset();
-  hEvisNuMuCCQETot->Reset();
-  hEvisNuECCOthTot->Reset();
-  hEvisNuMuCCOthTot->Reset();
-  */
+//  hEvisNuECCQE->Reset();
+//  hEvisNuMuCCQE->Reset();
+//  hEvisNuECCOth->Reset();
+//  hEvisNuMuCCOth->Reset();
+  //
+//  hEvisNuECCQETot->Reset();
+//  hEvisNuMuCCQETot->Reset();
+//  hEvisNuECCOthTot->Reset();
+//  hEvisNuMuCCOthTot->Reset();
+
 
 
   return;
@@ -1006,11 +1028,79 @@ void SKError::resetHistos(){
 
 
 ///////////////////////////////////////////////////////////////
-int SKError::addEvent(int nclass, double evis, double weight, int iscore){
+int SKError::addEventCore(int nclass, double evis, double weight, int coretype){
+
+ 
+    //
+    if (nclass==1){
+      return hEvisNuECCQE->Fill(evis,weight);
+    }
+    if (nclass==2){
+      return hEvisNuMuCCQE->Fill(evis,weight);
+    }
+    if (nclass==3){
+      return hEvisNuECCOth->Fill(evis,weight);
+    }
+    if (nclass==4){
+      return hEvisNuMuCCOth->Fill(evis,weight);
+    }
+    if (flgNC){
+      if (nclass==5 && coretype==1){
+        hEvisNuENCPi0->Fill(evis,weight);
+      }
+      else if (nclass==5 && coretype==2){
+        hEvisNuMuNCPi0->Fill(evis,weight);
+      }
+      else if (nclass==6 && coretype==1){
+        hEvisNuENCPi->Fill(evis,weight);
+      }
+      else if (nclass==6 && coretype==2){
+        hEvisNuMuNCPi->Fill(evis,weight);
+      }
+    }
+
+  return 0;
+}
+
+
+
+///////////////////////////////////////////////////////////////
+int SKError::addEventBase(int nclass, double evis, double weight){
+
+  
+    //
+    if (nclass==1){
+      return hEvisNuECCQETot->Fill(evis,weight);
+    }
+    if (nclass==2){
+      return hEvisNuMuCCQETot->Fill(evis,weight);
+    }
+    if (nclass==3){
+      return hEvisNuECCOthTot->Fill(evis,weight);
+    }
+    if (nclass==4){
+      return hEvisNuMuCCOthTot->Fill(evis,weight);
+    }
+    if (flgNC){
+      if (nclass==5){
+        hEvisNuENCPi0Tot->Fill(evis,weight);
+        hEvisNuMuNCPi0Tot->Fill(evis,weight);
+      }
+      if (nclass==6){
+        hEvisNuENCPiTot->Fill(evis,weight);
+        hEvisNuMuNCPiTot->Fill(evis,weight);
+      }
+    }
+
+  return 0;
+}
+
+///////////////////////////////////////////////////////////////
+int SKError::addEvent(int nclass, double evis, double weight, bool flgtot){
 
   
   // passes core
-  if (iscore>0){
+  if (!flgtot){
     //
     if (nclass==1){
       return hEvisNuECCQE->Fill(evis,weight);
@@ -1047,7 +1137,6 @@ int SKError::addEvent(int nclass, double evis, double weight, int iscore){
 }
 
 
-
 ///////////////////////////////////////////////////////////////
 int SKError::getClassMC(int nutype, int mode, int component,
                         double evis, int nsubev, double towall, double wall){
@@ -1060,13 +1149,13 @@ int SKError::getClassMC(int nutype, int mode, int component,
   //  3 -> CCOth Nu E
   //  4 -> CCOth Nu Mu
   //  5 -> NC pi0
+  //  5 -> NC pi
 
   double towall_nuecut = 170.;
   double towall_numucut = 250.;
-  double towall_NC = 150.;
   double wall_nuecut = 80.;
   double wall_numucut = 50.;
-  double wall_NC = 50.;
+
   
   // CC and single electron
   if (component==0 && TMath::Abs(mode)<30 && evis>100. && nutype==12
@@ -1093,14 +1182,14 @@ int SKError::getClassMC(int nutype, int mode, int component,
   }
 
   // NC pi0
-  if (component==4 && TMath::Abs(mode)>=30 && evis>30. && nsubev>=2
-       && towall>towall_NC && wall>wall_NC ){
+  if (component==4 && TMath::Abs(mode)>=30 && evis>100. && nsubev<=2
+       && towall>towall_nuecut && wall>wall_nuecut ){
     return 5;
   }
 
   // NC pi
-  if (component==5 && TMath::Abs(mode)>=30 && evis>30. && nsubev>=2
-       && towall>towall_NC && wall>wall_NC ){
+  if (component==5 && TMath::Abs(mode)>=30 && evis>30. && nsubev<=2
+       && towall>towall_numucut && wall>wall_numucut ){
     return 6;
   }
   
@@ -1337,7 +1426,7 @@ void SKError::zeroArrays(){
 ///////////////////////////////////////////////////////////////
 void SKError::initHistos(int ibinning){
 
-  // histo binning  )
+  // histo binning )
   if (ibinning==1){
   int    NbinsNuECCQE = 6;
   double BinsNuECCQE[] = {100.,300.,700.,1250.,2000.,5000.,30000.};
@@ -1347,7 +1436,6 @@ void SKError::initHistos(int ibinning){
   double BinsNuMuCCQE[] = {0.,100.,300.,700.,1250.,2000.,5000.,30000.};
   int    NbinsNuMuCCOth = 3;
   double BinsNuMuCCOth[] = {100.,1250.,5000.,30000.};
-
   // setup histos
   hEvisNuECCQE = new TH1D("hnueccqe","hnueccqe",NbinsNuECCQE,BinsNuECCQE); 
   hEvisNuECCOth = new TH1D("hnueccoth","hnueccoth",NbinsNuECCOth,BinsNuECCOth); 
@@ -1357,8 +1445,8 @@ void SKError::initHistos(int ibinning){
   hEvisNuECCQETot = new TH1D("hnueccqetot","hnueccqetot",NbinsNuECCQE,BinsNuECCQE); 
   hEvisNuECCOthTot = new TH1D("hnueccothtot","hnueccothtot",NbinsNuECCOth,BinsNuECCOth); 
   hEvisNuMuCCQETot = new TH1D("hnumuccqetot","hnumuccqetot",NbinsNuMuCCQE,BinsNuMuCCQE); 
-  hEvisNuMuCCOthTot = new TH1D("hnumuccothtot","hnumuccothtot",NbinsNuMuCCOth,BinsNuMuCCOth); 
-  //
+  hEvisNuMuCCOthTot = new TH1D("hnumuccothtot","hnumuccothtot",NbinsNuMuCCOth,BinsNuMuCCOth);
+
   hEvisCore[0]=hEvisNuECCQE;
   hEvisCore[1]=hEvisNuECCOth;
   hEvisCore[2]=hEvisNuMuCCQE;
@@ -1368,12 +1456,12 @@ void SKError::initHistos(int ibinning){
   hEvisBase[1]=hEvisNuECCOthTot;
   hEvisBase[2]=hEvisNuMuCCQETot;
   hEvisBase[3]=hEvisNuMuCCOthTot;
-  //
-  NEvisHistos=4;
+
+  NEvisHistos = 4;
   }
 
   if (ibinning==0){
-  // histo binning (andy :) )
+  // histo binning )
   int    NbinsNuECCQE = 2;
   double BinsNuECCQE[] = {100,1250.,30000.};
   int    NbinsNuECCOth = 2;
@@ -1392,7 +1480,7 @@ void SKError::initHistos(int ibinning){
   hEvisNuECCOthTot = new TH1D("hnueccothtot","hnueccothtot",NbinsNuECCOth,BinsNuECCOth); 
   hEvisNuMuCCQETot = new TH1D("hnumuccqetot","hnumuccqetot",NbinsNuMuCCQE,BinsNuMuCCQE); 
   hEvisNuMuCCOthTot = new TH1D("hnumuccothtot","hnumuccothtot",NbinsNuMuCCOth,BinsNuMuCCOth); 
-  //
+
   hEvisCore[0]=hEvisNuECCQE;
   hEvisCore[1]=hEvisNuECCOth;
   hEvisCore[2]=hEvisNuMuCCQE;
@@ -1402,47 +1490,70 @@ void SKError::initHistos(int ibinning){
   hEvisBase[1]=hEvisNuECCOthTot;
   hEvisBase[2]=hEvisNuMuCCQETot;
   hEvisBase[3]=hEvisNuMuCCOthTot;
-  //
-  NEvisHistos=4;
+
+  NEvisHistos = 4;
   }
 
 
 
   if (ibinning==2){
-  // alt. binnings
-  
-  int nbins = 10;
-  double Evismax = 2000;
-  hEvisNuECCQE = new TH1D("hnueccqe","hnueccqe",nbins,0,Evismax); 
-  hEvisNuECCOth = new TH1D("hnueccoth","hnueccoth",nbins,0,Evismax); 
-  hEvisNuMuCCQE = new TH1D("hnumuccqe","hnumuccqe",nbins,0,Evismax); 
-  hEvisNuMuCCOth = new TH1D("hnumuccoth","hnumuccoth",nbins,0,Evismax); 
+  int    NbinsNuECCQE = 6;
+  double BinsNuECCQE[] = {100.,300.,700.,1250.,2000.,5000.,30000.};
+  int    NbinsNuECCOth = 3;
+  double BinsNuECCOth[] = {100.,1250.,5000.,30000.};
+  int    NbinsNuMuCCQE = 7;
+  double BinsNuMuCCQE[] = {0.,100.,300.,700.,1250.,2000.,5000.,30000.};
+  int    NbinsNuMuCCOth = 3;
+  double BinsNuMuCCOth[] = {100.,1250.,5000.,30000.};
+
+  // setup histos
+  hEvisNuECCQE = new TH1D("hnueccqe","hnueccqe",NbinsNuECCQE,BinsNuECCQE); 
+  hEvisNuECCOth = new TH1D("hnueccoth","hnueccoth",NbinsNuECCOth,BinsNuECCOth); 
+  hEvisNuMuCCQE = new TH1D("hnumuccqe","hnumuccqe",NbinsNuMuCCQE,BinsNuMuCCQE); 
+  hEvisNuMuCCOth = new TH1D("hnumuccoth","hnumuccoth",NbinsNuMuCCOth,BinsNuMuCCOth); 
+  hEvisNuENCPi0 = new TH1D("hnuencpi0","hnuencpi0",1,100,1250.); 
+  hEvisNuENCPi = new TH1D("hnuencpi","hnuencpi",1,100,1250.); 
+  hEvisNuMuNCPi0 = new TH1D("hnumncpi0","hnumncpi0",1,30,3000.); 
+  hEvisNuMuNCPi = new TH1D("hnumncpi","hnumncpi",1,30,3000.); 
 
   // totals
-  hEvisNuECCQETot = new TH1D("hnueccqetot","hnueccqetot",nbins,0,Evismax); 
-  hEvisNuECCOthTot = new TH1D("hnueccothtot","hnueccothtot",nbins,0,Evismax);
-  hEvisNuMuCCQETot = new TH1D("hnumuccqetot","hnumuccqetot",nbins,0,Evismax);
-  hEvisNuMuCCOthTot = new TH1D("hnumuccothtot","hnumuccothtot",nbins,0,Evismax);
-  //
+  hEvisNuECCQETot = new TH1D("hnueccqetot","hnueccqetot",NbinsNuECCQE,BinsNuECCQE); 
+  hEvisNuECCOthTot = new TH1D("hnueccothtot","hnueccothtot",NbinsNuECCOth,BinsNuECCOth); 
+  hEvisNuMuCCQETot = new TH1D("hnumuccqetot","hnumuccqetot",NbinsNuMuCCQE,BinsNuMuCCQE); 
+  hEvisNuMuCCOthTot = new TH1D("hnumuccothtot","hnumuccothtot",NbinsNuMuCCOth,BinsNuMuCCOth); 
+  hEvisNuENCPi0Tot = new TH1D("hnuencpi0tot","hnuencpi0tot",1,30,30000.); 
+  hEvisNuENCPiTot = new TH1D("hnuencpitot","hnuencptoti",1,30,30000.); 
+  hEvisNuMuNCPi0Tot = new TH1D("hnumncpi0tot","hnumncpi0tot",1,30,30000.); 
+  hEvisNuMuNCPiTot = new TH1D("hnumncpitot","hnumncpitot",1,30,30000.); 
+
   hEvisCore[0]=hEvisNuECCQE;
   hEvisCore[1]=hEvisNuECCOth;
   hEvisCore[2]=hEvisNuMuCCQE;
   hEvisCore[3]=hEvisNuMuCCOth;
+  hEvisCore[4]=hEvisNuENCPi0;
+  hEvisCore[5]=hEvisNuENCPi;
+  hEvisCore[6]=hEvisNuMuNCPi0;
+  hEvisCore[7]=hEvisNuMuNCPi;
   //
   hEvisBase[0]=hEvisNuECCQETot;
   hEvisBase[1]=hEvisNuECCOthTot;
   hEvisBase[2]=hEvisNuMuCCQETot;
   hEvisBase[3]=hEvisNuMuCCOthTot;
-  //
-  NEvisHistos=4;
-  }
+  hEvisBase[4]=hEvisNuENCPi0Tot;
+  hEvisBase[5]=hEvisNuENCPiTot;
+  hEvisBase[6]=hEvisNuMuNCPi0Tot;
+  hEvisBase[7]=hEvisNuMuNCPiTot;
 
+  flgNC = true;
+  NEvisHistos = 8;
+  }
 
   // count all bins
   Nclass=0;
   for (int ih=0; ih<NEvisHistos; ih++){
    Nclass += hEvisCore[ih]->GetNbinsX(); 
   }
+  // count all bins
 //  Nclass = hEvisNuECCQE->GetNbinsX() + hEvisNuECCOth->GetNbinsX()
 //           +  hEvisNuMuCCQE->GetNbinsX() + hEvisNuMuCCOth->GetNbinsX();
 
@@ -1539,11 +1650,14 @@ SKError::SKError(int ntoys){
   evisClass[4][1]=16;
   evisClass[4][2]=17;
   evisClass[4][3]=18;
+  //
 
 
   // 0 -> 100% defined using flux, xsec, and norm parameters
   // 1 -> 100% defined using nominal value
   effDefinition = 0;
+
+  flgNC = false;
 }
 
 
@@ -1722,6 +1836,8 @@ void SKError::drawVariable(mcLargeArray* events, const char* varname, int nclass
     if (iclass==0) continue;
     // get the erec bin
     int ebin = addEvent(iclass,events->vfqemom[iev], 1.,false);
+//    int ebin = addEventCore(iclass,events->vfqemom[iev], 1.);
+    
     int evisclass = getClassEvis(iclass,ebin);
    
 

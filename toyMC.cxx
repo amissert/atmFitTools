@@ -346,12 +346,12 @@ void toyMC::fillMarginalizedSKErr(const int ntoys, const int nmarg, int nbinning
 
     // fill total histos
     // the "true" flag means we add it to the "total" evis histogram for this class
-    skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,true);
+    skErr->addEventBase(nclass,fastevents->vfqemom[iev],ww);
 
-    if (iscore==1){
+    if (iscore>0){
       // fill core histos
     // the "true" flag means we add it to the "core" evis histogram for this class
-      skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,false);
+      skErr->addEventCore(nclass,fastevents->vfqemom[iev],ww,iscore);
     }
      
   }
@@ -411,11 +411,12 @@ void toyMC::fillMarginalizedSKErr(const int ntoys, const int nmarg, int nbinning
                                            ,fastevents->vnutype[iev]); 
 
         // fill total histos
-        skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,true);
-
-        if (iscore==1){
+//        skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,true);
+        skErr->addEventBase(nclass,fastevents->vfqemom[iev],ww);
+        if (iscore>0){
           // fill core histos
-          skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,false);
+//          skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,false);
+          skErr->addEventCore(nclass,fastevents->vfqemom[iev],ww,iscore);
         }
 
       } //< MC eventloop
@@ -484,8 +485,10 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
                                      fastevents->vfqnsubev[iev],
                                      fastevents->vfqtowall[iev],
                                      fastevents->vfqwall[iev]);
+    if (nclass==0) continue;
     // passes core selection?
-    int iscore = applyCoreCutsToModifiedEvent(iev,nclass,true);
+    int iscore = applyCoreCutsToModifiedEvent(iev,nclass,false);
+
     // if its core or tail fill histos
     if (iscore<0) continue; //< skip unclassified events
 
@@ -496,15 +499,11 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
                                          ,fastevents->vnutype[iev]);
      
 
-    // fill total histos
     // the "true" flag means we add it to the "total" evis histogram for this class
-    skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,iscore);
-
-//    if (iscore>0){
-      // fill core histos
-    // the "true" flag means we add it to the "core" evis histogram for this class
-//      skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,iscore);
-//    }
+    skErr->addEventBase(nclass,fastevents->vfqemom[iev],ww);
+    if (iscore>0){
+      skErr->addEventCore(nclass,fastevents->vfqemom[iev],ww,iscore);
+    }
      
   }
   skErr->addNominal();
@@ -540,6 +539,7 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
                                      fastevents->vfqtowall[iev],
                                      fastevents->vfqwall[iev]);
     
+      if (nclass==0) continue;
       // passes core selection?
       int iscore = applyCoreCutsToModifiedEvent(iev,nclass,true);
 
@@ -554,12 +554,10 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
      
 
       // fill total histos
-      skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,iscore);
-
-//      if (iscore==1){
-        // fill core histos
-//        skErr->addEvent(nclass,fastevents->vfqemom[iev],ww,false);
-//      }
+      skErr->addEventBase(nclass,fastevents->vfqemom[iev],ww);
+      if (iscore>0){
+        skErr->addEventCore(nclass,fastevents->vfqemom[iev],ww,iscore);
+      }
      
     }
 
