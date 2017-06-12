@@ -9,23 +9,33 @@
 ////////////////////////////////////////////////////////////////////
 void optimusPrime::drawFOM(int nselection, int noscpar){
 
-  TString sampname[] = {"#nu_{e} CCQE","#nu_{mu} CCQE", "#nu_{e} CC1R#pi"};
+  TString sampname[] = {"#nu_{e} CCQE","#nu_{#mu} CCQE", "#nu_{e} CC1R#pi"};
   TString osparname[] = {"#theta_{23}","#Delta M^{2}","#theta_{13}","#delta_{CP}"};
+ // 0 -> figure of merit
+ // 1 -> dN/dtheta
+ // 2 -> (dN/dtheta) / N
+ // 3 -> N
+ // 4 -> sys / N
+  TString ztitle[] = {"Figure of Merit","|dN/d#theta|","Avg. |dN/d#theta|",
+                      "N","Avg. #sigma_{sys}"};
   TCanvas* cc = new TCanvas("cc","cc",800,700);
   cc->GetPad(0)->SetLeftMargin(0.10);
-  cc->GetPad(0)->SetRightMargin(0.17);
-  cc->GetPad(0)->SetBottomMargin(0.15);
+  cc->GetPad(0)->SetRightMargin(0.18);
+  cc->GetPad(0)->SetBottomMargin(0.10);
   hFV->GetXaxis()->SetTitle("Towall Cut [cm]");
   hFV->GetYaxis()->SetTitle("Wall Cut [cm]");
-  hFV->GetZaxis()->SetTitle("Figure of Merit");
-  hFV->GetZaxis()->SetTitleOffset(1.4);
+  hFV->GetZaxis()->SetTitle(ztitle[FOMType]);
+  hFV->GetZaxis()->SetTitleOffset(1.5);
+  hFV->GetZaxis()->SetNdivisions(5);
   hFV->SetTitle(sampname[nselection-1].Data());
-//  hFV->CenterTitle(1);
+  smartAxis(hFV);
   hFV->Draw("colz");
   hFV->Draw("colz");
 
   return;
 }
+
+
 
 ////////////////////////////////////////////////////////////////////
 void optimusPrime::setSeedHisogram(int nselection, TH1D* histo, int oscpar){
@@ -557,7 +567,12 @@ optimusPrime::optimusPrime(TChain* t2kmc, int nevts,
  // max # of MC events to use
  nevents = nevts;
 
- // flg to toggle using energy spectrom when evaluating f.o.m
+ // flg to toggle different variables to return
+ // 0 -> figure of merit
+ // 1 -> dN/dtheta
+ // 2 -> (dN/dtheta) / N
+ // 3 -> N
+ // 4 -> sys / N
  FOMType = 0;
  
  if (nevents>chmc->GetEntries()){
@@ -872,7 +887,6 @@ void optimusPrime::fillArray(){
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 float optimusPrime::calcFOMBinned(int nselection, float towallmin, float wallmin, int oscpar, int iplt){
-
 
   // summarize?
   if (flgPrintSummary){
@@ -1372,7 +1386,7 @@ void optimusPrime::compareCuts(float tw1, float w1, float tw2, float w2, int osc
 
 
 ///////////////////////////////////////////////////
-// calculate FOM from arrays instead of histograms
+// calculate FOM from arrays 
 float optimusPrime::calcFOM(float* pow, float* nev, float* sys, int nbin){
 
  if (flgPrintSummary){
@@ -1396,12 +1410,17 @@ float optimusPrime::calcFOM(float* pow, float* nev, float* sys, int nbin){
 
     // if there are events in this bin, it contributes to total
     if (nev[i]>0.){
+      // optimization figure of merit
       if (FOMType==0) fom_thisbin = (pow[i]*pow[i])/((sys[i]*sys[i])+nev[i]);
-      if (FOMType==4) fom_thisbin = (pow[i]*pow[i])/(nev[i]);
-      if (FOMType==5) fom_thisbin = (pow[i]*pow[i])/(nev[i]);
-      if (FOMType==6) fom_thisbin = (pow[i]*pow[i])/(nev[i]);
-      if (FOMType==7) fom_thisbin = (pow[i]*pow[i])/(nev[i]+(2.*sys[i]));
-      if (FOMType==8) fom_thisbin = (pow[i]*pow[i])/(nev[i]+(1.*sys[i]));
+      // other pototentially interesting things
+      if (FOMType==1) fom_thisbin = (pow[i]);
+      if (FOMType==2){
+        if (nev[i]!=0.) fom_thisbin = (pow[i])/(nev[i]);
+      }
+      if (FOMType==3) fom_thisbin = (nev[i]);
+      if (FOMType==4){
+        if (nev[i]!=0.) fom_thisbin = (sys[i]/nev[i]);
+      }
     }
    
     if (flgPrintSummary){
@@ -1429,12 +1448,16 @@ float optimusPrime::calcFOM(float* pow, float* nev, float* sys, int nbin){
    cout<<"Small: "<<smallVariation<<endl;;
  }
 
- //
- if (FOMType==3) return syst_total/TMath::Sqrt(nev_total);
- if (FOMType==4) return fom_total/(syst_total*syst_total);
- if (FOMType==5) return fom_total/(syst_total);
- if (FOMType==6) return fom_total;
- if (FOMType==7) return fom_total;
+// if (FOMType==1) return power_total;
+// if (FOMType==2) return nev_total;
+// if (FOMType==3) return syst_total;
+// if (FOMType==4) return power_total/nev_total;
+// if (FOMType==5) return syst_total/nev_total;
+
+// if (FOMType==3) return syst_total/TMath::Sqrt(nev_total);
+// if (FOMType==4) return fom_total/(syst_total*syst_total);
+// if (FOMType==5) return fom_total/(syst_total);
+// if (FOMType==6) return fom_total;
  if (FOMType==8) return fom_total;
  return fom_total;
 

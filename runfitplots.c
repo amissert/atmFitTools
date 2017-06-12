@@ -22,7 +22,7 @@
  fitPlots* fp = new fitPlots(hc,(TTree*)&ch);
  fp->nPoints = 100;
  fp->initArrays();
- fp->printFitSummary("~/transfer/","demcmc_fitresult");
+ fp->printFitSummaryFV("~/transfer/","demcmc_fitresult");
 // fp->fillArrays(0,0);
-
+//fp->drawFitSummaryFV(0,0);
 }

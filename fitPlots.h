@@ -39,10 +39,15 @@ class fitPlots{
   // methods
   void applyPars();
   void fillArrays(int ibin, int isamp);
-  void drawFitSummary(int isamp, int ibin);
+  void drawFitSummary(int isamp, int ibin); //< draw all attributes
+//  void drawFitSummaryAtt(int iatt, int ibin); //< draw all samples
+  void drawFitSummaryFV(int isamp, int iatt); //< draw all bins
   void drawFitThrows(int isamp, int ibin);
   void printFitSummary(const char* dir, const char* name);
+  void printFitSummaryFV(const char* dir, const char* name);
   void initArrays();
+
+  TString getAxisTitle(int iatt);
 
 };
 

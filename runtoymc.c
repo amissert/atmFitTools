@@ -28,7 +28,7 @@ TString T2KMCFiles = "/nfs/data41/t2k/amissert/processed/wetrun/allevis/*.root";
 TString MCMCFiles = "./run/results/wetrun_logrc/demcmc_run2_summary.root";
 int   NMCEvents = 1e9;
 //int   NMCEvents = 100000;
-int   NMCMCPoints = 5;
+int   NMCMCPoints = 500;
 int   NMarginalPoints = 50;
 int   index_of_pidpar = 0;
 int   index_of_pi0par = 1;
@@ -60,14 +60,14 @@ toy->setAtmFitPars("wetrun.dat");
 mcfiles->GetEntry(500); // initialize some parameters
 parfiles->GetEntry(500); // initialize some parameters
 
-//toy->fillMarginalizedSKErr(NMCMCPoints,NMarginalPoints);
+toy->fillMarginalizedSKErr(NMCMCPoints,NMarginalPoints);
 
-toy->modifier->flgGlobalUseBestPars = true;
-toy->modifier->setUseBestFitSystPars(true);
-toy->modifier->setUseBestFitNormPars(true);
+//toy->modifier->flgGlobalUseBestPars = true;
+//toy->modifier->setUseBestFitSystPars(true);
+//toy->modifier->setUseBestFitNormPars(true);
 //toy->modifier->setAllAlphaFlags(false);
 //toy->skErr->effDefinition = 1;
-toy->fillSKErrors(NMCMCPoints,1,0,0);
+//toy->fillSKErrors(NMCMCPoints,1,0,0);
 
 //toy->skErr->drawVariable(toy->fastevents,"fqpidpar",1,1)
 }

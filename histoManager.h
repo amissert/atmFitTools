@@ -14,8 +14,10 @@
 #include "atmFitPars.h"
 #include "histoTransforms.h"
 #include "sharedPars.h"
+#include "movieTools.h"
 #include "shared.h"
 #include "likelihood.h"
+#include "TLatex.h"
 #include "splineParReader.h"
 #ifndef T2K
 #include "fqProcessedEvent.h"
@@ -32,10 +34,10 @@ class histoManager{
 
   ///////////////////////////
   //CONSTRUCTORS//
-  histoManager(int nsampl,int nbins,int ncomp,const char* name="", int nmode = 0, bool separateneutmode = false); //creates blank histogram manager
-  histoManager(const char* rootfilename,int nsamp,int nbin,int ncomp,int natt, int nmode = 0, bool separateneutmode = false); //recreates a histoManager from a file
-  histoManager(int nptsmc, int nptsdata); //< for unit testing, makes histoManager with gaussian histograms 
-  histoManager(const char* parfile, int nmode = 0, bool separateneutmode = false); //< builds a histogram manager from histograms and values in parameter file
+  histoManager(int nsampl,int nbins,int ncomp,const char* name="", int nmode = 0, bool separateneutmode = false);
+  histoManager(const char* rootfilename,int nsamp,int nbin,int ncomp,int natt, int nmode = 0, bool separateneutmode = false); 
+  histoManager(int nptsmc, int nptsdata); 
+  histoManager(const char* parfile, int nmode = 0, bool separateneutmode = false); 
 
   ///////////////////////////
   //INTERNAL VARIABLES//
@@ -75,14 +77,12 @@ class histoManager{
   TH2D* h2d; //for 2D debugging histograms
   double binContents[1000]; //< stores temporary bin contents for faster modificatoins
   bool separateNeutMode;
-  //Array to store mean of each histogram. This affects how the histogram is scaled, since a scaling parameter
+
   //scales about the mean.
   double hMCMean[NSAMPMAX][NBINMAX][NCOMPMAX][NATTMAX];
-  ///////////////////////////
-  //parametrs
   atmFitPars* fitPars; 
-  //void setFitPars(atmFitPars* thepars){fitPars=thepars;}
   void setFitPars(atmFitPars* thepars);
+
   ///////////////////////////
   //methods
   //for initialization
@@ -109,7 +109,6 @@ class histoManager{
   TH1D* getModHistogram(int isamp, int ibin, int icomp, int iatt); //gets histogram modified from atm pars
   TH1D* getModHistogramMC(int isamp, int ibin, int icomp, int iatt); //gets histogram modified from atm pars
   TGraph* getModGraph(int isamp, int ibin, int icomp, int iatt);
-  TH1D* getModHistogramSlow(int isamp, int ibin, int icomp, int iatt); //gets histogram modified from atm pars
   TH1D* getHistogramData(int isamp, int ibin, int iatt){return hData[isamp][ibin][iatt];}
   hSplines* getSplines(int isamp, int ibin, int icomp, int iatt){return theSplines[isamp][ibin][icomp][iatt];}
   TH1D* getSumHistogram(int isamp, int ibin, int att, int normFlg=1);
@@ -127,12 +126,14 @@ class histoManager{
   ///////////////////////////  
   //plotting
   void showMCBreakdown(int isample,int ibin,int iatt);
+  double showMCBreakdownMod(int isample,int ibin,int iatt, double fix=-1);
   void printBreakdownPlots(const char* directory);
   THStack* showMCBreakdownStack(int isample,int ibin,int iatt);
   void readFromFile(const char* rootename,int nsamp,int nbin,int ncomp,int natt, int nmode = 0);
   void readSplinesFromFile(const char* rootname);
   void drawSpline(int isamp, int ibin, int icomp, int iatt, int hbin, int isyst);
   void drawSpline2D( int isamp, int ibin, int icomp, int iatt, int isyst);
+  void makeAMovie(const char* dir,int nframes, int isamp, int ibin, int iatt);
 
   ///////////////////////////
   //debugging
