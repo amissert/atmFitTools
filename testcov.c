@@ -5,7 +5,7 @@ gStyle->SetPalette(kTemperatureMap);
 // TFile f("./run/results/wetrun/demcmc_.root");
 // TFile f("./run/results/wetrun/demcmc_summary_sample.root");
 // TFile f("./run/results/wetrun/demcmc_run5_summary_sample.root");
- TFile f("./results/demcmc_run2_summary.root");
+ TFile f("../demcmc_large_summary.root");
 // TFile f("./run/results/wetrun/mcmcfit_run5_summary_sample.root");
  TTree* tr = (TTree*)f.Get("MCMCpath");
  makeCov *maker = new makeCov("wetrun.dat");
