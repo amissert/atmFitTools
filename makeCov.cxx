@@ -49,6 +49,10 @@ class makeCov{
   //set the number of burn in steps to ignore
   int nburn;
 
+  ///////////////////////////////////////////
+  //set the number of steps to skip 
+  int nskip;
+
   /////////////////////
   //matrix histograms
   TH2F* cov;
@@ -57,6 +61,7 @@ class makeCov{
   //////////////////////
   //pull histograms
   TH1D* hpull;
+  TH1D* hpulldist;
 
   ///////////////////////
   //dividing lines
@@ -66,7 +71,7 @@ class makeCov{
   ////////////////////////
   // number of parameters
   int nsyspar;
-  int ntotpar;
+  int nfitpartot;
 
   ////////////////////////
   //arrays
@@ -101,9 +106,15 @@ class makeCov{
   void drawLabeldCor();
   void drawVertBinLines();
   void drawHorzBinLines();
-
+  void drawBinSubMatrix(int ibin);
+//  void drawAlphaSubMatrix();
+    
 };
 
+
+void makeCov::drawBinSubMatrix(int ibin){
+
+}
 
 
 void makeCov::drawLabeldCor(){
@@ -180,7 +191,7 @@ void makeCov::drawVertBinLines(){
 
 
 void makeCov::printParErrors(){
-  for (int ipar=0; ipar<ntotpar; ipar++){
+  for (int ipar=0; ipar<nfitpartot; ipar++){
     double fiterr = parsigma[ipar];
     double shifterr = TMath::Abs(parmean[ipar] - pardefault[ipar]);
     cout<<"Par "<<ipar<<" Error: "<<fiterr+shifterr;
@@ -270,7 +281,7 @@ void makeCov::drawCor(){
   double ymax = cor->GetYaxis()->GetXmax();
   double xmin = cor->GetXaxis()->GetXmin();
   double ymin = cor->GetYaxis()->GetXmin();
-  double xsep = (double)ntotpar - (double)nsyspar;
+  double xsep = (double)nfitpartot - (double)nsyspar;
   lhoriz = new TLine(0,xsep,xmax,xsep);
   lvert = new TLine(xsep,0,xsep,ymax);
   lvert->SetLineWidth(3);
@@ -285,55 +296,48 @@ void makeCov::drawCor(){
 
 void makeCov::buildMatrix(){
 
-
-    //setup mcmc trees
-  /*
-  double par[500];
-  double parnominal[500];
-  int npar;
-  partree->SetBranchAddress("par",par);
-  partree->SetBranchAddress("npars",&npar);
-  partree->SetBranchAddress("parnominal",parnominal);
-  partree->GetEntry(0); //fills npar
-  cout<<"Total # of parameters: "<<npar<<endl;
-  cout<<"Total # of steps: "<<partree->GetEntries()<<endl;
-  cout<<"Burn-in: "<<nburn<<endl;
-  */
-
   //create matrix templates
   cov = new TH2F("cov","cov",npar,0.,(double)npar,npar,0.,(double)npar);
   cor = new TH2F("cor","cor",npar,0.,(double)npar,npar,0.,(double)npar);
 
-  //set initial values to zero
-  const int npartot = npar; //< total number of parameters in MCMC cloud
-  ntotpar = npar;
-  /*
-  double matrix[npartot][npartot];
-  for (int i0=0;i0<npartot;i0++){
-    mean[i0]=0.;
-    for (int j0=0;j0<npartot;j0++){
-      matrix[i0][j0] = 0.;
-    }
-  }
-*/
+  const int npartot = npar; //< total number of fit parameters in this mcmc cloud
+  nfitpartot = npar;
 
   //calc means
   int npts = partree->GetEntries()-nburn;
-  double norm=1./(double)npts;
-  cout<<"norm: "<<norm<<endl;
+  double sumpts=0;
+  int nskipped=0;
+
+  // loop over mcmc opints
   for (int iev=nburn; iev<partree->GetEntries(); iev++){
+    nskipped++;
+    if (nskipped<nskip) continue;
+    nskipped = 0;
     partree->GetEntry(iev);  //< read in parameters from MCMC cloud
+    // loop over fit parameters
     for (int ipar=0; ipar<npartot; ipar++){
-      parmean[ipar]+= (par[ipar]*norm);
+      parmean[ipar]+=(par[ipar]);
     }
+    sumpts++;
   }
+
+  // normalize
+  for (int ipar=0; ipar<npartot; ipar++){
+    parmean[ipar]/=sumpts;
+  }
+
+  // print
   for (int kk=0;kk<npartot;kk++){
       cout<<"mean: "<<kk<<" "<<parmean[kk]<<endl;
   }
 
   //calc matrix
-  norm = 1./((double)npts-1.);
-  for (int jev=nburn;jev<partree->GetEntries();jev++){
+  double norm = 1./(sumpts-1.);
+  nskipped=0;
+  for (int jev=nburn; jev<partree->GetEntries(); jev++){
+    nskipped++;
+    if (nskipped<nskip) continue;
+    nskipped = 0;
     partree->GetEntry(jev);
     for (int i0=0;i0<npartot;i0++){
       for (int j0=0;j0<npartot;j0++){
@@ -349,19 +353,13 @@ void makeCov::buildMatrix(){
   for (int j=0;j<npartot;j++){
     for (int k=0;k<npartot;k++){
       cov->SetBinContent(j+1,k+1,covarray[j][k]);
-      cor->SetBinContent(j+1,k+1, ((covarray[j][k])/sqrt( (covarray[j][j]*covarray[k][k]) )));
+      cor->SetBinContent(j+1,k+1,((covarray[j][k])/sqrt((covarray[j][j]*covarray[k][k]))));
       corarray[j][k] =  ((covarray[j][k])/sqrt( (covarray[j][j]*covarray[k][k]) ));
     }
     parsigma[j] = TMath::Sqrt( covarray[j][j] );
   }
 
-  // set default parameter arrays
-//  atmFitPars* fitpars = new atmFitPars(runparfile.Data());
-//  nsyspar = fitpars->nSysPars;
-   nsyspar=0;
-//  for (int ipar=0; ipar<npartot; ipar++){
-//    pardefault[ipar] = fitpars->getParameter(ipar);
-//  }
+  nsyspar=0;
   partree->GetEntry(1);
   for (int ipar=0; ipar<npartot; ipar++){
     pardefault[ipar] = parnominal[ipar];
@@ -369,14 +367,18 @@ void makeCov::buildMatrix(){
 
   // make pull histogram
   hpull = new TH1D("hpull","hpull",npartot,0,npartot);
+  hpulldist = new TH1D("hpulldist","hpulldist",25,-5,5);
   for (int ipar=0; ipar<npartot; ipar++){
     double pullvalue = (parmean[ipar] - pardefault[ipar])/parsigma[ipar];
     hpull->Fill(ipar, pullvalue);
+    hpulldist->Fill(pullvalue);
   }
+
   // remove pull errors
   for (int ibin=1; ibin<hpull->GetNbinsX(); ibin++){
     hpull->SetBinError(ibin,0.);
   }
+
   // draw the correlation
   cor->SetContour(100);
   cor->Draw("colz");

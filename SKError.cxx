@@ -98,7 +98,6 @@ void SKError::initTN186Errors(){
   hErrorTN186CCOth[1]->SetMarkerStyle(1);
 
   // fill in histos
-
   // ccqe nue
   for (int i=2; i<=hErrorTN186CCQE[0]->GetNbinsX(); i++){
     hErrorTN186CCQE[0]->SetBinContent(i,nue_ccqe_serr[i-2]);

@@ -16,6 +16,7 @@ gROOT->ProcessLine(".x ~/corr.c");
 // makeCov *maker = new makeCov("fakepars1.dat");
  maker->setParTree(tr);
  maker->nburn = 10;
+ maker->nskip = 50;
  //gStyle->SetPalette(kBlackBody);
  maker->buildMatrix();
  maker->drawLabeldCor();
