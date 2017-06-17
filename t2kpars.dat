@@ -49,7 +49,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ PREPROC PARAMETERS $$$$$$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ OUTPUT DIRECTORY FOR THE PROCESSED FILES 
-s,preProcessOutDir=/nfs/data41/t2k/amissert/t2kmc/processed/feb23pass_1rpi/;
+s,preProcessOutDir=/nfs/data41/t2k/amissert/t2kmc/processed/may_phiwall/;
 s,preProcessFilesMC=/nfs/data41/t2k/amissert/t2kmc/reduced/jan30/t2kmc*.root;
 s,preProcessFilesData=/xxx*.root;
 $$ CODE FOR FV BINNING
@@ -85,7 +85,7 @@ i,preProcNseMin=0;
 $$ MIN TIME BETWEEN FIRST TWO SUBEVENTS (INGATE CUT)
 d,preProcInGateCut=0;
 $$ ADD ADDIONAL VARIABLES TO OUTPUT (MAY INCREASE PROCESSING TIME)
-i,preProcAddMoreVars=0;
+i,preProcAddMoreVars=1;
 $$ NTUPLE STRUCTURE OF INPUT FILES
 $$  Atmospheric -> Atmospheric MC structure
 $$  T2KMCReduced -> Reduced T2K MC structure 
