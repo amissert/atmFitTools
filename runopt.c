@@ -8,6 +8,8 @@ gROOT->ProcessLine(".L TH2FV.cxx+");
 gROOT->ProcessLine(".L summaryPlots.cxx+");
 gROOT->ProcessLine(".L moreUncertainties.cxx+");
 gROOT->ProcessLine(".x ~/style.c");
+gStyle->SetPalette(53);
+gStyle->SetOptTitle(1);
 
 ///////////////////////////////////////////////////////////////////////////
 // parameters /////////////////////////////////////////////////////////////
@@ -30,6 +32,7 @@ TString UncertaintyMapFile = "FVUncMapNuMu.root";
 
 // max # of events to use
 int     NMaxMCEvents = 2e9;
+//int     NMaxMCEvents = 100000;
 int IndexPIDPar = 0;
 int IndexPi0Par = 1;
 int IndexPiPPar = 2;
@@ -52,8 +55,43 @@ opt->indexPi0Par = IndexPi0Par;
 opt->indexPiPPar = IndexPiPPar;
 opt->indexRCPar = IndexRCPar;
 
-//opt->calcFOMMap(200,200,0,20,1);
-
+//opt->calcFOMMap(350,350,0,30,2);
+// optimization metric
+/*  
+opt->FOMType = 2;
+opt->calcFOMMap(350,350,3,30,1);
+cc->Print("~/transfer/fom_nue.png");
+opt->calcFOMMap(350,350,3,30,3);
+cc->Print("~/transfer/fom_nue1rpi.png");
+opt->calcFOMMap(350,350,0,30,2);
+cc->Print("~/transfer/fom_numu.png");
+// power density
+opt->FOMType = 2;
+opt->calcFOMMap(350,350,3,30,1);
+cc->Print("~/transfer/fom_power_den_nue.png");
+opt->calcFOMMap(350,350,3,30,3);
+cc->Print("~/transfer/fom_power_den_nue1rpi.png");
+opt->calcFOMMap(350,350,0,30,2);
+cc->Print("~/transfer/fom_power_den_numu.png");
+*/
+// sys density
+opt->FOMType = 4;
+opt->calcFOMMap(350,350,3,30,1);
+cc->Print("~/transfer/fom_sys_den_nue.png");
+opt->calcFOMMap(350,350,3,30,3);
+cc->Print("~/transfer/fom_sys_den_nue1rpi.png");
+opt->calcFOMMap(350,350,0,30,2);
+cc->Print("~/transfer/fom_sys_den_numu.png");
+// nev densityi /*  
+/*  
+opt->FOMType = 3;
+opt->calcFOMMap(350,350,3,30,1);
+cc->Print("~/transfer/fom_nev_nue.png");
+opt->calcFOMMap(350,350,3,30,3);
+cc->Print("~/transfer/fom_nev_nue1rpi.png");
+opt->calcFOMMap(350,350,0,30,2);
+cc->Print("~/transfer/fom_nev_numu.png");
+*/
 }
 
 

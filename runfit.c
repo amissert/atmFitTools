@@ -4,6 +4,8 @@
  gROOT->ProcessLine(".L histoCompare.cxx++");
  gROOT->ProcessLine(".L atmFitPars.cxx+");
  gROOT->ProcessLine(".x ~/style.c");
+ gStyle->SetOptTitle(1);
+ gStyle->SetMarkerStyle(1);
 
 //  histoCompare* hc= new histoCompare("dryrun.dat");
   histoCompare* hc= new histoCompare("wetrun.dat");

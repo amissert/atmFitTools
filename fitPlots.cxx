@@ -7,6 +7,41 @@
 
 
 /////////////////////////////////////////////////////////////
+void fitPlots::printFitSummaryFV(const char* dir, const char* name){
+
+  // setup names
+  TString nametag = name;
+  TString outdir = dir;
+  TString plotname = "";
+  
+  // total number of samples and bins
+  int natt  = 4;
+  int nsamp = 3;
+
+  // make and print plot for each sample and bin
+  for (int iatt=0; iatt<natt; iatt++){
+    for (int isamp=0; isamp<nsamp; isamp++){
+     
+     // plot name
+     plotname = outdir.Data();
+     plotname.Append(nametag.Data());
+     plotname.Append(Form("_samp%d_attribute%d.png",isamp,iatt));
+
+     // draw
+     drawFitSummaryFV(isamp, iatt);
+
+     // print
+     cc->Print(plotname.Data());
+     cc->Delete();
+    }
+  }
+
+  //
+  return;
+}
+
+
+/////////////////////////////////////////////////////////////
 void fitPlots::printFitSummary(const char* dir, const char* name){
 
   // setup names
@@ -57,6 +92,110 @@ fitPlots::fitPlots(histoCompare* hc, TTree* partree){
 
 
 /////////////////////////////////////////////////////////////
+TString fitPlots::getAxisTitle(int iatt){
+
+  // setup titles
+  const int ntitles = 4;
+  if (iatt > ntitles){
+    cout<<"fitPlots::getAxisTitle: no title found!"<<endl;
+    TString title = "none";
+    return title;
+  }
+  TString xtitle[] = {"e/#mu PID",
+                      "e/#pi^{0} PID",
+                      "#mu/#pi PID",
+                      "RC Parameter"};
+
+  TString title = xtitle[iatt];
+  return title;
+
+}
+
+
+
+/////////////////////////////////////////////////////////////
+void fitPlots::drawFitSummaryFV(int isamp , int iatt){
+
+  // setup titles
+  TString xtitle[] = {"e/#mu PID",
+                      "e/#pi^{0} PID",
+                      "#mu/#pi PID",
+                      "RC Parameter"};
+  TString ytitle = "# of events";
+  double titlesize = 0.05;
+  double yoffset = 1.3;
+  int axisdiv = 10;
+
+  cc = new TCanvas("cc","cc",1200,800);
+  cc->Divide(3,2);
+
+  // fill arrays
+  const int nfvbins = 6;
+  for (int ibin=0; ibin<nfvbins; ibin++){
+
+    // run toy experiments
+    fillArrays(ibin, isamp);
+
+    // overall title
+    TString title = Form("Detector Region %d",ibin);
+
+    // go to proper pad
+    int ipad = ibin+1;
+    cc->cd(ipad);
+    cc->GetPad(ipad)->SetLeftMargin(0.15);
+    cc->GetPad(ipad)->SetRightMargin(0.01);
+    cc->GetPad(ipad)->SetTopMargin(0.10);
+    cc->GetPad(ipad)->SetBottomMargin(0.10);
+
+    // setup mcmc summary
+    hAtt[iatt]->calcSummary();
+    hAtt[iatt]->hSummary->SetMarkerStyle(4);
+    hAtt[iatt]->hSummary->GetXaxis()->SetTitle(getAxisTitle(iatt).Data());
+    hAtt[iatt]->hSummary->GetYaxis()->SetTitle(ytitle.Data());
+    hAtt[iatt]->hSummary->GetXaxis()->SetTitleSize(titlesize);
+    hAtt[iatt]->hSummary->GetXaxis()->SetNdivisions(axisdiv);
+    hAtt[iatt]->hSummary->GetYaxis()->SetNdivisions(axisdiv);
+    hAtt[iatt]->hSummary->SetTitle(title.Data());
+
+    // setup MC original
+    TH1D* hmc = hCompare->hManager->getSumHistogram(isamp,ibin,iatt,1);
+    hmc->SetLineColor(kRed);
+
+    // setup data
+    TH1D* hd = hCompare->hManager->hData[isamp][ibin][iatt];
+    hd->SetMarkerStyle(8);
+    hd->GetXaxis()->SetTitle(getAxisTitle(iatt).Data());
+    hd->GetYaxis()->SetTitle(ytitle.Data());
+    hd->GetYaxis()->SetTitleOffset(yoffset);
+    hd->GetYaxis()->SetTitleSize(titlesize);
+    hd->GetXaxis()->SetTitleSize(titlesize);
+    hd->GetXaxis()->SetNdivisions(axisdiv);
+    hd->GetYaxis()->SetNdivisions(axisdiv);
+    hd->SetTitle(title.Data());
+    hd->GetXaxis()->CenterTitle(1);
+    hd->GetYaxis()->CenterTitle(1);
+//    hd->CenterTitle(1);
+
+    // get range:
+    double max = TMath::Max( hAtt[iatt]->hSummary->GetMaximum(),
+                             hmc->GetMaximum());
+    max = TMath::Max(  max, hd->GetMaximum());
+    
+    // draw histos
+    hd->SetMaximum(max*1.2);
+    hd->Draw();
+    hAtt[iatt]->hSummary->Draw("samee2");
+    hmc->Draw("samehisto");
+    hd->Draw("same");
+
+  }
+
+  //
+  return;
+}
+
+
+/////////////////////////////////////////////////////////////
 void fitPlots::drawFitSummary(int isamp, int ibin){
 
   // fill arrays
@@ -64,8 +203,6 @@ void fitPlots::drawFitSummary(int isamp, int ibin){
 
   // print at title
   TString title = Form("Sample %d Region %d",isamp,ibin+1);
-//  TLatex* tit = new TLatex(0.5,0.95,title.Data());
-//  tit->SetTextAlign(22);
 
   cc = new TCanvas("cc","cc",800,800);
   cc->Divide(2,2);
@@ -110,6 +247,8 @@ void fitPlots::drawFitSummary(int isamp, int ibin){
   //
   return;
 }
+
+
 
 /////////////////////////////////////////////////////////////
 void fitPlots::drawFitThrows(int isamp, int ibin){

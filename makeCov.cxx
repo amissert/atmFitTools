@@ -3,11 +3,14 @@
 #include "TH2F.h"
 #include "TMath.h"
 #include "TLine.h"
+#include "TF1.h"
 #include "TString.h"
 #include "TLatex.h"
 #include "TCanvas.h"
 #include <iostream>
+#include <vector>
 #include "atmFitPars.h"
+#include "parMap.C"
 
 #define NTOTALPARS 500
 
@@ -41,6 +44,11 @@ class makeCov{
   int parindex[500];
   int npar;
 
+
+  ////////////////////////////////////////
+  // parameter labels
+  parMap* pmap;
+
   ////////////////////////////////////////
   //set parametet tree
   void setParTree(TTree* tr);
@@ -49,14 +57,23 @@ class makeCov{
   //set the number of burn in steps to ignore
   int nburn;
 
+  ///////////////////////////////////////////
+  //set the number of steps to skip 
+  int nskip;
+
   /////////////////////
   //matrix histograms
   TH2F* cov;
   TH2F* cor;
+  TH2D* hsubcor;
 
   //////////////////////
   //pull histograms
   TH1D* hpull;
+  TH1D* hpulldist;
+  TH1D* hvalues;
+  TH1D* hsysprior;
+  TH1D* hsysvalues;
 
   ///////////////////////
   //dividing lines
@@ -66,7 +83,7 @@ class makeCov{
   ////////////////////////
   // number of parameters
   int nsyspar;
-  int ntotpar;
+  int nfitpartot;
 
   ////////////////////////
   //arrays
@@ -79,6 +96,8 @@ class makeCov{
   /////////////////////////
   //build that matrix
   void buildMatrix();
+  TH2D* getBinSubMatrix(int ibin, int itype=1);
+  TH2D* getAlphaSubMatrix(int nsub=2);
 
   //////////////////////////////
   // draw nice correlation matrix
@@ -101,10 +120,258 @@ class makeCov{
   void drawLabeldCor();
   void drawVertBinLines();
   void drawHorzBinLines();
+  void drawBinSubMatrix(int ibin, int itype=1);
+  void drawValues(int icomp, int iatt, int itype);
+  void drawSysValues();
+
+  void setSysPrior();
+  void drawAlphaSubMatrix(int nbin);
+    
+  TF1* zero;
+  TF1* fone;
 
 };
 
 
+///////////////////////////////////////////////////// 
+void makeCov::setSysPrior(){
+  float labelsize = 0.05;
+  hsysprior = new TH1D("hsysprior","hsysprior",37,0,37);
+  hsysprior->SetFillColor(kGray);
+  for (int ibin=1; ibin<=37; ibin++){
+    hsysprior->SetBinContent(ibin,1);
+    hsysprior->GetXaxis()->SetBinLabel(ibin,pmap->getSystParName(ibin-1));
+  }
+  hsysprior->GetXaxis()->LabelsOption("v");
+  hsysprior->GetXaxis()->SetLabelSize(labelsize);
+  hsysprior->SetBinError(1,1.0);
+  hsysprior->SetBinError(2,.411);
+  hsysprior->SetBinError(3,.216);
+  hsysprior->SetBinError(4,.155);
+  hsysprior->SetBinError(5,.125);
+  hsysprior->SetBinError(6,.105);
+  hsysprior->SetBinError(7,.0805);
+  hsysprior->SetBinError(8,.066);
+  hsysprior->SetBinError(9,.0542);
+  hsysprior->SetBinError(10,.0398);
+  hsysprior->SetBinError(11,.0344);
+  hsysprior->SetBinError(12,.0226);
+  hsysprior->SetBinError(13,.0165);
+  hsysprior->SetBinError(14,.009);
+  hsysprior->SetBinError(15,.25);
+  hsysprior->SetBinError(16,.15);
+  hsysprior->SetBinError(17,.2);
+  hsysprior->SetBinError(18,.2);
+  hsysprior->SetBinError(19,.05);
+  hsysprior->SetBinError(20,.1);
+  hsysprior->SetBinError(21,.1);
+  hsysprior->SetBinError(22,.1);
+  hsysprior->SetBinError(23,.1);
+  hsysprior->SetBinError(24,.1);
+  hsysprior->SetBinError(25,.1);
+  hsysprior->SetBinError(26,.1);
+  hsysprior->SetBinError(27,.1);
+  hsysprior->SetBinError(28,.1);
+  hsysprior->SetBinError(29,.1);
+  hsysprior->SetBinError(30,.1);
+  hsysprior->SetBinError(31,.1);
+  hsysprior->SetBinError(32,.1);
+  hsysprior->SetBinError(33,.1);
+  hsysprior->SetBinError(34,.1);
+  hsysprior->SetBinError(35,.1);
+  hsysprior->SetBinError(36,.1);
+  hsysprior->SetBinError(37,.1);
+  hsysprior->SetBinError(38,.1);
+
+  return;
+}
+
+
+
+///////////////////////////////////////////////////// 
+void makeCov::drawSysValues(){
+
+  TCanvas* cc = new TCanvas("cc","cc",1400,700);
+  cc->GetPad(0)->SetBottomMargin(0.4);
+
+  int nsyspar = 37;
+  if (hsysvalues!=NULL){
+    hsysvalues->Delete();
+  }
+  hsysvalues = new TH1D("hsysval","hsysval",nsyspar,0,nsyspar);
+  hsysprior->Draw("e2");
+  for (int isys=0; isys<nsyspar; isys++){
+    int index = pmap->getSysIndex(isys);
+    hsysvalues->SetBinContent(isys+1,parmean[index]);    
+    hsysvalues->SetBinError(isys+1,parsigma[index]);    
+    hsysvalues->GetXaxis()->SetBinLabel(isys+1,pmap->getSystParName(isys).Data());
+  }
+ 
+  hsysvalues->GetXaxis()->LabelsOption("v");
+  hsysvalues->GetYaxis()->SetTitle("value");
+  hsysvalues->SetLineColor(kRed);
+  hsysvalues->SetLineWidth(3);
+  hsysvalues->SetMarkerStyle(1);
+  hsysvalues->Draw("same");
+  return;
+}
+
+
+///////////////////////////////////////////////////// 
+void makeCov::drawValues(int icomp, int iatt, int itype){
+
+  TCanvas* cc = new TCanvas("cc","cc",700,900);
+  cc->GetPad(0)->SetBottomMargin(0.3);
+  int nbins = 6;
+
+  if (hvalues!=NULL){
+    hvalues->Delete();
+  }
+
+  hvalues = new TH1D("hvalues","hvalues",nbins,0,nbins);
+
+  // fill values
+  for (int i=0; i<nbins; i++){
+     int index = pmap->getGlobalIndex(i,icomp,iatt,itype);
+     hvalues->SetBinContent(i+1,parmean[index]);
+     hvalues->SetBinError(i+1,parsigma[index]);
+     hvalues->GetXaxis()->SetBinLabel(i+1,pmap->getName(index).Data());
+  }
+
+  double absmax = TMath::Max(TMath::Abs(hvalues->GetMinimum()),TMath::Abs(hvalues->GetMaximum()));
+  hvalues->SetMaximum(2.*(absmax - (float)(itype+1)));
+  hvalues->SetMinimum(-2.*(absmax - (float)(itype+1)));
+  hvalues->GetXaxis()->LabelsOption("v");
+  hvalues->GetYaxis()->SetTitle("Value");
+  hvalues->SetLineColor(kRed);
+  hvalues->SetLineWidth(3);
+  hvalues->SetLabelSize(0.04);
+  hvalues->Draw();
+ 
+  return;
+}
+
+
+///////////////////////////////////////////////////// 
+void makeCov::drawAlphaSubMatrix(int nsub){
+
+  TCanvas *cc = new TCanvas("cc","cc",700,700);
+  cc->GetPad(0)->SetLeftMargin(0.25);
+  cc->GetPad(0)->SetBottomMargin(0.25);
+  getAlphaSubMatrix(nsub);
+  hsubcor->Draw("colz");
+  return;
+}
+
+
+///////////////////////////////////////////////////// 
+void makeCov::drawBinSubMatrix(int ibin, int itype){
+
+  TCanvas *cc = new TCanvas("cc","cc",700,700);
+  cc->GetPad(0)->SetLeftMargin(0.25);
+  cc->GetPad(0)->SetBottomMargin(0.25);
+  getBinSubMatrix(ibin,itype);
+  hsubcor->Draw("colz");
+  return;
+}
+
+
+///////////////////////////////////////////////////// 
+TH2D* makeCov::getAlphaSubMatrix(int nsub){
+
+  // number of things
+  int nsubins = 0;
+  if (nsub==0) nsubins = 19; //< flux and xsec
+  if (nsub==1) nsubins = 18; //< normalization
+  if (nsub==2) nsubins = 37; //< both
+
+  // delete if exists
+  if (hsubcor!=NULL){
+    hsubcor->Delete();
+  }
+
+  // make new
+  hsubcor = new TH2D("hsubcor","hsubcor",nsubins,0,nsubins,nsubins,0,nsubins);
+
+  // get indicies
+  int istart = 0;
+  if (nsub==0) istart = pmap->nParsTot-37;
+  if (nsub==1) istart = pmap->nParsTot-18;
+  if (nsub==2) istart = pmap->nParsTot-37;
+
+  // get values
+  for (int ii=0; ii<nsubins; ii++){
+    for (int jj=0; jj<nsubins; jj++){
+      if (ii==jj) continue;
+      hsubcor->SetBinContent(ii+1,jj+1,corarray[istart+ii][istart+jj]);
+    }
+    hsubcor->GetXaxis()->SetBinLabel(ii+1,pmap->getName(istart+ii));
+    hsubcor->GetYaxis()->SetBinLabel(ii+1,pmap->getName(istart+ii));
+  }
+
+  // set labels
+  hsubcor->GetXaxis()->LabelsOption("v");
+  double maxcor = TMath::Max(TMath::Abs(hsubcor->GetMinimum()),
+                             TMath::Abs(hsubcor->GetMaximum()));
+  hsubcor->SetMinimum(-1*maxcor);
+  hsubcor->SetMaximum(maxcor);
+
+  return hsubcor;
+}
+
+
+
+
+///////////////////////////////////////////////////// 
+TH2D* makeCov::getBinSubMatrix(int ibin, int itype){
+
+  // number of things
+  int ncomp = 6;
+  int natt = 4;
+  int ntype = 1;
+  int nsubins = ncomp*natt*ntype;
+
+  // delete if exists
+  if (hsubcor!=NULL){
+    hsubcor->Delete();
+  }
+
+  // make new
+  hsubcor = new TH2D("hsubcor","hsubcor",nsubins,0,nsubins,nsubins,0,nsubins);
+
+  // get indicies
+  int istart = pmap->getGlobalIndex(ibin,0,0,0);
+  int iend = istart + nsubins;
+
+  // get bins
+  vector<int> vbins;
+  for (int icomp=0; icomp<ncomp; icomp++){
+    for (int iatt=0; iatt<natt; iatt++){
+      int binum = pmap->getGlobalIndex(ibin,icomp,iatt,itype);
+      vbins.push_back(binum);
+    }
+  }
+
+  // get values
+  for (int ii=0; ii<nsubins; ii++){
+    for (int jj=0; jj<nsubins; jj++){
+      if (ii==jj) continue;
+      hsubcor->SetBinContent(ii+1,jj+1,corarray[vbins.at(ii)][vbins.at(jj)]);
+    }
+    hsubcor->GetXaxis()->SetBinLabel(ii+1,pmap->getName(vbins.at(ii)).Data());
+    hsubcor->GetYaxis()->SetBinLabel(ii+1,pmap->getName(vbins.at(ii)).Data());
+  }
+
+  // set labels
+  hsubcor->GetXaxis()->LabelsOption("v");
+
+  double maxcor = TMath::Max(TMath::Abs(hsubcor->GetMinimum()),
+                             TMath::Abs(hsubcor->GetMaximum()));
+  hsubcor->SetMinimum(-1*maxcor);
+  hsubcor->SetMaximum(maxcor);
+
+  return hsubcor;
+}
 
 void makeCov::drawLabeldCor(){
   TCanvas *cc = new TCanvas("cc","cc",700,700);
@@ -180,7 +447,7 @@ void makeCov::drawVertBinLines(){
 
 
 void makeCov::printParErrors(){
-  for (int ipar=0; ipar<ntotpar; ipar++){
+  for (int ipar=0; ipar<nfitpartot; ipar++){
     double fiterr = parsigma[ipar];
     double shifterr = TMath::Abs(parmean[ipar] - pardefault[ipar]);
     cout<<"Par "<<ipar<<" Error: "<<fiterr+shifterr;
@@ -226,7 +493,7 @@ void makeCov::printall1D(const char* dir){
 
   TString basename = "h1D_parameter";
   TString branchname = "par";
-
+;
   int npts = partree->GetEntries();
 
   //setup mcmc trees
@@ -270,7 +537,7 @@ void makeCov::drawCor(){
   double ymax = cor->GetYaxis()->GetXmax();
   double xmin = cor->GetXaxis()->GetXmin();
   double ymin = cor->GetYaxis()->GetXmin();
-  double xsep = (double)ntotpar - (double)nsyspar;
+  double xsep = (double)nfitpartot - (double)nsyspar;
   lhoriz = new TLine(0,xsep,xmax,xsep);
   lvert = new TLine(xsep,0,xsep,ymax);
   lvert->SetLineWidth(3);
@@ -285,55 +552,48 @@ void makeCov::drawCor(){
 
 void makeCov::buildMatrix(){
 
-
-    //setup mcmc trees
-  /*
-  double par[500];
-  double parnominal[500];
-  int npar;
-  partree->SetBranchAddress("par",par);
-  partree->SetBranchAddress("npars",&npar);
-  partree->SetBranchAddress("parnominal",parnominal);
-  partree->GetEntry(0); //fills npar
-  cout<<"Total # of parameters: "<<npar<<endl;
-  cout<<"Total # of steps: "<<partree->GetEntries()<<endl;
-  cout<<"Burn-in: "<<nburn<<endl;
-  */
-
   //create matrix templates
   cov = new TH2F("cov","cov",npar,0.,(double)npar,npar,0.,(double)npar);
   cor = new TH2F("cor","cor",npar,0.,(double)npar,npar,0.,(double)npar);
 
-  //set initial values to zero
-  const int npartot = npar; //< total number of parameters in MCMC cloud
-  ntotpar = npar;
-  /*
-  double matrix[npartot][npartot];
-  for (int i0=0;i0<npartot;i0++){
-    mean[i0]=0.;
-    for (int j0=0;j0<npartot;j0++){
-      matrix[i0][j0] = 0.;
-    }
-  }
-*/
+  const int npartot = npar; //< total number of fit parameters in this mcmc cloud
+  nfitpartot = npar;
 
   //calc means
   int npts = partree->GetEntries()-nburn;
-  double norm=1./(double)npts;
-  cout<<"norm: "<<norm<<endl;
+  double sumpts=0;
+  int nskipped=0;
+
+  // loop over mcmc opints
   for (int iev=nburn; iev<partree->GetEntries(); iev++){
+    nskipped++;
+    if (nskipped<nskip) continue;
+    nskipped = 0;
     partree->GetEntry(iev);  //< read in parameters from MCMC cloud
+    // loop over fit parameters
     for (int ipar=0; ipar<npartot; ipar++){
-      parmean[ipar]+= (par[ipar]*norm);
+      parmean[ipar]+=(par[ipar]);
     }
+    sumpts++;
   }
+
+  // normalize
+  for (int ipar=0; ipar<npartot; ipar++){
+    parmean[ipar]/=sumpts;
+  }
+
+  // print
   for (int kk=0;kk<npartot;kk++){
       cout<<"mean: "<<kk<<" "<<parmean[kk]<<endl;
   }
 
   //calc matrix
-  norm = 1./((double)npts-1.);
-  for (int jev=nburn;jev<partree->GetEntries();jev++){
+  double norm = 1./(sumpts-1.);
+  nskipped=0;
+  for (int jev=nburn; jev<partree->GetEntries(); jev++){
+    nskipped++;
+    if (nskipped<nskip) continue;
+    nskipped = 0;
     partree->GetEntry(jev);
     for (int i0=0;i0<npartot;i0++){
       for (int j0=0;j0<npartot;j0++){
@@ -349,19 +609,13 @@ void makeCov::buildMatrix(){
   for (int j=0;j<npartot;j++){
     for (int k=0;k<npartot;k++){
       cov->SetBinContent(j+1,k+1,covarray[j][k]);
-      cor->SetBinContent(j+1,k+1, ((covarray[j][k])/sqrt( (covarray[j][j]*covarray[k][k]) )));
+      cor->SetBinContent(j+1,k+1,((covarray[j][k])/sqrt((covarray[j][j]*covarray[k][k]))));
       corarray[j][k] =  ((covarray[j][k])/sqrt( (covarray[j][j]*covarray[k][k]) ));
     }
     parsigma[j] = TMath::Sqrt( covarray[j][j] );
   }
 
-  // set default parameter arrays
-//  atmFitPars* fitpars = new atmFitPars(runparfile.Data());
-//  nsyspar = fitpars->nSysPars;
-   nsyspar=0;
-//  for (int ipar=0; ipar<npartot; ipar++){
-//    pardefault[ipar] = fitpars->getParameter(ipar);
-//  }
+  nsyspar=0;
   partree->GetEntry(1);
   for (int ipar=0; ipar<npartot; ipar++){
     pardefault[ipar] = parnominal[ipar];
@@ -369,14 +623,18 @@ void makeCov::buildMatrix(){
 
   // make pull histogram
   hpull = new TH1D("hpull","hpull",npartot,0,npartot);
+  hpulldist = new TH1D("hpulldist","hpulldist",25,-5,5);
   for (int ipar=0; ipar<npartot; ipar++){
     double pullvalue = (parmean[ipar] - pardefault[ipar])/parsigma[ipar];
     hpull->Fill(ipar, pullvalue);
+    hpulldist->Fill(pullvalue);
   }
+
   // remove pull errors
   for (int ibin=1; ibin<hpull->GetNbinsX(); ibin++){
     hpull->SetBinError(ibin,0.);
   }
+
   // draw the correlation
   cor->SetContour(100);
   cor->Draw("colz");
@@ -401,4 +659,11 @@ makeCov::makeCov(const char* parfile){
    }
  }
 
+ pmap = new parMap();
+ zero = new TF1("zer","0",-1000,1000);
+ fone = new TF1("one","1",-1000,1000);
+ setSysPrior();
 }
+
+
+

@@ -23,6 +23,7 @@
 #include "defineSmall.C"
 #include "atmFitPars.h"
 #include "stats.C"
+#include "smartPlot.C"
 #include "summaryPlots.h"
 #include <iostream>
 #include <algorithm>

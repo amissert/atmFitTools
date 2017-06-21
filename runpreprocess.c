@@ -10,8 +10,10 @@
 // preproc->setParFileName("shimpars.dat");
 // preproc->setParFileName("dryrun.dat");
 // preproc->setParFileName("wetrun.dat");
+// preproc->setParFileName("allevis.dat");
+ preproc->setParFileName("cosmicpars.dat");
 // preproc->setRFGDir("/nfs/data41/t2k/amissert/skdata/atmospheric/sf_rfg/");
- preproc->setParFileName("t2kpars.dat");
+// preproc->setParFileName("t2kpars.dat");
 // preproc->setParFileName("cosmicpars.dat");
 // preproc->setParFileName("hpi0pars.dat");
 // preproc->setParFileName("atmparsE.dat");

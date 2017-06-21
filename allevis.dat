@@ -58,7 +58,7 @@ $$ PREPROC PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$$$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 $$ OUTPUT DIRECTORY FOR THE PROCESSED FILES 
-s,preProcessOutDir=/nfs/data41/t2k/amissert/processed/wetrun/run6/;
+s,preProcessOutDir=/nfs/data41/t2k/amissert/processed/wetrun/allevis/;
 s,preProcessFilesMC=/nfs/data41/t2k/amissert/skdata/atmospheric/cris_ntuple/atm*.root;
 s,preProcessFilesData=/nfs/data41/t2k/amissert/skdata/atmospheric/data_cris_mar15/ap*.root;
 
@@ -86,7 +86,7 @@ $$ NHITAC CUT FOR FC EVENTS
 i,preProcFCCut=16;
 
 $$ VISIBLE ENERGY CUT
-d,preProcEVisCut=100.;
+d,preProcEVisCut=30.;
 
 $$ MIN WALL CUT
 d,preProcWallMinCut=0;
@@ -187,8 +187,8 @@ $  BUFFER OF BINS TO NOT INCLUDE IN THE LIKELIHOOD EVALUATION
 $  THIS NUMBER OF BINS AT THE BEGINNING AND END WILL BE IGNORED
 i,nBinBuffer=2;
 
-$  TOGGLE THE USE OF BIN SPLINES
-i,useSplinesFlg=0;
+$  TOGGLE THE USE IF BIN SPLINES
+i,useSplinesFlg=1;
 
 $  TOGGLE THE USE OF NORMALIZATION PARAMETERS
 i,flgUseNormPars=1;
@@ -196,7 +196,7 @@ i,flgUseNormPars=1;
 $  DO YOU WANT TO READ A SPECIFIED FILE OF PARAMETERS IN?
 $  CAN USE THIS TO READ IN PREVIOUS FIT RESULTS OR START
 $  THE MCMC FROM SOME PREVIOUS POINT
-i,flgUseFitParFile=0;
+i,flgUseFitParFile=1;
 s,fitParFile=/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun_logrc/demcmc_run1_summary.root;
 
 
