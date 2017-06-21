@@ -255,8 +255,9 @@ void makeCov::drawValues(int icomp, int iatt, int itype){
 ///////////////////////////////////////////////////// 
 void makeCov::drawAlphaSubMatrix(int nsub){
 
-  TCanvas *cc = new TCanvas("cc","cc",700,700);
+  TCanvas *cc = new TCanvas("cc","cc",700,750);
   cc->GetPad(0)->SetLeftMargin(0.25);
+  cc->GetPad(0)->SetRightMargin(0.12);
   cc->GetPad(0)->SetBottomMargin(0.25);
   getAlphaSubMatrix(nsub);
   hsubcor->Draw("colz");
@@ -267,11 +268,30 @@ void makeCov::drawAlphaSubMatrix(int nsub){
 ///////////////////////////////////////////////////// 
 void makeCov::drawBinSubMatrix(int ibin, int itype){
 
-  TCanvas *cc = new TCanvas("cc","cc",700,700);
-  cc->GetPad(0)->SetLeftMargin(0.25);
-  cc->GetPad(0)->SetBottomMargin(0.25);
+  TCanvas *cc = new TCanvas("cc","cc",800,700);
+  cc->GetPad(0)->SetLeftMargin(0.35);
+  cc->GetPad(0)->SetRightMargin(0.12);
+  cc->GetPad(0)->SetBottomMargin(0.35);
   getBinSubMatrix(ibin,itype);
+
+  // lines to separate blocks
+  double lmin  = 0;
+  double lmax  = (double)hsubcor->GetNbinsX();
+  TLine* lv[3];
+  TLine* lh[3];
+  double sep = 6;
+  for (int i=0; i<3; i++){
+    lv[i] = new TLine(sep,lmin,sep,lmax);
+    lh[i] = new TLine(lmin,sep,lmax,sep);
+    sep += 6;
+  }
+  hsubcor->SetContour(100);
+  hsubcor->SetBit(14,1);
   hsubcor->Draw("colz");
+  for (int i=0; i<3; i++){
+    lv[i]->Draw("same");
+    lh[i]->Draw("same");
+  }
   return;
 }
 
@@ -302,7 +322,7 @@ TH2D* makeCov::getAlphaSubMatrix(int nsub){
   // get values
   for (int ii=0; ii<nsubins; ii++){
     for (int jj=0; jj<nsubins; jj++){
-      if (ii==jj) continue;
+//      if (ii==jj) continue;
       hsubcor->SetBinContent(ii+1,jj+1,corarray[istart+ii][istart+jj]);
     }
     hsubcor->GetXaxis()->SetBinLabel(ii+1,pmap->getName(istart+ii));
@@ -315,6 +335,7 @@ TH2D* makeCov::getAlphaSubMatrix(int nsub){
                              TMath::Abs(hsubcor->GetMaximum()));
   hsubcor->SetMinimum(-1*maxcor);
   hsubcor->SetMaximum(maxcor);
+  hsubcor->SetContour(100);
 
   return hsubcor;
 }
@@ -330,6 +351,7 @@ TH2D* makeCov::getBinSubMatrix(int ibin, int itype){
   int natt = 4;
   int ntype = 1;
   int nsubins = ncomp*natt*ntype;
+  double labsize = 0.035;
 
   // delete if exists
   if (hsubcor!=NULL){
@@ -345,8 +367,10 @@ TH2D* makeCov::getBinSubMatrix(int ibin, int itype){
 
   // get bins
   vector<int> vbins;
-  for (int icomp=0; icomp<ncomp; icomp++){
     for (int iatt=0; iatt<natt; iatt++){
+      for (int icomp=0; icomp<ncomp; icomp++){
+//  for (int icomp=0; icomp<ncomp; icomp++){
+//    for (int iatt=0; iatt<natt; iatt++){
       int binum = pmap->getGlobalIndex(ibin,icomp,iatt,itype);
       vbins.push_back(binum);
     }
@@ -355,7 +379,7 @@ TH2D* makeCov::getBinSubMatrix(int ibin, int itype){
   // get values
   for (int ii=0; ii<nsubins; ii++){
     for (int jj=0; jj<nsubins; jj++){
-      if (ii==jj) continue;
+//      if (ii==jj) continue;
       hsubcor->SetBinContent(ii+1,jj+1,corarray[vbins.at(ii)][vbins.at(jj)]);
     }
     hsubcor->GetXaxis()->SetBinLabel(ii+1,pmap->getName(vbins.at(ii)).Data());
@@ -369,6 +393,8 @@ TH2D* makeCov::getBinSubMatrix(int ibin, int itype){
                              TMath::Abs(hsubcor->GetMaximum()));
   hsubcor->SetMinimum(-1*maxcor);
   hsubcor->SetMaximum(maxcor);
+  hsubcor->GetXaxis()->SetLabelSize(labsize);
+  hsubcor->GetYaxis()->SetLabelSize(labsize);
 
   return hsubcor;
 }
