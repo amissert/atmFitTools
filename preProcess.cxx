@@ -180,7 +180,6 @@ void preProcess::processFile(const char* fname,const char* outname){
   int neventsnew = preProcessIt();
   cout<<"  filled it with "<<neventsnew<<" events!" <<endl;
 
-
   //clean up
   if (neventsnew>0) fout->Write();
   fin->Close();
@@ -299,34 +298,12 @@ float preProcess::getWeight(){
   // start with no weight
   evtweight = 1.0;
 
-  // weight from graph (no longer in use)
-//  if (useWeights){
-//    evtweight = gWeight->Eval(fq->fq1rmom[0][2],0,"s");
-//  }
-
   // reduced T2K MC will have a branch holding the weights 
   if (!ntupleType.CompareTo("T2KMCReduced")){
     evtweight=fq->totwgt;
   }
 
   if (!ntupleType.CompareTo("Atmospheric")){
-
-
-    // if using skimmed tree from Xiaoyue, calculate event weight
-    // based on these variables in the ntuples
-//    #ifdef USE_XL_WEIGHTS
-//    evtweight *= fq->wgtosc1[3]; // for Xiaoyue MC
-//    evtweight *= fq->wgtflx[3]; // for Xiaoyue MC
-//    #endif
-
-//    #ifdef USE_ST_WEIGHTS
-    //////////////////////////////////////////////
-    // For Shimpei MC
-//    double w_maxsolact =0.35;
-//    evtweight *= ((1. - w_maxsolact)*fq->flxh11[0]+w_maxsolact*fq->flxh11[2])/fq->flxh06[1];
-//    evtweight *= fq->oscwgt; // for Shimpei MC
-//    evtweight *= atmMCNorm;
-//    #endif
 
      evtweight *= getAtmWeight();
 
@@ -803,12 +780,11 @@ int preProcess::preProcessIt(){
   int applyT2K = 1;
   if (ntupleType.CompareTo("Cosmic")==0) applyT2K = 0;
   if (ntupleType.CompareTo("Hybrid")==0) applyT2K = 0;
+  if (ntupleType.CompareTo("Atmospheric")==0) applyT2K = 0;
 
   // apply basic cuts for atm and t2k?
   int applyBaseCuts = 1;
-  if (ntupleType.CompareTo("Cosmic")) applyBaseCuts = 0;
-
-//  if (ntupleType.CompareTo("Atmospheric")==0) applyT2K = 0;
+  if (ntupleType.CompareTo("Cosmic")==0) applyBaseCuts = 0;
 
   // loop over events in tree
   nbin = 0;
@@ -904,7 +880,7 @@ int preProcess::getBest2RFitID(fqEvent* fqevent){
   for (int ifit=0;ifit<nfits;ifit++){
     int fitID = TMath::Abs(fqevent->fqmrifit[ifit]); //< fit fit ID code
     // pick out the fits we want to compare to
-    if (TMath::Abs(fitID-10000000)<50){
+    if ( TMath::Abs((TMath::Abs(fitID)-20000000))<50){
       // check if it's the best
       if (fqevent->fqmrnll[ifit] < ngLnLBest){
         ngLnLBest = fqevent->fqmrnll[ifit];
@@ -912,7 +888,6 @@ int preProcess::getBest2RFitID(fqEvent* fqevent){
       }
     }
   }
-  
   best2RID = bestindex;
   return bestindex;
 }
@@ -952,6 +927,7 @@ float preProcess::getRCParameter(fqEvent* fqevent){
   // cut values from fiTQun.cc v4r0
   float a0 = 150.;
   float a1 = -0.6;
+
   // these values determine the cut line
   float cthresh = a0 + a1*(ringmom);
   if (!(cthresh>0.)) cthresh=0.;
@@ -967,16 +943,17 @@ float preProcess::getRCParameter(fqEvent* fqevent){
 
 
   // signed sq root ///////////
-  if (rcpar<0.){
-    rcpar =  -1.*TMath::Sqrt(-1.*rcpar);
-  }
-  else{
-    rcpar = TMath::Sqrt(rcpar);
-  }
+//  if (rcpar<0.){
+//    rcpar =  -1.*TMath::Sqrt(-1.*rcpar);
+//  }
+//  else{
+//    rcpar = TMath::Sqrt(rcpar);
+//  }
   ////////////////////////////
- 
   // tricks to make peak widths in distribution more comparable
-  return 500.*(TMath::Log(rcpar+40.)-TMath::Log(40));
+//  return 500.*(TMath::Log(rcpar+40.)-TMath::Log(40));
+
+  return rcpar;
 }
 
 
