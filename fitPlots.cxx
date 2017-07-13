@@ -116,6 +116,7 @@ TString fitPlots::getAxisTitle(int iatt){
 /////////////////////////////////////////////////////////////
 void fitPlots::drawFitSummaryFV(int isamp , int iatt){
 
+
   // setup titles
   TString xtitle[] = {"e/#mu PID",
                       "e/#pi^{0} PID",
@@ -125,6 +126,7 @@ void fitPlots::drawFitSummaryFV(int isamp , int iatt){
   double titlesize = 0.05;
   double yoffset = 1.3;
   int axisdiv = 10;
+  double binbuffer = 3.;
 
   cc = new TCanvas("cc","cc",1200,800);
   cc->Divide(3,2);
@@ -174,7 +176,6 @@ void fitPlots::drawFitSummaryFV(int isamp , int iatt){
     hd->SetTitle(title.Data());
     hd->GetXaxis()->CenterTitle(1);
     hd->GetYaxis()->CenterTitle(1);
-//    hd->CenterTitle(1);
 
     // get range:
     double max = TMath::Max( hAtt[iatt]->hSummary->GetMaximum(),
@@ -184,6 +185,11 @@ void fitPlots::drawFitSummaryFV(int isamp , int iatt){
     // draw histos
     hd->SetMaximum(max*1.2);
     hd->Draw();
+
+    // don't draw buffer bins
+    double xmax = hd->GetBinLowEdge(hd->GetNbinsX()) - (binbuffer*hd->GetBinWidth(1));
+    double xmin = hd->GetBinLowEdge(1) - hd->GetBinWidth(1) + (binbuffer*hd->GetBinWidth(1));
+    hd->GetXaxis()->SetRangeUser(xmin,xmax);
     hAtt[iatt]->hSummary->Draw("samee2");
     hmc->Draw("samehisto");
     hd->Draw("same");

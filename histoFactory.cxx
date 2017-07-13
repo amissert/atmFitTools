@@ -76,8 +76,8 @@ void histoFactory::runHistoFactory(){
   setDataTree((TTree*)&chdata);
   cout<<"histoFactory: Number of data events: "<<dataTree->GetEntries()<<endl;
   cout<<"histoFactory: Number of MC events: "<<mcTree->GetEntries()<<endl;
-
   cout<<"histoFactory: Initializing histograms..."<<endl;  
+
   //Initialize  histograms
   init();
 

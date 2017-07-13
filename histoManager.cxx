@@ -86,7 +86,7 @@ TH1D* histoManager::getSumHistogramMod(int isamp, int ibin, int iatt, int normFl
 
   //////////////////////////////////////////
   // number of edge bins to ignore
-  nBinBuffer = 3;
+//  nBinBuffer = 3;
   nDOF = 0.;
 
   ///////////////////////////////////////////
@@ -794,7 +794,7 @@ histoManager::histoManager(const char* rootname,int nsamp,int nbin,int ncomp,int
   nameTag.Append(rootname);
   useSplineFlg=0;
   useNormFlg=1;
-  nBinBuffer = 2;
+  nBinBuffer = 1;
   return;
 }
 
@@ -825,7 +825,10 @@ histoManager::histoManager(const char* parfile, int nmode, bool separateneutmode
   
   //get name string
   nameTag = runPars->globalRootName.Data();
- 
+  
+  // nbinbuffer
+  nBinBuffer = runPars->nBinBuffer;
+
   //setup histogram bin splines if using them 
   if (runPars->useSplinesFlg){
     readSplinesFromFile(runPars->splineFactoryOutput.Data());

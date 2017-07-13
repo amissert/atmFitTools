@@ -20,13 +20,13 @@ void hArray::calcSummary(){
   for (int ibin=1; ibin<=hSummary->GetNbinsX(); ibin++){
     
     // fill array
-    for (int ipt=1; ipt<N; ipt++){
+    for (int ipt=0; ipt<N; ipt++){
       contents[ipt] = histos[ipt]->GetBinContent(ibin);
     }
 
     // get array stats
     double mean = arraymeanD(contents,N);
-    double sig  = TMath::Sqrt(arrayvarD(contents,N));
+    double sig  = TMath::Sqrt(arrayvarD(contents,N))/1.;
 
     // set as summary
     hSummary->SetBinContent(ibin,mean);
@@ -85,6 +85,7 @@ void hArray::drawArray(){
   histos[0]->GetXaxis()->SetRangeUser(xmin+buffer,xmax-buffer);
   histos[0]->Draw("histo");
   for (int ih=1; ih<nHistos; ih++){
+    histos[ih]->SetLineWidth(1);
     histos[ih]->Draw("samehisto");
   }
   return;

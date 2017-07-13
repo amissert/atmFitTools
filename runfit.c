@@ -8,7 +8,8 @@
  gStyle->SetMarkerStyle(1);
 
 //  histoCompare* hc= new histoCompare("dryrun.dat");
-  histoCompare* hc= new histoCompare("wetrun.dat");
+//  histoCompare* hc= new histoCompare("wetrun.dat");
+  histoCompare* hc= new histoCompare("wetrun_2bin.dat");
 
 // hc->thePars->fixAllAttPars(0);
 // hc->thePars->fixAllAttPars(1);

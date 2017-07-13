@@ -9,7 +9,7 @@
 #include "stats.C"
 
 
-#define HARRAYMAX 100
+#define HARRAYMAX 500
 
 class hArray{
 

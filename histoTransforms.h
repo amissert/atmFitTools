@@ -17,7 +17,7 @@
 
 void smearThisGraph(TGraph* gr, double smear, double bias);
 void smoothGraph(TGraph* gr);
-double gIntegral(TGraph* gr, double xmin, double xmax, int sampling=5);
+double gIntegral(TGraph* gr, double xmin, double xmax, int sampling=25);
 void shiftGraph(TGraph* gr, double smear, double bias);
 TH1D* testBumpD(int nev,double sig=1.0,double mean=0.0,const char* name="testbumb");
 double graph2histo(TGraph* gr, TH1D* h);

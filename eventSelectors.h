@@ -68,11 +68,6 @@ float calcEnu(int ipid, float pmom, float dirx, float diry, float dirz){
 int selectNuMu(fqcutparams fq){
 
 
-//#ifdef VERBOSE
-//  printCutPars(fq);
-//#endif
-
-
   // nu energy cut
   if (fq.fqenumu>30000.) return 0.;
   if (fq.fqenumu<0.) return 0.;

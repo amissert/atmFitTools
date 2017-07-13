@@ -196,7 +196,7 @@ double arrayvarD(double arr[], int n){
     N++;
   }
   if (var<ZEROISH) return 0.;
-  return var/(N-1);
+  return var/(N-1.);
 }
 
 ///////////////////////////////////////////////
@@ -232,11 +232,11 @@ double arraycorD(double arrx[], double arry[], int n){
   if ((N-1) <= 0.) return 0.;
 
   // calc
-  double cov=0.;
-  for (int i=0; i<n; i++){
-    cov += (arrx[i]-meanx)*(arry[i]-meany)/(N-1); 
-  }
-
+//  double cov=0.;
+//  for (int i=0; i<n; i++){
+//    cov += (arrx[i]-meanx)*(arry[i]-meany)/(N); 
+//  }
+  double cov = arraycovD(arrx,arry,n);
   return cov/(varx*vary);
 }
 

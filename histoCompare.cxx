@@ -889,9 +889,10 @@ void histoCompare::showFitResult(int isamp,int ibin,int iatt){
   hTmp->SetLineColor(kRed);
  
   // draw data histograms
-  double xmin = hManager->hData[isamp][ibin][iatt]->GetBinLowEdge(hManager->nBinBuffer);
+  double xmin = hManager->hData[isamp][ibin][iatt]->GetBinLowEdge(hManager->nBinBuffer+1);
   int nbinstot = hManager->hData[isamp][ibin][iatt]->GetNbinsX();
   double xmax =  hManager->hData[isamp][ibin][iatt]->GetBinLowEdge(nbinstot-hManager->nBinBuffer);
+  xmax += hManager->hData[isamp][ibin][iatt]->GetBinWidth(nbinstot);
   hManager->hData[isamp][ibin][iatt]->GetXaxis()->SetRangeUser(xmin,xmax);
   hManager->hData[isamp][ibin][iatt]->SetMarkerStyle(8);
   hManager->hData[isamp][ibin][iatt]->SetTitle(Form("Detector Region %d Sample %d",ibin,isamp));
@@ -1416,6 +1417,7 @@ void histoCompare::getTotLnL1D(double& result,int npar, double par[]){
 ///////////////////////////////////////////////////
 // Compute the likelihood component coming from priors
 double histoCompare::getPriorLnL(){
+
   double priorLnL = 0.;
   double pull = 0;
   for (int isys=0;isys<thePars->nSysPars;isys++){
@@ -1423,6 +1425,23 @@ double histoCompare::getPriorLnL(){
     pull/=thePars->sysParUnc[isys];
     priorLnL+=(0.5)*(pull*pull);
   }
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  //Contribution from bias and smear priors
+  // If using gaussion priors on bias and smear parameters, evelauate the likelihood here.
+  // This is done by calling an atmfit pars method that will sum the contributions 
+  if (flgUsePriorsInFit){
+    double parpriorlnl = thePars->calcLogPriors();
+    priorLnL += parpriorlnl; 
+#ifdef VERBOSE
+    cout<<"prior LnL: "<<parpriorlnl<<endl;
+    cout<<"Total LnL: "<<totL<<endl;
+#endif
+
+  }
+
+
   return priorLnL;
 }
 
@@ -1480,20 +1499,6 @@ double histoCompare::getTotLnL(){
   totL += thePars->cov->getLikelihood();
 #endif
 
-  ////////////////////////////////////////////////////////////////////////////////////////
-  //Contribution from bias and smear priors
-  // If using gaussion priors on bias and smear parameters, evelauate the likelihood here.
-  // This is done by calling an atmfit pars method that will sum the contributions 
-  if (flgUsePriorsInFit){
-    double parpriorlnl = thePars->calcLogPriors();
-    totL += parpriorlnl; 
-//    totL += thePars->calcLogPriors();
-#ifdef VERBOSE
-    cout<<"prior LnL: "<<parpriorlnl<<endl;
-    cout<<"Total LnL: "<<totL<<endl;
-#endif
-
-  }
 
 
 

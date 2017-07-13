@@ -12,6 +12,7 @@ using namespace std;
 // apply the cuts to a modified event and see if it passes
 //   returns 1 -> passed electron selection
 //   returns 2 -> passed muon selection
+//   returns 3 -> passed electron 1R pi selection
 int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
 
   // fill tmp array with "nominal" MC values
@@ -76,6 +77,8 @@ int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
 //      0 -> Tail
 //      1 -> Core -OR- e-like core for NC
 //      2 -> mu-like core for NC
+//
+//      7/3: Modified for new RC parameters (always passes RC cuts)
 /////////////////////////////////////////////////////////////////
 int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
 
@@ -115,7 +118,8 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
   //          4 -> nu mu CCOth
   //          5 -> NC pi0
   if (nclass==1){ //< require single ring electron and CCQE
-    if (cutPars.fqpid>=0. && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){//< e-like, not pi0, 1R-like
+//    if (cutPars.fqpid>=0. && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){//< e-like, not pi0, 1R-like
+    if (cutPars.fqpid>=0. && cutPars.fqpi0par<=0.){//< e-like, not pi0
       return 1;
     }
     else{
@@ -126,7 +130,8 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
 
   // muon CCQE
   if (nclass==2){
-    if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+//    if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+    if (cutPars.fqpid<=0 && cutPars.fqpippar<=0.){
       return 1; // mu-lik and not pip and 1R-like so is core
     }
     else{
@@ -137,7 +142,8 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
 
   // electron CCOth
   if (nclass==3){
-    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){
+//    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.){
+    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0.){
       return 1; // e-like and not pi0 and 1R-like
     }
     else{
@@ -148,7 +154,8 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
 
   // muon CCOth
   if (nclass==4){
-    if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+//    if (cutPars.fqpid<=0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+    if (cutPars.fqpid<=0 && cutPars.fqpippar<=0.){
       return 1; //< mu-lik and not pip and 1R-like
     }
     else{
@@ -159,11 +166,13 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
 
   // NC Pi0
   if (nclass==5){
-    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.
-        && cutPars.fqnsubev==1 && cutPars.fqmome>100){
+//    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.
+//        && cutPars.fqnsubev==1 && cutPars.fqmome>100){
+    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqnsubev==1 && cutPars.fqmome>100){
       return 1; //< e-like core
     }
-    else if (cutPars.fqpid<0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+//    else if (cutPars.fqpid<0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+    else if (cutPars.fqpid<0 && cutPars.fqpippar<=0.){
       return 2; //< mu-like core
     }
     else{
@@ -173,11 +182,13 @@ int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
 
   // NC Pi
   if (nclass==6){
-    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.
-        && cutPars.fqnsubev==1 && cutPars.fqmome>100){
+//    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqrcpar<=0.
+//        && cutPars.fqnsubev==1 && cutPars.fqmome>100){
+    if (cutPars.fqpid>=0 && cutPars.fqpi0par<=0. && cutPars.fqnsubev==1 && cutPars.fqmome>100){
       return 1; //< e-like core
     }
-    else if (cutPars.fqpid<0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+//    else if (cutPars.fqpid<0 && cutPars.fqpippar<=0. && cutPars.fqrcpar<=0.){
+    else if (cutPars.fqpid<0 && cutPars.fqpippar<=0.){
       return 2; //< mu-like core
     }
     else{
@@ -446,10 +457,12 @@ void toyMC::fillMarginalizedSKErr(const int ntoys, const int nmarg, int nbinning
 // fill the SKError class
 void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
 
+  // ring-counting map
+  RCMap* rcMap = new RCMap("./data/RCMap.root");
+
   // make error container
   skErr = new SKError(ntoys);
   skErr->initHistos(nbinning);
-  skErr->effDefinition = effdef;
 
   // decide which parameters to use
   if (!flgcustom){
@@ -462,7 +475,6 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
   modifier->fitPars->resetDefaults();
 
   // get list of random MCMC points from the MCMC point file
-  // sample uniforly instead
   int nmcmcmax = chPars->GetEntries();
   uniformList* mcmc_points = new uniformList(ntoys,0,chPars->GetEntries());
 
@@ -470,11 +482,10 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
   int nevmax = chMC->GetEntries();
   if (nMCevents>nevmax) nMCevents = nevmax;
 
-
   // reset histogram contents
   skErr->resetHistos();
+
   // fill nominal values
-  // loop over T2K MC events
   for (int iev=0; iev<nMCevents; iev++){
 
     // get true MC event class for event "iev"
@@ -486,6 +497,7 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
                                      fastevents->vfqtowall[iev],
                                      fastevents->vfqwall[iev]);
     if (nclass==0) continue;
+
     // passes core selection?
     int iscore = applyCoreCutsToModifiedEvent(iev,nclass,false);
 
@@ -497,7 +509,9 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
                  *modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev]
                                          ,fastevents->vmode[iev], fastevents->vpmomv[iev]
                                          ,fastevents->vnutype[iev]);
-     
+    if (flgRCWeight){
+      ww *= rcMap->get1RWeight(cutPars.fqrcpar);
+    }
 
     // the "true" flag means we add it to the "total" evis histogram for this class
     skErr->addEventBase(nclass,fastevents->vfqemom[iev],ww);
@@ -540,6 +554,7 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
                                      fastevents->vfqwall[iev]);
     
       if (nclass==0) continue;
+
       // passes core selection?
       int iscore = applyCoreCutsToModifiedEvent(iev,nclass,true);
 
@@ -551,7 +566,9 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
                    *modifier->getEvtWeight( fastevents->vbin[iev], fastevents->vsample[iev]
                                            ,fastevents->vmode[iev], fastevents->vpmomv[iev]
                                            ,fastevents->vnutype[iev]);
-     
+      if (flgRCWeight){
+        ww *= rcMap->get1RWeight(cutPars.fqrcpar);
+      }
 
       // fill total histos
       skErr->addEventBase(nclass,fastevents->vfqemom[iev],ww);

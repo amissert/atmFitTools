@@ -104,16 +104,11 @@ double graph2histo(TGraph* gr, TH1D* h){
   h->Reset();
 
   // calc loss
-//  double loss = 0.;
   double *X = gr->GetX();
-//  double gxmin = X[0];
-//  double gxmax = X[gr->GetN()-1];
   double binw = h->GetBinWidth(1);
   int    nbins = h->GetNbinsX();
   double hxmin = h->GetBinLowEdge(0);
   double hxmax = h->GetBinLowEdge(nbins) + binw;
-//  loss+=gIntegral(gr,gxmin,hxmin,10);
-//  loss+=gIntegral(gr,hxmax,gxmax,10);
 
   // fill bin contents from graph
   for (int ibin=1; ibin<=nbins; ibin++){

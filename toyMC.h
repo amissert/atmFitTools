@@ -16,6 +16,7 @@
 #include <exception>
 #include "TH2FV.h"
 #include "SKError.h"
+#include "RCMap.h"
 
 
 // binning for muons
@@ -66,6 +67,7 @@ class toyMC{
   fqcutparams cutPars;
   SKError* skErr;
 
+
   int nMCevents;
   int indexPIDPar;
   int indexPi0Par;
@@ -76,6 +78,7 @@ class toyMC{
   // methods
   void setChains(TChain* chmc, TChain *chpars,int nmcevents);
   void setCompare(histoCompare* hc);
+//  void setRCMap(const char* fname){rcMap = new RCMap(fname);}
 
 //  void makeFVMapNuMu(int nmcmcpts, const char* outfile);
 //  void makeFVMapNuE(int nmcmcpts,const char* outfile);
@@ -90,6 +93,7 @@ class toyMC{
   int getEventCatagory(int iev, int nutype);
   int getRandomMCMCPoint();  
 
+  int flgRCWeight;
 };
 
 

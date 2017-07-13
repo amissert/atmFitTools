@@ -555,6 +555,7 @@ int preProcess::passCuts(){
   //////////////////////
   //Visible Energy Cut
   if (fq->fq1rmom[0][1]<EVisMin) return 0;
+  if (fq->fq1rmom[0][1]>1250.) return 0; //< tmp cut
 
   ////////////////
   //FV Basic Cuts
