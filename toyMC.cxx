@@ -77,7 +77,6 @@ int toyMC::applyCutsToModifiedEvent(int iev, bool flgmod){
 //      0 -> Tail
 //      1 -> Core -OR- e-like core for NC
 //      2 -> mu-like core for NC
-//
 //      7/3: Modified for new RC parameters (always passes RC cuts)
 /////////////////////////////////////////////////////////////////
 int toyMC::applyCoreCutsToModifiedEvent(int iev, int nclass, bool flgmod){
@@ -501,7 +500,7 @@ void toyMC::fillSKErrors(int ntoys,int nbinning, int flgcustom, int effdef){
     // passes core selection?
     int iscore = applyCoreCutsToModifiedEvent(iev,nclass,false);
 
-    // if its core or tail fill histos
+    // if it's core or tail fill histos
     if (iscore<0) continue; //< skip unclassified events
 
     // get the new event weight

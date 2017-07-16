@@ -294,6 +294,7 @@ void histoCompare::runDEMCMC(int nsteps){
   //setup mcmc tools
   markovTools* mc = new markovTools(thePars,MCMCOutputFile.Data());
   mc->setTuneParameter(tunePar);
+
   //see if we're using a chain or a single file
   if (diffChainFileName.First("*")>=0){
     TChain* mychain = new TChain("MCMCdiff");
@@ -303,7 +304,6 @@ void histoCompare::runDEMCMC(int nsteps){
   else{
    mc->setDiffChain(diffChainFileName.Data());
   }
-
 
   ///////////////////////////////////////////////
   //if no steps spefied, use number from par file
@@ -327,12 +327,10 @@ void histoCompare::runDEMCMC(int nsteps){
   mc->setL(result);//< sets the initial likelihood
 
   //loop through steps
-  int currentstep=0;
+  int currentstep=0;;
   while (currentstep<nsteps){
     currentstep = mc->iStep;
-//    mc->proposeDifferentialStep();
     mc->proposePartialDiffStep();
-
     result = getTotLnL();
     mc->acceptStepLnL(result);
   }
@@ -389,7 +387,6 @@ void histoCompare::runMCMC(int nsteps){
   ///////////////////////////////////////////////
   // print tune parameter
   cout<<"MCMC tune parameter: "<<tunePar<<endl;
-
 
 
   //loop through steps
@@ -1957,10 +1954,6 @@ histoCompare::histoCompare(const char* parfile, bool sep)
 
 }
 
-
-void histoCompare::useFakeData(){
- return; 
-}
 
 
 

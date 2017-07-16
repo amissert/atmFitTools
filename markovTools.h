@@ -13,6 +13,7 @@
 #include "TObject.h"
 #include "shared.h"
 
+#define THINNING 25
 
 using namespace std;
 
@@ -24,6 +25,8 @@ using namespace std;
 //TRandom2* randy = new TRandom2();
 //#endif
 //#endif
+
+
 
 //class to manage a Markov Chain Monte Carlo
 //  construct with pointer to atmFitPars
@@ -69,6 +72,7 @@ class markovTools{
    int    nchangethresh; //< fill threshold for changing trees
    int    noutfile;
    int    NBurnIn; //< wait this many steps before saving MCMC
+   int    NThin; //< how many steps to skip before saving
 
    // output tree
    TTree* pathTree;

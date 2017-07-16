@@ -1028,7 +1028,6 @@ void SKError::resetHistos(){
 
 ///////////////////////////////////////////////////////////////
 int SKError::addEventCore(int nclass, double evis, double weight, int coretype){
-
  
     //
     if (nclass==1){
@@ -1148,7 +1147,7 @@ int SKError::getClassMC(int nutype, int mode, int component,
   //  3 -> CCOth Nu E
   //  4 -> CCOth Nu Mu
   //  5 -> NC pi0
-  //  5 -> NC pi
+  //  6 -> NC pi
 
   double towall_nuecut = 170.;
   double towall_numucut = 250.;

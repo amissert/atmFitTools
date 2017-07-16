@@ -399,10 +399,14 @@ TH2D* makeCov::getBinSubMatrix(int ibin, int itype){
   return hsubcor;
 }
 
+
+
 void makeCov::drawLabeldCor(){
   TCanvas *cc = new TCanvas("cc","cc",700,700);
   cor->GetYaxis()->SetNdivisions(0);
   cor->GetXaxis()->SetNdivisions(0);
+  cor->SetMinimum(-1.);
+  cor->SetMaximum(1.);
   cor->Draw("colz");
   drawVertBinLines();
   drawHorzBinLines();
