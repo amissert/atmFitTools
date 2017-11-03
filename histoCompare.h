@@ -1,7 +1,6 @@
 #ifndef HISTCOMPARE_H
 #define HISTCOMPARE_H
 
-//#define VERBOSE
 
 #include <time.h>
 
@@ -19,7 +18,6 @@
 #include "likelihood.h"
 #include "shared.h"
 #include "calcResErr.h"
-//#include "calcResErr.cxx"
 #include "markovTools.h"
 
 using namespace std;
@@ -71,6 +69,10 @@ class histoCompare{
   void setAttName(int iatt, const char* name){attName[iatt]=name;}
   void setupPars(int nsyspars=0); //sets up all parameters  
   void setupPars(atmFitPars *a);
+
+  // run fits!
+  void runMCMC(int nsteps=-1);
+  void runDEMCMC(int nstep=-1);
  
   //post-fit tools and plotting
   void printFitSummary(const char* outdir);
@@ -82,14 +84,7 @@ class histoCompare{
   void showFitDiff(int isamp, int ibin, int iatt);
   void showFitPars(int ibin,int iatt,int imod);
   void setPar(int ipar, double value){thePars->setParameter(ipar,value);}
-  void showModHiso(int isamp,int ibin, int icomp, int iatt, double smear, double bias);
-  TH2D* show2DLnL(int parx, double xmin, double xmax, int pary, double ymin, double ymax, int npts=100);
-  TGraph2D* show2DLnLG(int parx, double xmin, double xmax, int pary, double ymin, double ymax, int npts=100);
-  void runMCMC(int nsteps=-1);
-  TH2FV* showResidualError();
   void makeResidualErrorMaps(const char* outdir);
-  void runDEMCMC(int nstep=-1);
-  void runDiffMCMC(int nsteps); //< fill with differential steps
   double getErrLo(int isyst);
   double getErrHi(int isyst);
   TH1D* getModifiedHisto(int ibin, int icomp, int iatt){return hManager->getSumHistogramMod(ibin,icomp,iatt);}
@@ -98,9 +93,6 @@ class histoCompare{
   void initialize(histoManager* hm, atmFitPars* apars);
   void setupSplines(const char* fname){hManager->readSplinesFromFile(fname);}
   void printParName(int ipar){cout<<thePars->parName[ipar].Data()<<endl;}
-  void addHistogram(TH1D* h,int dataflg);
-  int  rebinFactor;
-  void setRebinFactor(int ifact){rebinFactor=ifact;}
   TH1D* hData[10];
   TH1D* hMC[10];
   TH1D* hModDebug;
@@ -120,12 +112,10 @@ class histoCompare{
   double cScale; //correction scale for likelihood
   void printFitResults(const char* directory);
 
-  //////////////////////////////////////////////////////////
   //flags
   int flgFixAllSmearPars;
   int flgUsePriorsInFit; 
 
-  /////////////////////////////////////////////////////////
   // make fake data by setting modified histograms as data
   void makeFakeData();
 
@@ -146,10 +136,7 @@ class histoCompare{
   void readFitPars(const char* filename); //< read parameters from a file
   void tuneMCMC(int ncyles=1,int nsteps=150,double goal=0.25);
   void tuneDEMCMC(int ncyles=1,int nsteps=150,double goal=0.25);
-  void tuneMCMCOld(int ncyles=1,int nsteps=150,double goal=0.25);
   void calcRoughParErr();
-
-
   
   //staticthis for fits
   static histoCompare* staticthis;

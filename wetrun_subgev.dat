@@ -19,6 +19,7 @@ $ THIS IS PRINTED OUT AFTER RUNNING HISTOGRAM FACTORY
 $d:normFactor = 1.0;
 d:normFactor = 1.06033;
 
+
 $ NUMBER OF SAMPLES, COMPONENTS, ETC.
 i,nSamples=3;
 i,nFVBins=6;
@@ -27,7 +28,7 @@ i,nAttributes=4;
 i,nSysPars=19;
 
 $ ROOT NAME FOR OUTPUT FILES
-s,globalRootName=atm_run0;
+s,globalRootName=atm_subgev;
 
 $ OTHER NAMES
 s,FVBinName0=wall0;

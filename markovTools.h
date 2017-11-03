@@ -13,18 +13,9 @@
 #include "TObject.h"
 #include "shared.h"
 
-#define THINNING 25
+#define THINNING 20
 
 using namespace std;
-
-//#ifndef GLOBAL_RANDOM
-//#define GLOBAL_RANDOM
-//#ifdef T2K
-//TRandom3 *randy = new TRandom3();
-//#else
-//TRandom2* randy = new TRandom2();
-//#endif
-//#endif
 
 
 

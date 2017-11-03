@@ -5,6 +5,8 @@
 
 using namespace std;
 
+
+
 /////////////////////////////////////////////////////
 // change to a new output file
 void markovTools::changeFile(){
@@ -41,6 +43,8 @@ void markovTools::changeFile(){
   return; 
 }
 
+
+
 /////////////////////////////////////////////////////
 // set pointer to another chian
 void markovTools::setDiffChain(TChain* mychain){
@@ -53,6 +57,8 @@ void markovTools::setDiffChain(TChain* mychain){
   //
   return;
 }
+
+
 
 /////////////////////////////////////////////////////
 // initial setup for DEMCMC
@@ -100,9 +106,6 @@ void markovTools::initDiffChain(){
   diffChain->SetBranchStatus("*",0);
   diffChain->SetBranchStatus("pardiff",1);;
 
-  // talk about it
-//  cout<<"markovTools::setDiffChain(): Added chain of "<<nDiffSteps<<" differential steps "<<endl;
-
   //
   return;
 
@@ -115,7 +118,6 @@ void markovTools::setDiffChain(const char* fname, int flgchain){
 
   // list of ROOT files will contain '*'
   TString names = fname;
-//  cout<<"makrovTools: diff files "<<fname<<endl;
   if (names.First("*")>=0){
     TChain* chain = new TChain("MCMCdiff");
     chain->Add(fname);
@@ -123,83 +125,21 @@ void markovTools::setDiffChain(const char* fname, int flgchain){
    initDiffChain();
    return;
   }
-//  else{
-//    flgchain = 0;
-//  }
-//  cout<<"makrovTools: using chian? "<<flgchain<<endl;
 
   // setup chain of par differences
-
   fDiffChain = new TFile(fname);
   diffChain = (TTree*)fDiffChain->Get("MCMCdiff"); 
   cout<<"markovTools: using file with tree of size "<<diffChain->GetEntries()<<endl;
 
- // TChain* mychain = new TChain("MCMCdiff");
- /// if (flgchain==0){
-   // fDiffChain = new TFile(fname);
-   // diffChain = (TTree*)fDiffChain->Get("MCMCdiff"); 
- // }
- // else{
-   // cout<<"makrovTools: making chain "<<flgchain<<endl;
-   // mychain->Add(names.Data());
-   // cout<<"markovTools: using chian with "<<diffChain->GetEntries()<<" entries"<<endl;
-   // diffChain = (TTree*)mychain;
- // }
-
-
   // initialize
   initDiffChain();
-
-  /*
-  // turn on relevant branches
-  diffChain->SetBranchStatus("*",0);
-  diffChain->SetBranchStatus("pardiff",1);
-  diffChain->SetBranchStatus("npars",1);
-  diffChain->SetBranchStatus("parindex",1);
-
-  // set addresses
-  diffChain->SetBranchAddress("pardiff",parDiff);
-  diffChain->SetBranchAddress("npars",&ndiffpars);
-  int atmDiffIndex[NMCMCPARS]; //< temporary array for atmFitPars indicies
-  diffChain->SetBranchAddress("parindex",atmDiffIndex);
-
-  // get number of steps
-  nDiffSteps = diffChain->GetEntries();
-
-  // set ndiffpars variable and atmDiffIndex
-  diffChain->GetEntry(0);
-
-  // by default, do not use differential proposal
-  for (int ipar=0; ipar<nParsEffective; ipar++){
-    useDiffProposal[ipar] = 0.;
-  }
-
-  // loop over the list of differential parameters
-  for (int idiffpar = 0; idiffpar<ndiffpars; idiffpar++){
-    int atmindex = atmDiffIndex[idiffpar]; //< index in full list
-    // try to find a matching parameter in effective par list
-    for (int imcmcpar=0; imcmcpar<nParsEffective; imcmcpar++){
-      int atmindex_mcmc = parIndex[imcmcpar];
-      // if a match is found, use differential chain for that parameter
-      if (atmindex==atmindex_mcmc){
-         useDiffProposal[imcmcpar] = 1;
-         parDiffIndex[imcmcpar] = idiffpar;
-      }
-    }
-  }
-
-  // ignore all but pardiff branch
-  diffChain->SetBranchStatus("*",0);
-  diffChain->SetBranchStatus("pardiff",1);;
-
-  // talk about it
-  cout<<"markovTools::setDiffChain(): Added chain of "<<nDiffSteps<<" differential steps "<<endl;
-  */
 
   // cd back to output file 
   fout->cd();
   return;
 }
+
+
 
 void markovTools::setupPathTree(){
 
@@ -207,31 +147,7 @@ void markovTools::setupPathTree(){
 
 }
 
-/*
-void markovTools::setMeans(histoManager* hmanager){
-  
-  int nsamp = atmPars->nSamples;
-  int nbin  = atmPars->nBins;
-  int ncomp = atmPars->nComponents;
-  int natt  = atmPars->nAttributes;
-  
-  for (int ibin=0; ibin<nbin; ibin++){
-    for (int icomp=0; icomp<ncomp; icomp++){
-      for (int iatt=0; iatt<natt; iatt++){
-         int parindex = atmPars->getParIndex(ibin,icomp,iatt,0);
-         means[parindex] = hmanager->hMCMean
-      }
-    }
-  }
 
-}
-*/
-
-/*
-void markovTools::saveCurrentPath(){
-  pathTree->Write();
-}
-*/
 
 void markovTools::savePath(){
   cout<<"makrovTools: path tree has "<<pathTree->GetEntries()<<" points!"<<endl;
@@ -241,11 +157,15 @@ void markovTools::savePath(){
   return;
 }
 
+
+
 void markovTools::setParVar(int ipar,double value){
   varPar[ipar] = value;
   cout<<"parameter "<<ipar<<" variance set to: "<<value<<endl;
   return;
 }
+
+
 
 void markovTools::testAtm(int ntry){
 
