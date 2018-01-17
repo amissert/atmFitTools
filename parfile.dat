@@ -13,7 +13,6 @@ $	's' -> string
 
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ GLOBAL PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$$$$
-
 $ EXPLICIT NORMALIZATION BETWEEN DATA AND MC
 $ THIS IS PRINTED OUT AFTER RUNNING HISTOGRAM FACTORY
 $d:normFactor = 1.0;
@@ -27,7 +26,7 @@ i,nAttributes=4;
 i,nSysPars=19;
 
 $ ROOT NAME FOR OUTPUT FILES
-s,globalRootName=atm_run0;
+s,globalRootName=atm_newrc_run4;
 
 $ OTHER NAMES
 s,FVBinName0=wall0;
@@ -40,14 +39,6 @@ s,fQAttName1=fqpi0par;
 s,fQAttName2=fqpippar;
 s,fQAttName3=fqrcpar;
 s,fQAttName4=fq1rmom;
-
-$ COMPONENT NAMES THAT DONT REALLY MATTER?
-s,MCComponentName0=single_e;
-s,MCComponentName1=single_mu;
-s,MCComponentName2=e_other;
-s,MCComponentName3=mu_other;
-s,MCComponentName4=pi0;
-s,MCComponentName5=other;
 s,sampleName0=1se;
 s,sampleName1=2se;
 s,sampleName2=gt2se;
@@ -57,7 +48,7 @@ $$ PREPROC PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$$$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 $$ OUTPUT DIRECTORY FOR THE PROCESSED FILES 
-s,preProcessOutDir=/nfs/data41/t2k/amissert/processed/wetrun/run6/;
+s,preProcessOutDir=/nfs/data41/t2k/amissert/processed/wetrun/jun27newrc_allevis/;
 s,preProcessFilesMC=/nfs/data41/t2k/amissert/skdata/atmospheric/cris_ntuple/atm*.root;
 s,preProcessFilesData=/nfs/data41/t2k/amissert/skdata/atmospheric/data_cris_mar15/ap*.root;
 
@@ -65,6 +56,7 @@ $$ CODE FOR FV BINNING
 $$   0 -> BIN USING TH2FV (USE THIS FOR ATMSPHERIC FITS)
 $$   1 -> COSMIC (SORT BY SIDE VS TOP ENTERING)
 $$   2 -> NO FV BINNING (ONE BIN)
+$$ Use 0
 i,preProcessFVBinning=0;
 
 $$ MC COMPONENT DEFINITIONS
@@ -72,6 +64,7 @@ $$   0 -> VISIBLE+NEUT
 $$   1 -> COSMIC  (CUTS ON SUBEV #)
 $$   2 -> VISIBLE (CUTS ONLY ON # VIS RINGS)
 $$   3 -> HPI0 (NO CUTS)
+$$ Use 2 for atmospheric fit
 i,preProcessMCComponents=2;
 
 $$ MC AND DATA SAMPLE DEFINITION
@@ -79,13 +72,14 @@ $$  0 -> ATMOSPHERIC (BY NSE)
 $$  1 -> COSMIC
 $$  2 -> HYBRID PI0 (ONE SAMPLE)
 $$  3 -> ATMOSPHERIC + E 
+$$ Use 0 for atmospheric fit
 i,preProcessMCSamples=0;
 
 $$ NHITAC CUT FOR FC EVENTS
 i,preProcFCCut=16;
 
 $$ VISIBLE ENERGY CUT
-d,preProcEVisCut=100.;
+d,preProcEVisCut=0.;
 
 $$ MIN WALL CUT
 d,preProcWallMinCut=0;
@@ -103,6 +97,7 @@ $$ MIN TIME BETWEEN FIRST TWO SUBEVENTS (INGATE CUT)
 d,preProcInGateCut=0;
 
 $$ ADD ADDIONAL VARIABLES TO OUTPUT (MAY INCREASE PROCESSING TIME)
+$$ PROBABLY NO NEED TO USE THIS.
 i,preProcAddMoreVars=0;
 
 $$ NTUPLE STRUCTURE OF INPUT FILES
@@ -112,20 +107,21 @@ s:ntupleType=Atmospheric;
 
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ HFACTORY PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$$
-$$ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 $$ OUTPUT FILE FOR FILLED HISTOGRAMS
-s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/wetrun/nring_logscale/histos_rough2.root;
+s,hFactoryOutput=/nfs/data41/t2k/amissert/processed/wetrun/jun27newrc/histos_run4.root;
 
 $$ PROCESSED MC FILES
-s,hFactoryMCFiles=/nfs/data41/t2k/amissert/processed/wetrun/nring_logscale/*ppmc*.root;
+s,hFactoryMCFiles=/nfs/data41/t2k/amissert/processed/wetrun/jun27newrc/*run4*ppmc*.root;
 
 $$ PROCESSED DATA FILES
-s,hFactoryDataFiles=/nfs/data41/t2k/amissert/processed/wetrun/nring_logscale/*ppd*.root;
+s,hFactoryDataFiles=/nfs/data41/t2k/amissert/processed/wetrun/jun27newrc/*run4*ppd*.root;
 
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ HISTOGRAM BINNING $$$$$$$$$$$$$$$$$$$$$$$$$$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
 i,nBinsAtt0=45;
 i,nBinsDataAtt0=25;
 i,nBinsAtt1=45;
@@ -133,7 +129,7 @@ i,nBinsDataAtt1=25;
 i,nBinsAtt2=45;
 i,nBinsDataAtt2=25;
 i,nBinsAtt3=45;
-i,nBinsDataAtt3=16;
+i,nBinsDataAtt3=25;
 i,nBinsAtt4=45;
 i,nBinsDataAtt4=25;
 d,xMinAtt0=-2800;
@@ -142,8 +138,8 @@ d,xMinAtt1=-500;
 d,xMaxAtt1=1000.;
 d,xMinAtt2=-1000;
 d,xMaxAtt2=600;
-d,xMinAtt3=-650;
-d,xMaxAtt3=950;
+d,xMinAtt3=-500;
+d,xMaxAtt3=1500;
 d,xMinAtt4=0;
 d,xMaxAtt4=2000;
 d,xMinAtt5=-0.5;
@@ -154,7 +150,7 @@ $$ SPLINE FACTORY PARAMETERS $$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 $ NAME OF OUTPUT FILE FOR BIN SPLINES
-s,splineFactoryOutput=/nfs/data41/t2k/amissert/processed/wetrun/nring_logscale/spline_pars_all.root;
+s,splineFactoryOutput=/nfs/data41/t2k/amissert/processed/wetrun/jun27newrc/splines_run4.root;
 
 $  CODE FOR THE TYPE OF SYSTEMATIC ERROR PARAMETERIZATION
 $    tn186 -> SIMPLE TN186 PARAMETERIZATION 
@@ -168,26 +164,29 @@ $$ FIT & MCMC PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 $  TOTAL # OF STEPS FOR THS MCMC
-i,MCMCNSteps=250000;
+i,MCMCNSteps=350000;
 
 $  NUMBER OF STEPS BEFORE SAVING THE MCMC 
+$  IF LOADING FROM PREVIOUS CHAIN, THIS CAN BE SMALL
 i,MCMCNBurnIn=1;
 
 $  TUNING PARAMETER FOR DISTANCE BETWEEN PROPOSED STEPS
-$ for MCMC
-$d,MCMCTunePar=0.070;
-$ for DEMCMC
-d,MCMCTunePar=0.099;
+$  USE tuneMCMC() or tuneDEMCMC() methods in interactive session
+$  to find the proper value. Should find value with ~~25% step acceptance.
+d,MCMCTunePar=0.08;
+$d,MCMCTunePar=0.020;
 
-$  CAN TURN ON OR OFF THE SMEARING PARAMETERS
+$  CAN TURN ON OR OFF THE SMEARING PARAMETERS  IN THE FIT
 i,flgFixAllSmearPars=0;
 
-$  BUFFER OF BINS TO NOT INCLUDE IN THE LIKELIHOOD EVALUATION
+$  BUFFER OF BINS AT EDGES TO IGNORE IN THE LIKELIHOOD EVALUATION.
 $  THIS NUMBER OF BINS AT THE BEGINNING AND END WILL BE IGNORED
-i,nBinBuffer=2;
+$  WHEN CALCULATING THE LIKELIHOOD, BUT NOT WHEN SHIFTING
+$  THE HISTOGRAM.
+i,nBinBuffer=3;
 
 $  TOGGLE THE USE OF BIN SPLINES
-i,useSplinesFlg=0;
+i,useSplinesFlg=1;
 
 $  TOGGLE THE USE OF NORMALIZATION PARAMETERS
 i,flgUseNormPars=1;
@@ -196,8 +195,7 @@ $  DO YOU WANT TO READ A SPECIFIED FILE OF PARAMETERS IN?
 $  CAN USE THIS TO READ IN PREVIOUS FIT RESULTS OR START
 $  THE MCMC FROM SOME PREVIOUS POINT
 i,flgUseFitParFile=1;
-s,fitParFile=/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun_logrc/demcmc_large_summary.root;
-
+s,fitParFile=/nfs/data41/t2k/amissert/atmos/head/atmFitTools/run/results/wetrun_newrc/atmfit_demcmc_run8demcmcfit_7.root;
 
 $  TOGGLE PRIORS ON SHAPE PARAMETERS
 $  SOME LOOSE PRIORS ARE NEEDED TO CONSTRAIN SOME SHAPE
@@ -212,10 +210,11 @@ d,biasPriorWidthAtt0=200;
 d,biasPriorWidthAtt1=200;
 d,biasPriorWidthAtt2=200;
 d,biasPriorWidthAtt3=200;
-d,biasPriorWidthAtt4=100;
+d,biasPriorWidthAtt4=200;
 
 $  ENFORCE A PHYSICAL BOUNDARY ON SOME ATTRIBUTES
-i,flgUsePhysLoBound=1;
+$  (THIS IS NO LONGER NEEDED)
+i,flgUsePhysLoBound=0;
 d,physLoBoundAtt0=-1;
 d,physLoBoundAtt1=-1;
 d,physLoBoundAtt2=-1;
@@ -225,7 +224,7 @@ $d,physLoBoundAtt3=-1;
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$ POSTFIT PARAMETERS $$$$$$$$$$$$$$$$$$$$$$$$$$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
+$ I DON'T THINK THESE ARE REQUIRED ANYMORE...?
 s,MCMCFile=mcmctree.root;
 $i,MCMCBurnIn=100;
 $i,NMCEvents=500;
