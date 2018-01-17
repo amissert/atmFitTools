@@ -54,13 +54,6 @@ void sharedPars::readParsFromFile(){
   hFactoryDataFiles=kr->getKeyS("hFactoryDataFiles");
   hFactoryMCFiles=kr->getKeyS("hFactoryMCFiles");
   hFactoryOutput=kr->getKeyS("hFactoryOutput");
-  MCComponentName0=kr->getKeyS("MCComponentName0");
-  MCComponentName1=kr->getKeyS("MCComponentName1");
-  MCComponentName2=kr->getKeyS("MCComponentName2");
-  MCComponentName3=kr->getKeyS("MCComponentName3");
-  MCComponentName4=kr->getKeyS("MCComponentName4");
-  MCComponentName5=kr->getKeyS("MCComponentName5");
-  MCComponentName6=kr->getKeyS("MCComponentName6");
   sampleName0=kr->getKeyS("sampleName0");
   sampleName1=kr->getKeyS("sampleName1");
   sampleName2=kr->getKeyS("sampleName2");
